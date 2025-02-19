@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../back-end
+      dockerfile: Dockerfile.backend
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgres://user:password@postgres:5432/agendamento
+    depends_on:
+      - postgres
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: agendamento
+    ports:
+      - "5432:5432"
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_container
+    ports:
+      - "27017:27017"
+
+volumes:
+  postgres_data:
+  mongo_data:
