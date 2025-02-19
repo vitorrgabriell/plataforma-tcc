@@ -1,2 +1,2 @@
-from .user import User  # Se já existir
-from .blacklist import BlacklistToken  # Importando o novo modelo
+from .user import User  
+from .blacklist import BlacklistToken  

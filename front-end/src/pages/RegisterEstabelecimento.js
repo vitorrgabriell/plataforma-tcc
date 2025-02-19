@@ -4,7 +4,6 @@ import axios from "axios";
 import styled from "styled-components";
 import Cookies from "js-cookie";
 
-// Styled Components
 const Container = styled.div`
   min-height: 100vh;
   display: flex;
@@ -99,7 +98,7 @@ const RegisterEstabelecimento = () => {
         tipo_servico: tipoServico,
       };
   
-      console.log("Payload enviado:", payload); // Verifica o que está sendo enviado
+      console.log("Payload enviado:", payload); 
   
       const token = Cookies.get("token");
   

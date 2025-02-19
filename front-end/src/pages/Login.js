@@ -109,7 +109,6 @@ const Login = () => {
   
       Cookies.set("token", access_token, { expires: 1 });
   
-      // Redirecionar conforme o tipo de usuário
       if (tipo_usuario === "cliente") {
         navigate("/dashboard-cliente");
       } else if (tipo_usuario === "profissional") {
@@ -148,9 +147,6 @@ const Login = () => {
         <RegisterLink>
           Não tem uma conta? <a href="/register">Registre-se</a>
         </RegisterLink>
-        {/* <RegisterLink>
-          Deseja cadastrar seu estabelecimento? <a href="/register-estabelecimento">Clique aqui</a>
-        </RegisterLink> */}
       </FormWrapper>
     </Container>
   );

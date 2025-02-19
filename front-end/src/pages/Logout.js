@@ -9,7 +9,6 @@ const Logout = () => {
   useEffect(() => {
     const handleLogout = async () => {
       try {
-        // Obter o token do cookie
         const token = Cookies.get("token");
 
         if (token) {
@@ -24,10 +23,8 @@ const Logout = () => {
           );
         }
 
-        // Remover o token do cookie
         Cookies.remove("token");
 
-        // Redirecionar para a tela de login
         navigate("/");
       } catch (err) {
         console.error("Erro ao fazer logout", err);

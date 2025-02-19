@@ -98,17 +98,17 @@ const Register = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [tipoUsuario] = useState("cliente"); // Default para cliente
+  const [tipoUsuario] = useState("cliente"); 
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // Estado para feedback de carregamento
+  const [loading, setLoading] = useState(false); 
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    setLoading(true); // Ativa o estado de carregamento
+    setLoading(true); 
 
     try {
       const payload = { nome, email, senha, tipo_usuario: tipoUsuario };
@@ -123,7 +123,7 @@ const Register = () => {
         "Erro ao registrar. Tente novamente.";
       setError(errorMsg);
     } finally {
-      setLoading(false); // Desativa o estado de carregamento
+      setLoading(false); 
     }
   };
 
@@ -171,12 +171,6 @@ const Register = () => {
             {loading ? "Cadastrando..." : "Registrar"}
           </Button>
         </form>
-        {/* <Text>
-          Deseja cadastrar seu estabelecimento?{" "}
-          <span onClick={() => navigate("/register-estabelecimento")}>
-            Clique aqui
-          </span>
-        </Text> */}
       </FormWrapper>
     </RegisterContainer>
   );

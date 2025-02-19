@@ -2,7 +2,6 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy import Column, Integer, String, DateTime, func
 from typing import Optional
 
-# Modelo base para Estabelecimento
 class EstabelecimentoBase(BaseModel):
     nome: str
     cnpj: str
