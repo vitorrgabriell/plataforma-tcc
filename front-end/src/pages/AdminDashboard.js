@@ -90,8 +90,8 @@ const AdminDashboard = () => {
         <Title>AgendaVip</Title>
         {userName && <UserInfo>Bem-vindo de volta, {userName}!</UserInfo>}
         <ButtonGroup>
-          <Button onClick={() => navigate("/register-funcionario")}>
-            Registrar funcionário
+          <Button onClick={() => navigate("/register-funcionarios")}>
+            Gerenciar funcionários
           </Button>
           <Button bgColor="#ef4444" hoverColor="#dc2626" onClick={handleLogout}>
             Sair

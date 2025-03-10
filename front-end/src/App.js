@@ -6,6 +6,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Register from "./pages/Register";
 import RegisterEstabelecimento from "./pages/RegisterEstabelecimento";
 import Logout from "./pages/Logout";
+import RegisterFuncionario from "./pages/RegisterFuncionario";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/dashboard-admin" element={<AdminDashboard />} />
         <Route path="/register" element={<Register />} />
         <Route path="/register-estabelecimento" element={<RegisterEstabelecimento />} />
+        <Route path="/register-funcionarios" element={<RegisterFuncionario />} />
         <Route path="/logout" element={<Logout />} />
       </Routes>
     </Router>

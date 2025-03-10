@@ -12,12 +12,14 @@ CREATE TABLE usuarios (
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE profissionais (
+CREATE TABLE funcionarios (
     id SERIAL PRIMARY KEY,
-    usuario_id INT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-    especialidade VARCHAR(100) NOT NULL,
-    descricao TEXT,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    cargo VARCHAR(50) NOT NULL,
+    estabelecimento_id INT NOT NULL,
+    FOREIGN KEY (estabelecimento_id) REFERENCES estabelecimentos(id) ON DELETE CASCADE
 );
 
 CREATE TABLE servicos (

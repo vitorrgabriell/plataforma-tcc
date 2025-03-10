@@ -54,3 +54,19 @@ class BlacklistTokenSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+class FuncionarioBase(BaseModel):
+    nome: str
+    email: EmailStr
+    cargo: str
+
+class FuncionarioCreate(FuncionarioBase):
+    senha: str
+    estabelecimento_id: int
+
+class FuncionarioResponse(FuncionarioBase):
+    id: int
+    estabelecimento_id: int
+
+    class Config:
+        from_attributes = True

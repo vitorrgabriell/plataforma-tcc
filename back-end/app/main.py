@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.user_routes import router as user_router
 from app.routes.auth_routes import router as auth_router
 from app.routes.estabelecimento_routes import router as estabelecimento_router
+from app.routes.funcionario_routes import router as funcionario_router
 
 app = FastAPI()
 
@@ -18,3 +19,4 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(user_router, prefix="/users", tags=["users"])
 app.include_router(estabelecimento_router, tags=["Estabelecimentos"])
+app.include_router(estabelecimento_router, prefix="/funcionarios", tags=["funcionarios"])
