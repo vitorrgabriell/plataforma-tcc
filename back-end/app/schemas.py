@@ -60,9 +60,10 @@ class FuncionarioBase(BaseModel):
     email: EmailStr
     cargo: str
 
-class FuncionarioCreate(FuncionarioBase):
+class FuncionarioCreate(BaseModel):
+    nome: str
+    email: str
     senha: str
-    estabelecimento_id: int
 
 class FuncionarioResponse(FuncionarioBase):
     id: int

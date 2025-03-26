@@ -107,14 +107,11 @@ const RegisterFuncionario = () => {
     e.preventDefault();
     setError("");
 
-    const token = Cookies.get("token");
-
     const payload = {
-        nome: nome.trim(),
-        email: email.trim(),
-        senha: senha,
-        tipo_usuario: cargo,
-        estabelecimento_id: Number(estabelecimento_id),
+        nome,
+        email,
+        senha,
+        estabelecimento_id, // 🔹 Apenas o estabelecimento agora
     };
 
     console.log("Payload enviado:", payload);
@@ -122,22 +119,17 @@ const RegisterFuncionario = () => {
     try {
         await axios.post("http://127.0.0.1:8080/funcionarios/", payload, {
             headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
+                Authorization: `Bearer ${Cookies.get("token")}`,
             },
         });
+
         setSuccess("Funcionário cadastrado com sucesso!");
         setTimeout(() => {
             navigate("/dashboard-admin");
         }, 2000);
     } catch (err) {
         console.error("Erro ao cadastrar funcionário:", err);
-        if (err.response && err.response.data && Array.isArray(err.response.data.detail)) {
-            const formattedErrors = err.response.data.detail.map((detail) => detail.msg).join(", ");
-            setError(formattedErrors);
-        } else {
-            setError("Erro ao cadastrar funcionário. Tente novamente.");
-        }
+        setError("Erro ao cadastrar funcionário. Tente novamente.");
     }
 };
 
@@ -145,7 +137,7 @@ const RegisterFuncionario = () => {
     <Container>
       <Card>
         <Title>Cadastrar Funcionário</Title>
-        {error && <Message error>{error}</Message>}
+        {error && <Message error="true">{error}</Message>}
         {success && <Message>{success}</Message>}
         <form onSubmit={handleRegisterFuncionario}>
           <FormGroup>
@@ -181,7 +173,7 @@ const RegisterFuncionario = () => {
               required
             />
           </FormGroup>
-          <FormGroup>
+          {/* <FormGroup>
             <label htmlFor="cargo">Cargo</label>
             <select
               id="cargo"
@@ -194,7 +186,7 @@ const RegisterFuncionario = () => {
               <option value="Técnico">Técnico</option>
               <option value="Gerente">Gerente</option>
             </select>
-          </FormGroup>
+          </FormGroup> */}
           <Button type="submit">Cadastrar Funcionário</Button>
         </form>
       </Card>

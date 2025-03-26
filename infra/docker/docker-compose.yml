@@ -1,42 +1,91 @@
+# version: '3.8'
+
+# services:
+#   backend:
+#     build:
+#       context: ../back-end
+#       dockerfile: Dockerfile.backend
+#     ports:
+#       - "5000:5000"
+#     environment:
+#       DATABASE_URL: postgres://user:password@postgres:5432/agendamento
+#     depends_on:
+#       - postgres
+
+#   frontend:
+#     build:
+#       context: ../frontend
+#       dockerfile: Dockerfile.frontend
+#     ports:
+#       - "3000:3000"
+#     depends_on:
+#       - backend
+
+#   postgres:
+#     image: postgres:latest
+#     container_name: postgres_container
+#     environment:
+#       POSTGRES_USER: user
+#       POSTGRES_PASSWORD: password
+#       POSTGRES_DB: agendamento
+#     ports:
+#       - "5432:5432"
+
+#   mongodb:
+#     image: mongo:latest
+#     container_name: mongodb_container
+#     ports:
+#       - "27017:27017"
+
+# volumes:
+#   postgres_data:
+#   mongo_data:
+
 version: '3.8'
 
 services:
-  backend:
-    build:
-      context: ../back-end
-      dockerfile: Dockerfile.backend
-    ports:
-      - "5000:5000"
+  db:
+    image: postgres:15
+    container_name: postgres_tcc
+    restart: always
     environment:
-      DATABASE_URL: postgres://user:password@postgres:5432/agendamento
-    depends_on:
-      - postgres
-
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile.frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-
-  postgres:
-    image: postgres:latest
-    container_name: postgres_container
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: agendamento
+      POSTGRES_DB: plataforma_agendamento
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root123
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../sql/estrutura_banco.sql:/docker-entrypoint-initdb.d/estrutura_banco.sql
     ports:
       - "5432:5432"
 
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb_container
+  backend:
+    build:
+      context: ../..   # Certifique-se que o contexto aponta para a raiz do projeto
+      dockerfile: infra/docker/Dockerfile.backend
+    container_name: fastapi_tcc
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:root123@db:5432/plataforma_agendamento
+      SECRET_KEY: tcc_secret_key_123
     ports:
-      - "27017:27017"
+      - "8080:8080"
+    volumes:
+      - ../../back-end:/app
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.frontend
+    container_name: react_tcc
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../../front-end:/app
 
 volumes:
-  postgres_data:
-  mongo_data:
+  pgdata:

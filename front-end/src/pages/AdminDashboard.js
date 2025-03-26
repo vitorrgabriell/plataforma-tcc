@@ -91,7 +91,7 @@ const AdminDashboard = () => {
         {userName && <UserInfo>Bem-vindo de volta, {userName}!</UserInfo>}
         <ButtonGroup>
           <Button onClick={() => navigate("/register-funcionarios")}>
-            Gerenciar funcionários
+            Cadastrar funcionários
           </Button>
           <Button bgColor="#ef4444" hoverColor="#dc2626" onClick={handleLogout}>
             Sair

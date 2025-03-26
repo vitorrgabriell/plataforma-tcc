@@ -6,7 +6,7 @@ from app.schemas import EstabelecimentoCreate
 
 router = APIRouter()
 
-@router.post("/estabelecimentos/")
+@router.post("/")
 def cadastrar_estabelecimento(
     estabelecimento: EstabelecimentoCreate, 
     user=Depends(get_current_user), 
