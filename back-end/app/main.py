@@ -28,6 +28,7 @@ from app.routes.auth_routes import router as auth_router
 from app.routes.estabelecimento_routes import router as estabelecimento_router
 from app.routes.funcionario_routes import router as funcionario_router  # Certifique-se de que está importando corretamente
 
+
 app = FastAPI()
 
 # Configurar CORS
