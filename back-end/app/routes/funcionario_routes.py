@@ -20,10 +20,8 @@ def listar_funcionarios(estabelecimento_id: int, db: Session = Depends(get_db)):
 @router.post("/", response_model=FuncionarioResponse)
 def cadastrar_funcionario(funcionario: FuncionarioCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
     try:
-        # Criptografar a senha do funcionário
         senha_criptografada = get_password_hash(funcionario.senha)
 
-        # Inserir na tabela de usuários
         db.execute(
             """
             INSERT INTO usuarios (nome, email, senha, tipo_usuario, estabelecimento_id)
@@ -33,13 +31,12 @@ def cadastrar_funcionario(funcionario: FuncionarioCreate, db: Session = Depends(
                 "nome": funcionario.nome,
                 "email": funcionario.email,
                 "senha": senha_criptografada,
-                "tipo_usuario": funcionario.cargo,  # O cargo agora será usado como tipo_usuario
+                "tipo_usuario": funcionario.cargo, 
                 "estabelecimento_id": user['estabelecimento_id'],
             }
         )
         db.commit()
 
-        # Obter o ID do usuário recém-criado
         novo_usuario = db.execute(
             "SELECT id FROM usuarios WHERE email = :email",
             {"email": funcionario.email}
@@ -48,7 +45,6 @@ def cadastrar_funcionario(funcionario: FuncionarioCreate, db: Session = Depends(
         if not novo_usuario:
             raise HTTPException(status_code=500, detail="Erro ao criar o usuário")
 
-        # Inserir na tabela de funcionários
         db.execute(
             """
             INSERT INTO funcionarios (nome, cargo, estabelecimento_id, usuario_id)
