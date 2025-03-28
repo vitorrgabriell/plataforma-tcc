@@ -10,5 +10,4 @@ class Estabelecimento(Base):
     cnpj = Column(String, unique=True, nullable=False)
     tipo_servico = Column(String, nullable=False)
 
-    # Relacionamento com Funcionários
     funcionarios = relationship("Funcionario", back_populates="estabelecimento")

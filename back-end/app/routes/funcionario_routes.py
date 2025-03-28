@@ -17,110 +17,48 @@ def listar_funcionarios(estabelecimento_id: int, db: Session = Depends(get_db)):
     return funcionarios
 
 # Cadastrar novo funcionário
-# @router.post("/", response_model=FuncionarioResponse)
-# def cadastrar_funcionario(funcionario: FuncionarioCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
-#     try:
-#         # Criptografar a senha do funcionário
-#         senha_criptografada = get_password_hash(funcionario.senha)
-
-#         # Inserir na tabela de usuários
-#         db.execute(
-#             """
-#             INSERT INTO usuarios (nome, email, senha, tipo_usuario, estabelecimento_id)
-#             VALUES (:nome, :email, :senha, :tipo_usuario, :estabelecimento_id)
-#             """,
-#             {
-#                 "nome": funcionario.nome,
-#                 "email": funcionario.email,
-#                 "senha": senha_criptografada,
-#                 "tipo_usuario": funcionario.cargo,  # O cargo agora será usado como tipo_usuario
-#                 "estabelecimento_id": user['estabelecimento_id'],
-#             }
-#         )
-#         db.commit()
-
-#         # Obter o ID do usuário recém-criado
-#         novo_usuario = db.execute(
-#             "SELECT id FROM usuarios WHERE email = :email",
-#             {"email": funcionario.email}
-#         ).fetchone()
-
-#         if not novo_usuario:
-#             raise HTTPException(status_code=500, detail="Erro ao criar o usuário")
-
-#         # Inserir na tabela de funcionários
-#         db.execute(
-#             """
-#             INSERT INTO funcionarios (nome, cargo, estabelecimento_id, usuario_id)
-#             VALUES (:nome, :cargo, :estabelecimento_id, :usuario_id)
-#             """,
-#             {
-#                 "nome": funcionario.nome,
-#                 "cargo": funcionario.cargo,
-#                 "estabelecimento_id": user['estabelecimento_id'],
-#                 "usuario_id": novo_usuario.id,
-#             }
-#         )
-#         db.commit()
-
-#         return {"message": "Funcionário cadastrado com sucesso!"}
-
-#     except Exception as e:
-#         db.rollback()
-#         raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/", response_model=dict)
-def cadastrar_funcionario(
-    funcionario: FuncionarioCreate,
-    db: Session = Depends(get_db),
-    user=Depends(get_current_user),
-):
+@router.post("/", response_model=FuncionarioResponse)
+def cadastrar_funcionario(funcionario: FuncionarioCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
     try:
-        print("🔵 Usuário autenticado:", user)
-        print("🟢 Dados recebidos:", funcionario.dict())
-
-        if not user.get("estabelecimento_id"):
-            raise HTTPException(status_code=403, detail="Usuário não vinculado a um estabelecimento")
-
+        # Criptografar a senha do funcionário
         senha_criptografada = get_password_hash(funcionario.senha)
-        print("🔐 Senha criptografada gerada!")
 
+        # Inserir na tabela de usuários
         db.execute(
             """
             INSERT INTO usuarios (nome, email, senha, tipo_usuario, estabelecimento_id)
-            VALUES (:nome, :email, :senha, 'profissional', :estabelecimento_id)
+            VALUES (:nome, :email, :senha, :tipo_usuario, :estabelecimento_id)
             """,
             {
                 "nome": funcionario.nome,
                 "email": funcionario.email,
                 "senha": senha_criptografada,
-                "estabelecimento_id": user["estabelecimento_id"],
+                "tipo_usuario": funcionario.cargo,  # O cargo agora será usado como tipo_usuario
+                "estabelecimento_id": user['estabelecimento_id'],
             }
         )
         db.commit()
 
+        # Obter o ID do usuário recém-criado
         novo_usuario = db.execute(
             "SELECT id FROM usuarios WHERE email = :email",
             {"email": funcionario.email}
         ).fetchone()
 
-        print("🆕 Novo usuário criado:", novo_usuario)
+        if not novo_usuario:
+            raise HTTPException(status_code=500, detail="Erro ao criar o usuário")
 
-        if not novo_usuario or novo_usuario[0] is None:
-            db.rollback()
-            raise HTTPException(status_code=500, detail="Erro ao recuperar ID do usuário")
-
+        # Inserir na tabela de funcionários
         db.execute(
             """
-            INSERT INTO funcionarios (nome, email, senha, estabelecimento_id, usuario_id)
-            VALUES (:nome, :email, :senha, :estabelecimento_id, :usuario_id)
+            INSERT INTO funcionarios (nome, cargo, estabelecimento_id, usuario_id)
+            VALUES (:nome, :cargo, :estabelecimento_id, :usuario_id)
             """,
             {
                 "nome": funcionario.nome,
-                "email": funcionario.email,
-                "senha": funcionario.senha,
-                "estabelecimento_id": user["estabelecimento_id"],
-                "usuario_id": novo_usuario[0],
+                "cargo": funcionario.cargo,
+                "estabelecimento_id": user['estabelecimento_id'],
+                "usuario_id": novo_usuario.id,
             }
         )
         db.commit()
@@ -129,9 +67,71 @@ def cadastrar_funcionario(
 
     except Exception as e:
         db.rollback()
-        print("❌ Erro no backend:", str(e))
-        traceback.print_exc()  # 🔥 Isso imprimirá o erro COMPLETO no terminal
         raise HTTPException(status_code=500, detail=str(e))
+
+# @router.post("/", response_model=dict)
+# def cadastrar_funcionario(
+#     funcionario: FuncionarioCreate,
+#     db: Session = Depends(get_db),
+#     user=Depends(get_current_user),
+# ):
+#     try:
+#         print("🔵 Usuário autenticado:", user)
+#         print("🟢 Dados recebidos:", funcionario.dict())
+
+#         if not user.get("estabelecimento_id"):
+#             raise HTTPException(status_code=403, detail="Usuário não vinculado a um estabelecimento")
+
+#         senha_criptografada = get_password_hash(funcionario.senha)
+#         print("🔐 Senha criptografada gerada!")
+
+#         db.execute(
+#             """
+#             INSERT INTO usuarios (nome, email, senha, tipo_usuario, estabelecimento_id)
+#             VALUES (:nome, :email, :senha, 'profissional', :estabelecimento_id)
+#             """,
+#             {
+#                 "nome": funcionario.nome,
+#                 "email": funcionario.email,
+#                 "senha": senha_criptografada,
+#                 "estabelecimento_id": user["estabelecimento_id"],
+#             }
+#         )
+#         db.commit()
+
+#         novo_usuario = db.execute(
+#             "SELECT id FROM usuarios WHERE email = :email",
+#             {"email": funcionario.email}
+#         ).fetchone()
+
+#         print("🆕 Novo usuário criado:", novo_usuario)
+
+#         if not novo_usuario or novo_usuario[0] is None:
+#             db.rollback()
+#             raise HTTPException(status_code=500, detail="Erro ao recuperar ID do usuário")
+
+#         db.execute(
+#             """
+#             INSERT INTO funcionarios (nome, email, senha, estabelecimento_id, usuario_id)
+#             VALUES (:nome, :email, :senha, :estabelecimento_id, :usuario_id)
+#             """,
+#             {
+#                 "nome": funcionario.nome,
+#                 "email": funcionario.email,
+#                 "senha": funcionario.senha,
+#                 "estabelecimento_id": user["estabelecimento_id"],
+#                 "usuario_id": novo_usuario[0],
+#             }
+#         )
+#         db.commit()
+
+#         return {"message": "Funcionário cadastrado com sucesso!"}
+
+#     except Exception as e:
+#         db.rollback()
+#         print("❌ Erro no backend:", str(e))
+#         traceback.print_exc()  # 🔥 Isso imprimirá o erro COMPLETO no terminal
+#         raise HTTPException(status_code=500, detail=str(e))
 
     
 # Atualizar funcionário existente
