@@ -4,20 +4,20 @@ from app.routes.user_routes import router as user_router
 from app.routes.auth_routes import router as auth_router
 from app.routes.estabelecimento_routes import router as estabelecimento_router
 from app.routes.funcionario_routes import router as funcionario_router
-
+from app.routes.avaliacao_routes import router as avaliacoes_router  # novo
 
 app = FastAPI()
 
-# Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite requisições de qualquer origem
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Permite todos os métodos HTTP (GET, POST, etc.)
-    allow_headers=["*"],  # Permite todos os headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(user_router, prefix="/users", tags=["users"])
 app.include_router(estabelecimento_router, prefix="/estabelecimentos", tags=["Estabelecimentos"])
 app.include_router(funcionario_router, prefix="/funcionarios", tags=["funcionarios"])
+app.include_router(avaliacoes_router, prefix="/avaliacoes", tags=["avaliacoes"]) 

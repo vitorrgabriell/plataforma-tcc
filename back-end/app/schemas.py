@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import Column, Integer, String, DateTime, func
 from typing import Optional
+from datetime import datetime
 
 class EstabelecimentoBase(BaseModel):
     nome: str
@@ -71,3 +72,32 @@ class FuncionarioResponse(FuncionarioBase):
 
     class Config:
         from_attributes = True
+
+class AvaliacaoBase(BaseModel):
+    cliente_id: int
+    profissional_id: int
+    estabelecimento_id: int
+    nota: int
+    comentario: Optional[str] = None
+
+class AvaliacaoCreate(AvaliacaoBase):
+    pass
+
+class AvaliacaoUpdate(BaseModel):
+    nota: Optional[int] = None
+    comentario: Optional[str] = None
+
+class AvaliacaoResponse(BaseModel):
+    id: int
+    cliente_id: int
+    profissional_id: int
+    estabelecimento_id: int
+    nota: int
+    comentario: str | None
+    criado_em: datetime
+
+    class Config:
+        from_attributes = True
+
+
+

@@ -1,8 +1,44 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
-import styled from "styled-components";
 import { jwtDecode } from "jwt-decode";
+import styled from "styled-components";
+
+const Div2 = styled.div`
+  grid-column: 4 / span 2;
+  grid-row: 1 / span 7;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  padding: 12px;
+  overflow-y: auto;
+`;
+
+const Div3 = styled.div`
+  grid-column: 7 / span 2;
+  grid-row: 1 / span 7;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  padding: 12px;
+  overflow: hidden;
+`;
+
+const CardColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+  overflow-y: auto;
+`;
+
+const Card = styled.div`
+  background-color: white;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
 
 const Container = styled.div`
   display: flex;
@@ -58,27 +94,141 @@ const Button = styled.button`
 
 const Content = styled.div`
   flex-grow: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 32px;
 `;
+
+const GridWrapper = styled.div`
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  gap: 10px;
+  height: calc(100vh - 96px);
+`;
+
+const Div1 = styled.div`
+  grid-column: 1 / span 2;
+  grid-row: 1 / span 7;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  padding: 12px;
+  overflow-y: auto;
+`;
+
+const CardTitle = styled.h3`
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #1f2937;
+  text-align: center;
+`;
+
+const CustomCard = styled.div`
+  background-color: white;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+  }
+`;
+
+const ActionButton = styled.button`
+  background-color: ${(props) => props.bgColor};
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+const FuncionarioInfoWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+`;
+
+const NomeFuncionario = styled.strong`
+  font-size: 14px;
+  color: #1f2937;
+`;
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
-  
-    useEffect(() => {
+
+  const [profissionais, setProfissionais] = useState([]);
+  const [agendamentos, setAgendamentos] = useState([]);
+  const [metricas, setMetricas] = useState(null);
+  const [servicos, setServicos] = useState([]);
+  const [avaliacoes, setAvaliacoes] = useState([]);
+
+  useEffect(() => {
+    const token = Cookies.get("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserName(decoded.nome || decoded.email);
+      } catch (error) {
+        console.error("Erro ao decodificar o token", error);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
       const token = Cookies.get("token");
+  
       if (token) {
+        const decoded = jwtDecode(token);
+        const estabelecimento_id = decoded.estabelecimento_id;
+  
         try {
-          const decoded = jwtDecode(token);
-          console.log("Token decodificado:", decoded);
-          setUserName(decoded.nome || decoded.email); 
+          const resProfissionais = await fetch(`http://127.0.0.1:8080/funcionarios/?estabelecimento_id=${estabelecimento_id}`);
+          const profissionaisData = await resProfissionais.json();
+          setProfissionais(Array.isArray(profissionaisData) ? profissionaisData : []);
+  
+          const resAgendamentos = await fetch(`http://127.0.0.1:8080/agendamentos/?estabelecimento_id=${estabelecimento_id}`);
+          const agendamentosData = await resAgendamentos.json();
+          setAgendamentos(Array.isArray(agendamentosData) ? agendamentosData : []);
+  
+          const resMetricas = await fetch(`http://127.0.0.1:8080/metricas/?estabelecimento_id=${estabelecimento_id}`);
+          setMetricas(await resMetricas.json());
+  
+          const resServicos = await fetch(`http://127.0.0.1:8080/servicos/?estabelecimento_id=${estabelecimento_id}`);
+          const servicosData = await resServicos.json();
+          setServicos(Array.isArray(servicosData) ? servicosData : []);
+  
+          const resAvaliacoes = await fetch(`http://127.0.0.1:8080/avaliacoes/?estabelecimento_id=${estabelecimento_id}`);
+          const avaliacoesData = await resAvaliacoes.json();
+          setAvaliacoes(Array.isArray(avaliacoesData) ? avaliacoesData : []);
+  
         } catch (error) {
-          console.error("Erro ao decodificar o token", error);
+          console.error("Erro ao buscar dados do dashboard:", error);
+          setProfissionais([]);
+          setAgendamentos([]);
+          setMetricas(null);
+          setServicos([]);
+          setAvaliacoes([]);
         }
       }
-    }, []);
-
+    };
+  
+    fetchDashboardData();
+  }, []);
+  
   const handleLogout = () => {
     Cookies.remove("token");
     navigate("/logout");
@@ -98,8 +248,65 @@ const AdminDashboard = () => {
           </Button>
         </ButtonGroup>
       </Header>
+
       <Content>
-        <p>Conteúdo da dashboard aqui...</p>
+        <GridWrapper>
+          <Div1>
+            <CardTitle>Funcionários</CardTitle>
+            {profissionais.map((p) => (
+              <CustomCard key={p.id}>
+                <FuncionarioInfoWrapper>
+                  <NomeFuncionario>{p.nome}</NomeFuncionario>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <ActionButton bgColor="#6366F1" onClick={() => navigate(`/edit-funcionario/${p.id}`)}>
+                      Editar
+                    </ActionButton>
+                    <ActionButton bgColor="#EF4444" onClick={() => console.log("Delete", p.id)}>
+                      Excluir
+                    </ActionButton>
+                  </div>
+                </FuncionarioInfoWrapper>
+              </CustomCard>
+            ))}
+          </Div1>
+
+          <Div2>
+            <CardTitle>Agendamentos</CardTitle>
+            {agendamentos.map((a) => (
+              <CustomCard key={a.id}>{a.data} - {a.cliente} com {a.profissional}</CustomCard>
+            ))}
+          </Div2>
+
+          <Div3>
+            <CardColumn>
+              <Card>
+                <CardTitle>Métricas do Dia</CardTitle>
+                {metricas && (
+                  <>
+                    <CustomCard>Agendamentos: {metricas.totalAgendamentos}</CustomCard>
+                    <CustomCard>Cancelamentos: {metricas.cancelamentos}</CustomCard>
+                    <CustomCard>Novos Clientes: {metricas.novosClientes}</CustomCard>
+                    <CustomCard>Profissionais Ativos: {metricas.profissionaisAtivos}</CustomCard>
+                  </>
+                )}
+              </Card>
+
+              <Card>
+                <CardTitle>Serviços do Dia</CardTitle>
+                {servicos.map((s, index) => (
+                  <CustomCard key={index}>{s.nome}: {s.quantidade}</CustomCard>
+                ))}
+              </Card>
+
+              <Card>
+                <CardTitle>Avaliações Recentes</CardTitle>
+                {avaliacoes.map((a, index) => (
+                  <CustomCard key={index}>{a.nome} {a.estrelas} — “{a.comentario}”</CustomCard>
+                ))}
+              </Card>
+            </CardColumn>
+          </Div3>
+        </GridWrapper>
       </Content>
     </Container>
   );

@@ -10,29 +10,37 @@ from app.utils.security import get_password_hash
 
 router = APIRouter()
 
-# Listar funcionários do estabelecimento logado
 @router.get("/", response_model=list[FuncionarioResponse])
 def listar_funcionarios(estabelecimento_id: int, db: Session = Depends(get_db)):
     funcionarios = db.query(Funcionario).filter(Funcionario.estabelecimento_id == estabelecimento_id).all()
     return funcionarios
 
-# Cadastrar novo funcionário
-@router.post("/", response_model=FuncionarioResponse)
-def cadastrar_funcionario(funcionario: FuncionarioCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
+@router.post("/", response_model=dict)
+def cadastrar_funcionario(
+    funcionario: FuncionarioCreate,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
     try:
+        print("🔵 Usuário autenticado:", user)
+        print("🟢 Dados recebidos:", funcionario.dict())
+
+        if not user.get("estabelecimento_id"):
+            raise HTTPException(status_code=403, detail="Usuário não vinculado a um estabelecimento")
+
         senha_criptografada = get_password_hash(funcionario.senha)
+        print("Senha criptografada gerada!")
 
         db.execute(
             """
             INSERT INTO usuarios (nome, email, senha, tipo_usuario, estabelecimento_id)
-            VALUES (:nome, :email, :senha, :tipo_usuario, :estabelecimento_id)
+            VALUES (:nome, :email, :senha, 'profissional', :estabelecimento_id)
             """,
             {
                 "nome": funcionario.nome,
                 "email": funcionario.email,
                 "senha": senha_criptografada,
-                "tipo_usuario": funcionario.cargo, 
-                "estabelecimento_id": user['estabelecimento_id'],
+                "estabelecimento_id": user["estabelecimento_id"],
             }
         )
         db.commit()
@@ -42,19 +50,23 @@ def cadastrar_funcionario(funcionario: FuncionarioCreate, db: Session = Depends(
             {"email": funcionario.email}
         ).fetchone()
 
-        if not novo_usuario:
-            raise HTTPException(status_code=500, detail="Erro ao criar o usuário")
+        print("Novo usuário criado:", novo_usuario)
+
+        if not novo_usuario or novo_usuario[0] is None:
+            db.rollback()
+            raise HTTPException(status_code=500, detail="Erro ao recuperar ID do usuário")
 
         db.execute(
             """
-            INSERT INTO funcionarios (nome, cargo, estabelecimento_id, usuario_id)
-            VALUES (:nome, :cargo, :estabelecimento_id, :usuario_id)
+            INSERT INTO funcionarios (nome, email, senha, estabelecimento_id, usuario_id)
+            VALUES (:nome, :email, :senha, :estabelecimento_id, :usuario_id)
             """,
             {
                 "nome": funcionario.nome,
-                "cargo": funcionario.cargo,
-                "estabelecimento_id": user['estabelecimento_id'],
-                "usuario_id": novo_usuario.id,
+                "email": funcionario.email,
+                "senha": funcionario.senha,
+                "estabelecimento_id": user["estabelecimento_id"],
+                "usuario_id": novo_usuario[0],
             }
         )
         db.commit()
@@ -63,74 +75,11 @@ def cadastrar_funcionario(funcionario: FuncionarioCreate, db: Session = Depends(
 
     except Exception as e:
         db.rollback()
+        print("Erro no backend:", str(e))
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-# @router.post("/", response_model=dict)
-# def cadastrar_funcionario(
-#     funcionario: FuncionarioCreate,
-#     db: Session = Depends(get_db),
-#     user=Depends(get_current_user),
-# ):
-#     try:
-#         print("🔵 Usuário autenticado:", user)
-#         print("🟢 Dados recebidos:", funcionario.dict())
-
-#         if not user.get("estabelecimento_id"):
-#             raise HTTPException(status_code=403, detail="Usuário não vinculado a um estabelecimento")
-
-#         senha_criptografada = get_password_hash(funcionario.senha)
-#         print("🔐 Senha criptografada gerada!")
-
-#         db.execute(
-#             """
-#             INSERT INTO usuarios (nome, email, senha, tipo_usuario, estabelecimento_id)
-#             VALUES (:nome, :email, :senha, 'profissional', :estabelecimento_id)
-#             """,
-#             {
-#                 "nome": funcionario.nome,
-#                 "email": funcionario.email,
-#                 "senha": senha_criptografada,
-#                 "estabelecimento_id": user["estabelecimento_id"],
-#             }
-#         )
-#         db.commit()
-
-#         novo_usuario = db.execute(
-#             "SELECT id FROM usuarios WHERE email = :email",
-#             {"email": funcionario.email}
-#         ).fetchone()
-
-#         print("🆕 Novo usuário criado:", novo_usuario)
-
-#         if not novo_usuario or novo_usuario[0] is None:
-#             db.rollback()
-#             raise HTTPException(status_code=500, detail="Erro ao recuperar ID do usuário")
-
-#         db.execute(
-#             """
-#             INSERT INTO funcionarios (nome, email, senha, estabelecimento_id, usuario_id)
-#             VALUES (:nome, :email, :senha, :estabelecimento_id, :usuario_id)
-#             """,
-#             {
-#                 "nome": funcionario.nome,
-#                 "email": funcionario.email,
-#                 "senha": funcionario.senha,
-#                 "estabelecimento_id": user["estabelecimento_id"],
-#                 "usuario_id": novo_usuario[0],
-#             }
-#         )
-#         db.commit()
-
-#         return {"message": "Funcionário cadastrado com sucesso!"}
-
-#     except Exception as e:
-#         db.rollback()
-#         print("❌ Erro no backend:", str(e))
-#         traceback.print_exc()  # 🔥 Isso imprimirá o erro COMPLETO no terminal
-#         raise HTTPException(status_code=500, detail=str(e))
-
     
-# Atualizar funcionário existente
 @router.put("/{funcionario_id}", response_model=FuncionarioResponse)
 def atualizar_funcionario(funcionario_id: int, funcionario: FuncionarioCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
     funcionario_db = db.query(Funcionario).filter(Funcionario.id == funcionario_id).first()
@@ -148,7 +97,6 @@ def atualizar_funcionario(funcionario_id: int, funcionario: FuncionarioCreate, d
 
     return funcionario_db
 
-# Deletar funcionário
 @router.delete("/{funcionario_id}")
 def deletar_funcionario(funcionario_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
     funcionario_db = db.query(Funcionario).filter(Funcionario.id == funcionario_id).first()

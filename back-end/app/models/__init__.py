@@ -1,4 +1,4 @@
-from .user import User  
-from .blacklist import BlacklistToken  
-from .estabelecimento import Estabelecimento
+from .user import User
 from .funcionarios import Funcionario
+from .avaliacao import Avaliacao
+from .estabelecimento import Estabelecimento

@@ -61,6 +61,8 @@ def get_users(db: Session = Depends(get_db), user=Depends(get_current_user)):
         "SELECT id, nome, email, tipo_usuario FROM usuarios WHERE estabelecimento_id = :estabelecimento_id",
         {"estabelecimento_id": user["estabelecimento_id"]}
     ).fetchall()
+    if user["estabelecimento_id"] == None:
+        return("Estabelecimento id vazio")
     return users
 
 @router.get("/{user_id}", response_model=UserResponse)
