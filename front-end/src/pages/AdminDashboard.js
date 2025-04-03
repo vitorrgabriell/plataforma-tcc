@@ -196,22 +196,22 @@ const AdminDashboard = () => {
         const estabelecimento_id = decoded.estabelecimento_id;
   
         try {
-          const resProfissionais = await fetch(`http://127.0.0.1:8080/funcionarios/?estabelecimento_id=${estabelecimento_id}`);
+          const resProfissionais = await fetch(`http://54.207.160.24:8080/funcionarios/?estabelecimento_id=${estabelecimento_id}`);
           const profissionaisData = await resProfissionais.json();
           setProfissionais(Array.isArray(profissionaisData) ? profissionaisData : []);
   
-          const resAgendamentos = await fetch(`http://127.0.0.1:8080/agendamentos/?estabelecimento_id=${estabelecimento_id}`);
+          const resAgendamentos = await fetch(`http://54.207.160.24:8080/agendamentos/?estabelecimento_id=${estabelecimento_id}`);
           const agendamentosData = await resAgendamentos.json();
           setAgendamentos(Array.isArray(agendamentosData) ? agendamentosData : []);
   
-          const resMetricas = await fetch(`http://127.0.0.1:8080/metricas/?estabelecimento_id=${estabelecimento_id}`);
+          const resMetricas = await fetch(`http://54.207.160.24:8080/metricas/?estabelecimento_id=${estabelecimento_id}`);
           setMetricas(await resMetricas.json());
   
-          const resServicos = await fetch(`http://127.0.0.1:8080/servicos/?estabelecimento_id=${estabelecimento_id}`);
+          const resServicos = await fetch(`http://54.207.160.24:8080/servicos/?estabelecimento_id=${estabelecimento_id}`);
           const servicosData = await resServicos.json();
           setServicos(Array.isArray(servicosData) ? servicosData : []);
   
-          const resAvaliacoes = await fetch(`http://127.0.0.1:8080/avaliacoes/?estabelecimento_id=${estabelecimento_id}`);
+          const resAvaliacoes = await fetch(`http://54.207.160.24:8080/avaliacoes/?estabelecimento_id=${estabelecimento_id}`);
           const avaliacoesData = await resAvaliacoes.json();
           setAvaliacoes(Array.isArray(avaliacoesData) ? avaliacoesData : []);
   

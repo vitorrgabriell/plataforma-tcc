@@ -96,7 +96,7 @@ const Login = () => {
     setSuccess("");
   
     try {
-      const response = await axios.post("http://127.0.0.1:8080/auth/login/", {
+      const response = await axios.post("http://54.207.160.24:8080/auth/login/", {
         email,
         senha,
       });
