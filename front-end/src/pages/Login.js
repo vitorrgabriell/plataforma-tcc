@@ -96,7 +96,10 @@ const Login = () => {
     setSuccess("");
   
     try {
-      const response = await axios.post("http://54.207.160.24:8080/auth/login/", {
+      const api = process.env.REACT_APP_API_URL;
+      console.log("API URL:", process.env.REACT_APP_API_URL);
+
+      const response = await axios.post(`${api}/auth/login/`, {
         email,
         senha,
       });
