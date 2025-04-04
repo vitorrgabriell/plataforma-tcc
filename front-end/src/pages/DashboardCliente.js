@@ -66,6 +66,7 @@ const Content = styled.div`
 const DashboardCliente = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
+  const api = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const token = Cookies.get("token");

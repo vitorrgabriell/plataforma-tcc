@@ -111,8 +111,9 @@ const Register = () => {
     setLoading(true); 
 
     try {
+      const api = process.env.REACT_APP_API_URL;
       const payload = { nome, email, senha, tipo_usuario: tipoUsuario };
-      await axios.post("http://127.0.0.1:8080/users/", payload);
+      await axios.post(`${api}/users/`, payload);
 
       setSuccess("Cadastro realizado com sucesso! Redirecionando...");
       setTimeout(() => navigate("/"), 2000);

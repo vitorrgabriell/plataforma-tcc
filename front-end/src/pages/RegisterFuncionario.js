@@ -103,6 +103,7 @@ const RegisterFuncionario = () => {
     }
   }, []);
 
+  const api = process.env.REACT_APP_API_URL;
   const handleRegisterFuncionario = async (e) => {
     e.preventDefault();
     setError("");
@@ -117,7 +118,7 @@ const RegisterFuncionario = () => {
     console.log("Payload enviado:", payload);
 
     try {
-        await axios.post("http://127.0.0.1:8080/funcionarios/", payload, {
+        await axios.post(`${api}/funcionarios/`, payload, {
             headers: {
                 Authorization: `Bearer ${Cookies.get("token")}`,
             },

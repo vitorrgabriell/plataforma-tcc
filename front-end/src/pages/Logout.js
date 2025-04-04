@@ -10,10 +10,11 @@ const Logout = () => {
     const handleLogout = async () => {
       try {
         const token = Cookies.get("token");
+        const api = process.env.REACT_APP_API_URL;
 
         if (token) {
           await axios.post(
-            "http://127.0.0.1:8080/auth/logout/",
+            `${api}/auth/logout/`,
             {},
             {
               headers: {

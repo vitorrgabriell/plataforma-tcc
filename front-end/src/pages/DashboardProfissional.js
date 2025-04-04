@@ -69,6 +69,7 @@ const DashboardProfissional = () => {
 
   useEffect(() => {
     const token = Cookies.get("token");
+    const api = process.env.REACT_APP_API_URL;
     if (token) {
       try {
         const decoded = jwtDecode(token);
