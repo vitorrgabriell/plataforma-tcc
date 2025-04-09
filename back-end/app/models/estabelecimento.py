@@ -11,3 +11,4 @@ class Estabelecimento(Base):
     tipo_servico = Column(String, nullable=False)
 
     funcionarios = relationship("Funcionario", back_populates="estabelecimento")
+    servicos = relationship("Servico", back_populates="estabelecimento")

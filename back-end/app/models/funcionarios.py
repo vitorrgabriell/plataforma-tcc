@@ -11,5 +11,9 @@ class Funcionario(Base):
     senha = Column(String, nullable=False)
     cargo = Column(String, nullable=False)
     estabelecimento_id = Column(Integer, ForeignKey("estabelecimentos.id"))
+    usuario_id = Column(Integer, ForeignKey("usuarios.id")) 
 
     estabelecimento = relationship("Estabelecimento", back_populates="funcionarios")
+    agendamentos_profissional = relationship("Agendamento", back_populates="profissional")
+    agenda = relationship("AgendaDisponivel", back_populates="profissional")
+

@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from app.db.database import Base
 
 class User(Base):
@@ -11,3 +12,5 @@ class User(Base):
     senha = Column(String, nullable=False)
     tipo_usuario = Column(String, nullable=False)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
+
+    agendamentos_cliente = relationship("Agendamento", back_populates="cliente")

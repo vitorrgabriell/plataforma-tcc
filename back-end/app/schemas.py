@@ -99,5 +99,51 @@ class AvaliacaoResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class AgendamentoBase(BaseModel):
+    profissional_id: int
+    servico_id: int
+    horario: datetime
 
+class AgendamentoCreate(AgendamentoBase):
+    pass
 
+class AgendamentoResponse(AgendamentoBase):
+    id: int
+    cliente_id: int  # agora aqui sim
+    status: str
+    criado_em: datetime
+
+    class Config:
+        from_attributes = True
+
+class AgendaBase(BaseModel):
+    profissional_id: int
+    data_hora: datetime
+
+class AgendaCreate(AgendaBase):
+    pass
+
+class AgendaResponse(AgendaBase):
+    id: int
+    ocupado: bool
+    criado_em: datetime
+
+    class Config:
+        from_attributes = True
+
+class ServicoBase(BaseModel):
+    nome: str
+    descricao: str
+    preco: float
+
+class ServicoCreate(ServicoBase):
+    pass
+
+class ServicoResponse(ServicoBase):
+    id: int
+    criado_em: datetime
+    estabelecimento_id: int
+
+    class Config:
+        from_attributes = True
+        

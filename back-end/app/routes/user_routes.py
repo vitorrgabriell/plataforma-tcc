@@ -14,7 +14,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @router.post("/")
 def register(user: RegisterUser, db: Session = Depends(get_db)):
-    if user.tipo_usuario != "cliente" and not user.estabelecimento_id:
+    if user["tipo_usuario"] != "cliente" and not user.estabelecimento_id:
         raise HTTPException(
             status_code=400, detail="Estabelecimento ID é obrigatório para este tipo de usuário"
         )
@@ -47,7 +47,7 @@ def register(user: RegisterUser, db: Session = Depends(get_db)):
             "nome": user.nome,
             "email": user.email,
             "senha": hashed_password,
-            "tipo_usuario": user.tipo_usuario,
+            "tipo_usuario": user["tipo_usuario"],
             "estabelecimento_id": user.estabelecimento_id,
         }
     )
@@ -88,7 +88,7 @@ def update_user(user_id: int, user: UpdateUser, db: Session = Depends(get_db)):
         """
         UPDATE usuarios SET nome = :nome, email = :email, tipo_usuario = :tipo_usuario WHERE id = :id
         """,
-        {"id": user_id, "nome": user.nome, "email": user.email, "tipo_usuario": user.tipo_usuario}
+        {"id": user_id, "nome": user.nome, "email": user.email, "tipo_usuario": user["tipo_usuario"]}
     )
     db.commit()
     
