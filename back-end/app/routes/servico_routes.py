@@ -8,7 +8,6 @@ from datetime import datetime
 
 router = APIRouter()
 
-# 📌 POST: Criar serviço
 @router.post("/", response_model=ServicoResponse, status_code=status.HTTP_201_CREATED)
 def criar_servico(servico: ServicoCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
     if user["tipo_usuario"] not in ["admin", "estabelecimento"]:
@@ -26,12 +25,10 @@ def criar_servico(servico: ServicoCreate, db: Session = Depends(get_db), user=De
     db.refresh(novo_servico)
     return novo_servico
 
-# 📌 GET: Listar todos os serviços do estabelecimento
 @router.get("/", response_model=list[ServicoResponse])
 def listar_servicos(db: Session = Depends(get_db), user=Depends(get_current_user)):
     return db.query(Servico).filter(Servico.estabelecimento_id == user["estabelecimento_id"]).all()
 
-# 📌 GET: Buscar um serviço por ID
 @router.get("/{servico_id}", response_model=ServicoResponse)
 def buscar_servico(servico_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
     servico = db.query(Servico).filter(Servico.id == servico_id).first()
@@ -39,7 +36,6 @@ def buscar_servico(servico_id: int, db: Session = Depends(get_db), user=Depends(
         raise HTTPException(status_code=404, detail="Serviço não encontrado.")
     return servico
 
-# 📌 PUT: Atualizar um serviço
 @router.put("/{servico_id}", response_model=ServicoResponse)
 def atualizar_servico(servico_id: int, servico_atualizado: ServicoCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
     servico = db.query(Servico).filter(Servico.id == servico_id).first()
@@ -53,7 +49,6 @@ def atualizar_servico(servico_id: int, servico_atualizado: ServicoCreate, db: Se
     db.refresh(servico)
     return servico
 
-# 📌 DELETE: Remover um serviço
 @router.delete("/{servico_id}", status_code=status.HTTP_204_NO_CONTENT)
 def deletar_servico(servico_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
     servico = db.query(Servico).filter(Servico.id == servico_id).first()

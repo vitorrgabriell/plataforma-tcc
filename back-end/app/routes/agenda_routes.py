@@ -9,7 +9,6 @@ from datetime import datetime
 
 router = APIRouter()
 
-# 📌 POST: Criar horário disponível
 @router.post("/", response_model=AgendaResponse, status_code=status.HTTP_201_CREATED)
 def criar_horario_disponivel(
     agenda: AgendaCreate,
@@ -31,7 +30,6 @@ def criar_horario_disponivel(
     db.refresh(novo_horario)
     return novo_horario
 
-# 📌 GET: Listar horários de um profissional
 @router.get("/", response_model=list[AgendaResponse])
 def listar_agenda(
     profissional_id: int = Query(..., description="ID do profissional"),
@@ -40,7 +38,6 @@ def listar_agenda(
 ):
     return db.query(AgendaDisponivel).filter(AgendaDisponivel.profissional_id == profissional_id).all()
 
-# 📌 DELETE: Remover horário
 @router.delete("/{horario_id}", status_code=status.HTTP_204_NO_CONTENT)
 def excluir_horario(
     horario_id: int,
