@@ -116,6 +116,19 @@ class AgendamentoResponse(AgendamentoBase):
     class Config:
         from_attributes = True
 
+class AgendamentoCanceladoResponse(BaseModel):
+    id: int
+    cliente_id: int
+    profissional_id: int
+    servico_id: int
+    horario: datetime
+    status: str
+    criado_em: datetime
+    cancelado_em: datetime
+
+    class Config:
+        from_attributes = True
+
 class AgendaBase(BaseModel):
     profissional_id: int
     data_hora: datetime

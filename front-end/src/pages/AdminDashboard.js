@@ -172,6 +172,7 @@ const AdminDashboard = () => {
   const [profissionais, setProfissionais] = useState([]);
   const [agendamentos, setAgendamentos] = useState([]);
   const [metricas, setMetricas] = useState(null);
+  const [cancelados, setCancelados] = useState([]);
   const [servicos, setServicos] = useState([]);
   const [avaliacoes, setAvaliacoes] = useState([]);
 
@@ -197,18 +198,43 @@ const AdminDashboard = () => {
         const estabelecimento_id = decoded.estabelecimento_id;
   
         try {
-          const resProfissionais = await fetch(`${api}/funcionarios/?estabelecimento_id=${estabelecimento_id}`);
+          const resProfissionais = await fetch(`${api}/funcionarios/?estabelecimento_id=${estabelecimento_id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }); 
           const profissionaisData = await resProfissionais.json();
           setProfissionais(Array.isArray(profissionaisData) ? profissionaisData : []);
   
-          const resAgendamentos = await fetch(`${api}/agendamentos/?estabelecimento_id=${estabelecimento_id}`);
+          const resAgendamentos = await fetch(`${api}/agendamentos/?estabelecimento_id=${estabelecimento_id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });          
           const agendamentosData = await resAgendamentos.json();
           setAgendamentos(Array.isArray(agendamentosData) ? agendamentosData : []);
   
-          const resMetricas = await fetch(`${api}/metricas/?estabelecimento_id=${estabelecimento_id}`);
+          const resMetricas = await fetch(`${api}/metricas/?estabelecimento_id=${estabelecimento_id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
           setMetricas(await resMetricas.json());
+
+          const resCancelados = await fetch(`${api}/agendamentos/cancelados?estabelecimento_id=${estabelecimento_id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const canceladosData = await resCancelados.json();
+          setCancelados(Array.isArray(canceladosData) ? canceladosData : []);
+          
   
-          const resServicos = await fetch(`${api}/servicos/?estabelecimento_id=${estabelecimento_id}`);
+          const resServicos = await fetch(`${api}/servicos/?estabelecimento_id=${estabelecimento_id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
           const servicosData = await resServicos.json();
           setServicos(Array.isArray(servicosData) ? servicosData : []);
   
@@ -274,7 +300,17 @@ const AdminDashboard = () => {
           <Div2>
             <CardTitle>Agendamentos</CardTitle>
             {agendamentos.map((a) => (
-              <CustomCard key={a.id}>{a.data} - {a.cliente} com {a.profissional}</CustomCard>
+              <CustomCard key={a.id}>
+              {a.cliente} agendou {a.servico} com {a.profissional} <br />
+              💵 R$ {a.preco.toFixed(2)} em {new Date(a.horario).toLocaleString("pt-BR")}
+            </CustomCard>            
+            ))}
+            <CardTitle>Cancelados Recentemente</CardTitle>
+            {cancelados.map((c, index) => (
+              <CustomCard key={index}>
+                {c.cliente} cancelou {c.servico} com {c.profissional} <br />
+                ❌ {new Date(c.cancelado_em).toLocaleString("pt-BR")}
+              </CustomCard>
             ))}
           </Div2>
 
@@ -284,8 +320,8 @@ const AdminDashboard = () => {
                 <CardTitle>Métricas do Dia</CardTitle>
                 {metricas && (
                   <>
-                    <CustomCard>Agendamentos: {metricas.totalAgendamentos}</CustomCard>
-                    <CustomCard>Cancelamentos: {metricas.cancelamentos}</CustomCard>
+                    <CustomCard>Cancelamentos: {cancelados.length}</CustomCard>
+                    <CustomCard>Faturamento Estimado: {metricas.faturamentoEstimado}</CustomCard>
                     <CustomCard>Novos Clientes: {metricas.novosClientes}</CustomCard>
                     <CustomCard>Profissionais Ativos: {metricas.profissionaisAtivos}</CustomCard>
                   </>
@@ -293,9 +329,9 @@ const AdminDashboard = () => {
               </Card>
 
               <Card>
-                <CardTitle>Serviços do Dia</CardTitle>
+                <CardTitle>Serviços</CardTitle>
                 {servicos.map((s, index) => (
-                  <CustomCard key={index}>{s.nome}: {s.quantidade}</CustomCard>
+                  <CustomCard key={index}>{s.nome}</CustomCard>
                 ))}
               </Card>
 

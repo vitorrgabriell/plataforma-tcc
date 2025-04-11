@@ -26,5 +26,5 @@ app.include_router(estabelecimento_router, prefix="/estabelecimentos", tags=["Es
 app.include_router(funcionario_router, prefix="/funcionarios", tags=["funcionarios"])
 app.include_router(avaliacoes_router, prefix="/avaliacoes", tags=["avaliacoes"]) 
 app.include_router(agenda_router, prefix="/agenda", tags=["agenda"])
-app.include_router(agendamento_router, prefix="/agendamento", tags=["agendamento"])
+app.include_router(agendamento_router, prefix="/agendamentos", tags=["agendamentos"])
 app.include_router(servico_router, prefix="/servicos", tags=["servicos"])
