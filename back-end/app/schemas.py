@@ -11,8 +11,16 @@ class EstabelecimentoBase(BaseModel):
 class EstabelecimentoCreate(EstabelecimentoBase):
     pass
 
-class EstabelecimentoResponse(EstabelecimentoBase):
+class EstabelecimentoUpdate(BaseModel):
+    nome: str
+    cnpj: str
+    tipo_servico: str
+
+class EstabelecimentoResponse(BaseModel):
     id: int
+    nome: str
+    cnpj: str
+    tipo_servico: str
 
     class Config:
         orm_mode = True
@@ -34,6 +42,7 @@ class UpdateUser(BaseModel):
     nome: str
     email: EmailStr
     tipo_usuario: str
+    senha: Optional[str] = None
 
 class Config:
     orm_mode = True
@@ -66,6 +75,11 @@ class FuncionarioCreate(BaseModel):
     email: str
     senha: str
 
+class FuncionarioUpdate(BaseModel):
+    nome: str
+    email: str
+    senha: Optional[str] = None
+
 class FuncionarioResponse(FuncionarioBase):
     id: int
     estabelecimento_id: int
@@ -86,6 +100,11 @@ class AvaliacaoCreate(AvaliacaoBase):
 class AvaliacaoUpdate(BaseModel):
     nota: Optional[int] = None
     comentario: Optional[str] = None
+
+class AvaliacaoPublicaResponse(BaseModel):
+    cliente: str
+    estabelecimento: str
+    comentario: str
 
 class AvaliacaoResponse(BaseModel):
     id: int

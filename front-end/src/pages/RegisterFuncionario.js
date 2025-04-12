@@ -42,7 +42,7 @@ const FormGroup = styled.div`
 
   input,
   select {
-    width: 100%;
+    width: 93%;
     padding: 12px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
@@ -85,7 +85,6 @@ const RegisterFuncionario = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [cargo, setCargo] = useState("");
   const [estabelecimento_id, setEstabelecimentoId] = useState(null);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -112,7 +111,7 @@ const RegisterFuncionario = () => {
         nome,
         email,
         senha,
-        estabelecimento_id, // 🔹 Apenas o estabelecimento agora
+        estabelecimento_id,
     };
 
     console.log("Payload enviado:", payload);
@@ -174,20 +173,6 @@ const RegisterFuncionario = () => {
               required
             />
           </FormGroup>
-          {/* <FormGroup>
-            <label htmlFor="cargo">Cargo</label>
-            <select
-              id="cargo"
-              value={cargo}
-              onChange={(e) => setCargo(e.target.value)}
-              required
-            >
-              <option value="">Selecione o cargo</option>
-              <option value="Recepcionista">Recepcionista</option>
-              <option value="Técnico">Técnico</option>
-              <option value="Gerente">Gerente</option>
-            </select>
-          </FormGroup> */}
           <Button type="submit">Cadastrar Funcionário</Button>
         </form>
       </Card>

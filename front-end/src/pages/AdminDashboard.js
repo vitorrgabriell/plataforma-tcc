@@ -115,11 +115,14 @@ const Div1 = styled.div`
 `;
 
 const CardTitle = styled.h3`
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
   color: #1f2937;
   text-align: center;
+  letter-spacing: 0.5px;
+  //text-transform: uppercase;
+
 `;
 
 const CustomCard = styled.div`
@@ -163,6 +166,31 @@ const FuncionarioInfoWrapper = styled.div`
 const NomeFuncionario = styled.strong`
   font-size: 14px;
   color: #1f2937;
+`;
+
+const Footer = styled.footer`
+  background-color: #111827;
+  color: #f9fafb;
+  padding: 20px 40px;
+  text-align: center;
+  font-size: 14px;
+  margin-top: 48px; 
+
+  @media (max-width: 768px) {
+    padding: 16px;
+    font-size: 13px;
+    margin-top: 32px; 
+  }
+`;
+
+const FooterLink = styled.a`
+  color: #60a5fa;
+  text-decoration: none;
+  margin: 0 10px;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const AdminDashboard = () => {
@@ -255,10 +283,58 @@ const AdminDashboard = () => {
   
     fetchDashboardData();
   }, []);
+
+  const handleCadastrarServico = () => {
+    navigate("/register-servico");
+  };
   
-  const handleLogout = () => {
-    Cookies.remove("token");
-    navigate("/logout");
+  const handleEditarServico = (id) => {
+    navigate(`/editar-servico/${id}`);
+  };
+  
+  const handleExcluirServico = async (id) => {
+    const confirm = window.confirm("Tem certeza que deseja excluir este serviço?");
+    if (!confirm) return;
+  
+    const token = Cookies.get("token");
+    const api = process.env.REACT_APP_API_URL;
+  
+    try {
+      const response = await fetch(`${api}/servicos/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (response.ok) {
+        setServicos(prev => prev.filter(s => s.id !== id));
+        alert("Serviço excluído com sucesso!");
+      } else {
+        alert("Erro ao excluir o serviço.");
+      }
+    } catch (error) {
+      console.error("Erro ao excluir serviço:", error);
+    }
+  };
+  
+  const handleLogout = async () => {
+    try {
+      const token = Cookies.get("token");
+      const api = process.env.REACT_APP_API_URL;
+  
+      await fetch(`${api}/auth/logout`, {
+        method: "POST", 
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      Cookies.remove("token");
+      navigate("/logout");
+    } catch (error) {
+      console.error("Erro no logout", error);
+    }
   };
 
   return (
@@ -267,9 +343,9 @@ const AdminDashboard = () => {
         <Title>AgendaVip</Title>
         {userName && <UserInfo>Bem-vindo de volta, {userName}!</UserInfo>}
         <ButtonGroup>
-          <Button onClick={() => navigate("/register-funcionarios")}>
-            Cadastrar funcionários
-          </Button>
+        <Button onClick={() => navigate("/edit-estabelecimento")}>
+          Editar Estabelecimento
+        </Button>
           <Button bgColor="#ef4444" hoverColor="#dc2626" onClick={handleLogout}>
             Sair
           </Button>
@@ -279,7 +355,22 @@ const AdminDashboard = () => {
       <Content>
         <GridWrapper>
           <Div1>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <CardTitle>Funcionários</CardTitle>
+              <button
+                onClick={() => navigate("/cadastrar-funcionario")}
+                style={{
+                  backgroundColor: "#3b82f6",
+                  color: "white",
+                  padding: "6px 12px",
+                  borderRadius: "6px",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Cadastrar Funcionário
+              </button>
+            </div>
             {profissionais.map((p) => (
               <CustomCard key={p.id}>
                 <FuncionarioInfoWrapper>
@@ -305,7 +396,7 @@ const AdminDashboard = () => {
               💵 R$ {a.preco.toFixed(2)} em {new Date(a.horario).toLocaleString("pt-BR")}
             </CustomCard>            
             ))}
-            <CardTitle>Cancelados Recentemente</CardTitle>
+            <CardTitle>Cancelados Recentemente <span style={{ color: '#ef4444' }}>({cancelados.length})</span></CardTitle>
             {cancelados.map((c, index) => (
               <CustomCard key={index}>
                 {c.cliente} cancelou {c.servico} com {c.profissional} <br />
@@ -320,7 +411,6 @@ const AdminDashboard = () => {
                 <CardTitle>Métricas do Dia</CardTitle>
                 {metricas && (
                   <>
-                    <CustomCard>Cancelamentos: {cancelados.length}</CustomCard>
                     <CustomCard>Faturamento Estimado: {metricas.faturamentoEstimado}</CustomCard>
                     <CustomCard>Novos Clientes: {metricas.novosClientes}</CustomCard>
                     <CustomCard>Profissionais Ativos: {metricas.profissionaisAtivos}</CustomCard>
@@ -329,10 +419,71 @@ const AdminDashboard = () => {
               </Card>
 
               <Card>
+              <div style={{ backgroundColor: "#fff", padding: "16px", borderRadius: "12px", marginTop: "16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                 <CardTitle>Serviços</CardTitle>
-                {servicos.map((s, index) => (
-                  <CustomCard key={index}>{s.nome}</CustomCard>
+                  <button
+                    onClick={handleCadastrarServico}
+                    style={{
+                      backgroundColor: "#3b82f6",
+                      color: "white",
+                      padding: "6px 12px",
+                      borderRadius: "6px",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Cadastrar Serviço
+                  </button>
+                </div>
+
+                {servicos.map((servico) => (
+                  <div
+                    key={servico.id}
+                    style={{
+                      backgroundColor: "#f3f4f6",
+                      padding: "10px",
+                      borderRadius: "8px",
+                      marginBottom: "10px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <span>{servico.nome}</span>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        onClick={() => handleEditarServico(servico.id)}
+                        style={{
+                          backgroundColor: "#6366F1",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          padding: "4px 8px",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => handleExcluirServico(servico.id)}
+                        style={{
+                          backgroundColor: "#ef4444",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          padding: "4px 8px",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
                 ))}
+              </div>
               </Card>
 
               <Card>
@@ -345,6 +496,14 @@ const AdminDashboard = () => {
           </Div3>
         </GridWrapper>
       </Content>
+      <Footer>
+        <p>
+          © {new Date().getFullYear()} AgendaVip. Todos os direitos reservados.
+          <br />
+          <FooterLink href="/sobre">Sobre</FooterLink>|
+          <FooterLink href="/contato">Contato</FooterLink>
+        </p>
+      </Footer>
     </Container>
   );
 };

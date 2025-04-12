@@ -81,9 +81,23 @@ const DashboardProfissional = () => {
     }
   }, []);
 
-  const handleLogout = () => {
-    Cookies.remove("token");
-    navigate("/logout");
+  const handleLogout = async () => {
+    try {
+      const token = Cookies.get("token");
+      const api = process.env.REACT_APP_API_URL;
+  
+      await fetch(`${api}/auth/logout`, {
+        method: "POST", // importante!
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      Cookies.remove("token");
+      navigate("/logout");
+    } catch (error) {
+      console.error("Erro no logout", error);
+    }
   };
 
   return (

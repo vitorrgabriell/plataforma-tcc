@@ -43,12 +43,6 @@ def criar_agendamento(
 
     return novo_agendamento
 
-# @router.get("/", response_model=list[AgendamentoResponse])
-# def listar_por_estabelecimento(estabelecimento_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
-#     if user["tipo_usuario"] != "admin":
-#         raise HTTPException(status_code=403, detail="Apenas administradores podem acessar esta rota")
-#     return db.query(Agendamento).filter(Agendamento.profissional.has(estabelecimento_id=estabelecimento_id)).all()
-
 @router.get("/")
 def listar_agendamentos(
     estabelecimento_id: int,

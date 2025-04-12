@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Optional
 from sqlalchemy.orm import Session
+from typing import List
 from app.db.database import get_db
 from app.models.avaliacao import Avaliacao
-from app.schemas import AvaliacaoCreate, AvaliacaoResponse, AvaliacaoUpdate
+from app.schemas import AvaliacaoCreate, AvaliacaoResponse, AvaliacaoUpdate, AvaliacaoPublicaResponse
 
 router = APIRouter()
 
@@ -14,12 +15,29 @@ def listar_avaliacoes(estabelecimento_id: Optional[int] = None, db: Session = De
         query = query.filter(Avaliacao.estabelecimento_id == estabelecimento_id)
     return query.all()
 
+@router.get("/publicas", response_model=List[AvaliacaoPublicaResponse])
+def listar_avaliacoes_publicas(db: Session = Depends(get_db)):
+    resultados = db.execute("""
+        SELECT 
+            u.nome AS cliente, 
+            e.nome AS estabelecimento, 
+            a.comentario
+        FROM avaliacoes a
+        JOIN usuarios u ON u.id = a.cliente_id
+        JOIN estabelecimentos e ON e.id = a.estabelecimento_id
+        ORDER BY a.criado_em DESC
+        LIMIT 5
+    """).mappings().all()
+
+    return resultados
+
 @router.get("/{id}", response_model=AvaliacaoResponse)
 def obter_avaliacao(id: int, estabelecimento_id: int = None, db: Session = Depends(get_db)):
     avaliacao = db.query(Avaliacao).filter(Avaliacao.id == id).first()
     if not avaliacao or (estabelecimento_id and avaliacao.estabelecimento_id != estabelecimento_id):
         raise HTTPException(status_code=404, detail="Avaliação não encontrada")
     return avaliacao
+
 
 @router.post("/", response_model=AvaliacaoResponse, status_code=201)
 def criar_avaliacao(avaliacao: AvaliacaoCreate, db: Session = Depends(get_db)):

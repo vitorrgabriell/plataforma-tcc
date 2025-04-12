@@ -26,8 +26,11 @@ def criar_servico(servico: ServicoCreate, db: Session = Depends(get_db), user=De
     return novo_servico
 
 @router.get("/", response_model=list[ServicoResponse])
-def listar_servicos(db: Session = Depends(get_db), user=Depends(get_current_user)):
-    return db.query(Servico).filter(Servico.estabelecimento_id == user["estabelecimento_id"]).all()
+def listar_servicos(
+    estabelecimento_id: int,
+    db: Session = Depends(get_db)
+):
+    return db.query(Servico).filter(Servico.estabelecimento_id == estabelecimento_id).all()
 
 @router.get("/{servico_id}", response_model=ServicoResponse)
 def buscar_servico(servico_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):

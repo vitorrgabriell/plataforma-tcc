@@ -65,6 +65,8 @@ def get_users(db: Session = Depends(get_db), user=Depends(get_current_user)):
         return("Estabelecimento id vazio")
     return users
 
+
+
 @router.get("/{user_id}", response_model=UserResponse)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.execute(
@@ -90,6 +92,12 @@ def update_user(user_id: int, user: UpdateUser, db: Session = Depends(get_db)):
         """,
         {"id": user_id, "nome": user.nome, "email": user.email, "tipo_usuario": user["tipo_usuario"]}
     )
+    if user.senha:
+        hashed_password = get_password_hash(user.senha)
+        db.execute(
+            "UPDATE usuarios SET senha = :senha WHERE id = :id",
+            {"senha": hashed_password, "id": user_id}
+        )
     db.commit()
     
     return {"message": "Usuário atualizado com sucesso"}
