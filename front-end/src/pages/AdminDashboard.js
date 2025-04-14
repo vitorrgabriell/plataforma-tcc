@@ -358,7 +358,7 @@ const AdminDashboard = () => {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <CardTitle>Funcionários</CardTitle>
               <button
-                onClick={() => navigate("/cadastrar-funcionario")}
+                onClick={() => navigate("/register-funcionario")}
                 style={{
                   backgroundColor: "#3b82f6",
                   color: "white",

@@ -38,7 +38,7 @@ function App() {
           element={<EditEstabelecimento />}
         />
         <Route
-          path="/register-funcionarios"
+          path="/register-funcionario"
           element={<RegisterFuncionario />}
         />
         <Route
