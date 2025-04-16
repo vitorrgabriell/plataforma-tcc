@@ -3,11 +3,23 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import styled from "styled-components";
+import GraficoFaturamento from "../components/graficoFaturamento"
+import GraficoClientesAgendamentos from "../components/graficoClientesAgendamentos";
+
+
+const Div1 = styled.div`
+  grid-column: 1 / span 2;
+  grid-row: 1 / span 7;
+  background-color: #1e293b;
+  border-radius: 8px;
+  padding: 12px;
+  overflow-y: auto;
+`;
 
 const Div2 = styled.div`
   grid-column: 4 / span 2;
   grid-row: 1 / span 7;
-  background-color: #f3f4f6;
+  background-color: #1e293b;
   border-radius: 8px;
   padding: 12px;
   overflow-y: auto;
@@ -16,10 +28,26 @@ const Div2 = styled.div`
 const Div3 = styled.div`
   grid-column: 7 / span 2;
   grid-row: 1 / span 7;
-  background-color: #f3f4f6;
+  background-color: #1e293b;
   border-radius: 8px;
   padding: 12px;
-  overflow: hidden;
+  overflow-y: auto;
+`;
+
+const Div4 = styled.div`
+  grid-column: 1 / span 8;
+  background-color: #1e293b;
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr;
+  gap: 24px;
+  align-items: flex-start;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const CardColumn = styled.div`
@@ -31,44 +59,60 @@ const CardColumn = styled.div`
 `;
 
 const Card = styled.div`
-  background-color: white;
+  background-color: #334155;
   border-radius: 10px;
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  color: #f1f5f9;
+`;
+
+const CustomCard = styled.div`
+  background-color: #475569;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  color: #f1f5f9;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+  }
 `;
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: #0f172a;
+  color: #f1f5f9;
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #ffffff;
+  background-color: #1e293b;
   padding: 16px 32px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 `;
 
 const Title = styled.h1`
   font-size: 24px;
   font-weight: bold;
-  color: #1f2937;
+  color: #f9fafb;
 `;
 
 const UserInfo = styled.div`
-  background-color: #e5e7eb;
+  background-color: #334155;
   padding: 10px 16px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: bold;
-  color: #1f2937;
+  color: #f9fafb;
 `;
 
 const ButtonGroup = styled.div`
@@ -95,50 +139,29 @@ const Button = styled.button`
 const Content = styled.div`
   flex-grow: 1;
   padding: 32px;
+  overflow-y: auto;
 `;
 
 const GridWrapper = styled.div`
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: repeat(7, 1fr);
+  grid-template-rows: repeat(9, auto);
   gap: 10px;
-  height: calc(100vh - 96px);
-`;
+  height: auto;
 
-const Div1 = styled.div`
-  grid-column: 1 / span 2;
-  grid-row: 1 / span 7;
-  background-color: #f3f4f6;
-  border-radius: 8px;
-  padding: 12px;
-  overflow-y: auto;
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
 `;
 
 const CardTitle = styled.h3`
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 12px;
-  color: #1f2937;
+  color: #f9fafb;
   text-align: center;
   letter-spacing: 0.5px;
-  //text-transform: uppercase;
-
-`;
-
-const CustomCard = styled.div`
-  background-color: white;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  transition: transform 0.2s ease;
-
-  &:hover {
-    transform: translateY(-3px);
-  }
 `;
 
 const ActionButton = styled.button`
@@ -165,21 +188,30 @@ const FuncionarioInfoWrapper = styled.div`
 
 const NomeFuncionario = styled.strong`
   font-size: 14px;
-  color: #1f2937;
+  color: #f9fafb;
+`;
+
+const ServicosContainer = styled.div`
+  background-color: #334155;
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 16px;
+  color: #f9fafb;
 `;
 
 const Footer = styled.footer`
-  background-color: #111827;
-  color: #f9fafb;
-  padding: 20px 40px;
+  background-color: #1e293b; // um tom acima do fundo geral
+  color: #cbd5e1; // cinza claro
+  padding: 24px 40px;
   text-align: center;
   font-size: 14px;
-  margin-top: 48px; 
+  margin-top: 48px;
+  border-top: 1px solid #334155;
 
   @media (max-width: 768px) {
     padding: 16px;
     font-size: 13px;
-    margin-top: 32px; 
+    margin-top: 32px;
   }
 `;
 
@@ -356,20 +388,10 @@ const AdminDashboard = () => {
         <GridWrapper>
           <Div1>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <CardTitle>Funcionários</CardTitle>
-              <button
-                onClick={() => navigate("/register-funcionario")}
-                style={{
-                  backgroundColor: "#3b82f6",
-                  color: "white",
-                  padding: "6px 12px",
-                  borderRadius: "6px",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
+              <CardTitle>Funcionários</CardTitle>
+              <Button onClick={() => navigate("/register-funcionario")}>
                 Cadastrar Funcionário
-              </button>
+              </Button>
             </div>
             {profissionais.map((p) => (
               <CustomCard key={p.id}>
@@ -407,93 +429,56 @@ const AdminDashboard = () => {
 
           <Div3>
             <CardColumn>
-              <Card>
-                <CardTitle>Métricas do Dia</CardTitle>
-                {metricas && (
-                  <>
-                    <CustomCard>Faturamento Estimado: {metricas.faturamentoEstimado}</CustomCard>
-                    <CustomCard>Novos Clientes: {metricas.novosClientes}</CustomCard>
-                    <CustomCard>Profissionais Ativos: {metricas.profissionaisAtivos}</CustomCard>
-                  </>
-                )}
-              </Card>
-
-              <Card>
-              <div style={{ backgroundColor: "#fff", padding: "16px", borderRadius: "12px", marginTop: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                 <CardTitle>Serviços</CardTitle>
-                  <button
-                    onClick={handleCadastrarServico}
-                    style={{
-                      backgroundColor: "#3b82f6",
-                      color: "white",
-                      padding: "6px 12px",
-                      borderRadius: "6px",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Cadastrar Serviço
-                  </button>
-                </div>
-
-                {servicos.map((servico) => (
-                  <div
-                    key={servico.id}
-                    style={{
-                      backgroundColor: "#f3f4f6",
-                      padding: "10px",
-                      borderRadius: "8px",
-                      marginBottom: "10px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span>{servico.nome}</span>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button
-                        onClick={() => handleEditarServico(servico.id)}
-                        style={{
-                          backgroundColor: "#6366F1",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "4px",
-                          padding: "4px 8px",
-                          fontSize: "12px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => handleExcluirServico(servico.id)}
-                        style={{
-                          backgroundColor: "#ef4444",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "4px",
-                          padding: "4px 8px",
-                          fontSize: "12px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Excluir
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                <Button onClick={handleCadastrarServico}>
+                  Cadastrar Serviço
+                </Button>
               </div>
-              </Card>
-
-              <Card>
-                <CardTitle>Avaliações Recentes</CardTitle>
-                {avaliacoes.map((a, index) => (
-                  <CustomCard key={index}>{a.nome} {a.estrelas} — “{a.comentario}”</CustomCard>
-                ))}
-              </Card>
+              {servicos.length === 0 ? (
+                <CustomCard>Nenhum serviço cadastrado.</CustomCard>
+              ) : (
+                servicos.map((servico) => (
+                  <CustomCard key={servico.id}>
+                    <FuncionarioInfoWrapper>
+                      <NomeFuncionario>{servico.nome}</NomeFuncionario>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <ActionButton bgColor="#6366F1" onClick={() => handleEditarServico(servico.id)}>
+                          Editar
+                        </ActionButton>
+                        <ActionButton bgColor="#EF4444" onClick={() => handleExcluirServico(servico.id)}>
+                          Excluir
+                        </ActionButton>
+                      </div>
+                    </FuncionarioInfoWrapper>
+                  </CustomCard>
+                ))
+              )}
             </CardColumn>
           </Div3>
+          <Div4>
+            <div>
+              <CardTitle>Faturamento Semanal</CardTitle>
+              <GraficoFaturamento />
+            </div>
+            <div>
+              <CardTitle>Clientes x Agendamentos</CardTitle>
+              <GraficoClientesAgendamentos />
+            </div>
+            <div>
+              <CardTitle>Avaliações Recentes</CardTitle>
+              {avaliacoes.length === 0 ? (
+                <CustomCard>Nenhuma avaliação ainda.</CustomCard>
+              ) : (
+                avaliacoes.map((a, index) => (
+                  <CustomCard key={index}>
+                    <span style={{ fontStyle: "italic" }}>“{a.comentario}”</span><br />
+                    <small>⭐ {a.estrelas} — {a.nome}</small>
+                  </CustomCard>
+                ))
+              )}
+            </div>
+          </Div4>
         </GridWrapper>
       </Content>
       <Footer>

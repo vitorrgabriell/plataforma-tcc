@@ -8,14 +8,14 @@ const PageWrapper = styled.div`
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: #0f172a; /* fundo escuro */
 `;
 
 const Card = styled.div`
-  background-color: #ffffff;
+  background-color: #1e293b; /* card escuro */
   padding: 40px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   width: 100%;
   max-width: 420px;
 `;
@@ -24,7 +24,7 @@ const Title = styled.h2`
   text-align: center;
   font-size: 24px;
   font-weight: bold;
-  color: #1f2937;
+  color: #f9fafb;
   margin-bottom: 24px;
 `;
 
@@ -35,17 +35,25 @@ const FormGroup = styled.div`
 const Label = styled.label`
   font-weight: 600;
   font-size: 14px;
-  color: #374151;
+  color: #f1f5f9;
   display: block;
   margin-bottom: 6px;
 `;
 
 const Input = styled.input`
-  width: 100%;
+  width: 95%;
   padding: 10px;
-  border: 1px solid #d1d5db;
+  background-color: #0f172a;
+  color: #f9fafb;
+  border: 1px solid #334155;
   border-radius: 6px;
   font-size: 14px;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  }
 `;
 
 const Button = styled.button`

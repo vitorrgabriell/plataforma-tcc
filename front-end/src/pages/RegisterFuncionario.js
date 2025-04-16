@@ -10,13 +10,13 @@ const Container = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f9fafb;
+  background-color: #0f172a; /* fundo escuro */
 `;
 
 const Card = styled.div`
-  background-color: #ffffff;
+  background-color: #1e293b; /* card escuro */
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   padding: 32px;
   max-width: 400px;
   width: 100%;
@@ -26,7 +26,7 @@ const Title = styled.h2`
   font-size: 24px;
   font-weight: bold;
   text-align: center;
-  color: #1f2937;
+  color: #f9fafb;
   margin-bottom: 16px;
 `;
 
@@ -36,7 +36,7 @@ const FormGroup = styled.div`
   label {
     display: block;
     font-size: 0.875rem;
-    color: #6b7280;
+    color: #f1f5f9;
     margin-bottom: 0.5rem;
   }
 
@@ -44,7 +44,9 @@ const FormGroup = styled.div`
   select {
     width: 93%;
     padding: 12px;
-    border: 1px solid #d1d5db;
+    background-color: #0f172a;
+    color: #f9fafb;
+    border: 1px solid #334155;
     border-radius: 6px;
     font-size: 1rem;
     outline: none;

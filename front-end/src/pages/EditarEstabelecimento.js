@@ -9,14 +9,14 @@ const Container = styled.div`
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #f9fafb;
+  background-color: #0f172a; /* fundo escuro */
 `;
 
 const Form = styled.form`
-  background-color: white;
+  background-color: #1e293b; /* card escuro */
   padding: 32px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   width: 100%;
   max-width: 500px;
   display: flex;
@@ -28,19 +28,27 @@ const Title = styled.h2`
   text-align: center;
   font-size: 22px;
   font-weight: bold;
-  color: #1f2937;
+  color: #f9fafb; /* texto claro */
 `;
 
 const Label = styled.label`
   font-size: 14px;
-  color: #1f2937;
+  color: #f1f5f9;
 `;
 
 const Input = styled.input`
   padding: 10px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  color: #f9fafb;
   border-radius: 6px;
   font-size: 14px;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  }
 `;
 
 const Button = styled.button`
@@ -58,6 +66,7 @@ const Button = styled.button`
     background-color: #2563eb;
   }
 `;
+
 
 const EditEstabelecimento = () => {
   const [nome, setNome] = useState("");

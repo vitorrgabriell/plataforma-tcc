@@ -1,38 +1,39 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import styled from "styled-components";
 import { jwtDecode } from "jwt-decode";
+import {motion, AnimatePresence } from "framer-motion"
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: #0f172a; // fundo geral escuro
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #ffffff;
+  background-color: #1e293b;
   padding: 16px 32px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 `;
 
 const Title = styled.h1`
   font-size: 24px;
   font-weight: bold;
-  color: #1f2937;
+  color: #f9fafb;
 `;
 
 const UserInfo = styled.div`
-  background-color: #e5e7eb;
+  background-color: #334155;
   padding: 10px 16px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: bold;
-  color: #1f2937;
+  color: #f9fafb;
 `;
 
 const ButtonGroup = styled.div`
@@ -74,12 +75,12 @@ const GridWrapper = styled.div`
   padding: 12px;
 `;
 
-
 const EstablishmentCard = styled.div`
-  background-color: white;
+  background-color: #1e293b;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  color: #f1f5f9;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
@@ -93,42 +94,42 @@ const EstablishmentCard = styled.div`
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
   }
 `;
 
 const TitleSection = styled.div`
   text-align: center;
   margin-bottom: 24px;
-  
+
   h2 {
     font-size: 22px;
     font-weight: 600;
-    color: #1f2937;
+    color: #f1f5f9;
   }
 
   p {
     font-size: 14px;
-    color: #6b7280;
+    color: #cbd5e1;
     margin-top: 4px;
   }
 `;
+
 const CardTitle = styled.h3`
   font-size: 18px;
   font-weight: bold;
-  color: #1f2937;
-  margin-bottom: 8px;
+  color: #f1f5f9;
 `;
 
 const CardDescription = styled.p`
   font-size: 14px;
-  color: #6b7280;
+  color: #cbd5e1;
 `;
 
 const ArrowButton = styled.button.attrs(({ right }) => ({}))`
   position: absolute;
   top: 50%;
-  ${(props) => (props.right ? "right: 15%;" : "left: 9%;")}
+  ${(props) => (props.right ? "right: 10px;" : "left: 10px;")}
   transform: translateY(-50%);
   background-color: #3b82f6;
   color: white;
@@ -156,7 +157,7 @@ const SectionWrapper = styled.div`
 const SectionTitle = styled.h3`
   font-size: 20px;
   font-weight: 600;
-  color: #1f2937;
+  color: #f1f5f9;
   margin-bottom: 16px;
 `;
 
@@ -167,23 +168,18 @@ const CardList = styled.div`
 `;
 
 const AvaliacaoCard = styled.div`
-  background-color: white;
+  background-color: #334155;
   border-radius: 10px;
   padding: 16px;
   width: 100%;
   max-width: 300px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  color: #f1f5f9;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
   }
-`;
-
-const Estrela = styled.span`
-  color: #facc15;
-  font-size: 16px;
 `;
 
 const AtalhoWrapper = styled.div`
@@ -210,17 +206,18 @@ const AtalhoButton = styled.button`
 `;
 
 const Footer = styled.footer`
-  background-color: #111827;
-  color: #f9fafb;
-  padding: 20px 40px;
+  background-color: #1e293b; // um tom acima do fundo geral
+  color: #cbd5e1; // cinza claro
+  padding: 24px 40px;
   text-align: center;
   font-size: 14px;
-  margin-top: 48px; /* <- Aumenta o espaço acima do footer */
+  margin-top: 48px;
+  border-top: 1px solid #334155;
 
   @media (max-width: 768px) {
     padding: 16px;
     font-size: 13px;
-    margin-top: 32px; /* Espaço menor em mobile */
+    margin-top: 32px;
   }
 `;
 
@@ -239,19 +236,14 @@ const AgendarEstabelecimentoPage = () => {
   const [userName, setUserName] = useState("");
   const [estabelecimentos, setEstabelecimentos] = useState([]);
   const [avaliacoesRecentes, setAvaliacoesRecentes] = useState([]);
-  const scrollRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 3;
 
-  const scrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft -= 300;
-    }
-  };
+  const totalPages = Math.ceil(estabelecimentos.length / itemsPerPage);
 
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft += 300;
-    }
-  };
+  const startIndex = currentPage * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentEstabelecimentos = estabelecimentos.slice(startIndex, endIndex);
 
   useEffect(() => {
     const token = Cookies.get("token");
@@ -355,20 +347,39 @@ const AgendarEstabelecimentoPage = () => {
       </TitleSection>
       <Content>
       <div style={{ position: 'relative', width: '100%' }}>
-        <ArrowButton onClick={scrollLeft}>&lt;</ArrowButton>
-        <GridWrapper ref={scrollRef}>
-          {estabelecimentos.map((est) => (
-            <EstablishmentCard
-              key={est.id}
-              onClick={() => handleSelectEstabelecimento(est.id)}
-            >
-              <CardTitle>{est.nome}</CardTitle>
-              <CardDescription><strong>Tipo:</strong> {est.tipo_servico}</CardDescription>
-            </EstablishmentCard>
-          ))}
+        <ArrowButton
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
+          disabled={currentPage === 0}
+        >
+          &lt;
+        </ArrowButton>
+        <GridWrapper as={motion.div}>
+          <AnimatePresence mode="wait">
+            {currentEstabelecimentos.map((est) => (
+              <motion.div
+                key={est.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.4 }}
+              >
+                <EstablishmentCard onClick={() => handleSelectEstabelecimento(est.id)}>
+                  <CardTitle>{est.nome}</CardTitle>
+                  <CardDescription>
+                    <strong>Tipo:</strong> {est.tipo_servico}
+                  </CardDescription>
+                </EstablishmentCard>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </GridWrapper>
-
-        <ArrowButton right onClick={scrollRight}>&gt;</ArrowButton>
+        <ArrowButton
+          right
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
+          disabled={currentPage >= totalPages - 1}
+        >
+          &gt;
+        </ArrowButton>
       </div>
       </Content>
       <SectionWrapper>

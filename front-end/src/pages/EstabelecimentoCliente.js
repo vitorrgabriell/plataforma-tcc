@@ -8,31 +8,31 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: #0f172a;
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #ffffff;
+  background-color: #1e293b;
   padding: 16px 32px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 `;
 
 const Title = styled.h1`
   font-size: 24px;
   font-weight: bold;
-  color: #1f2937;
+  color: #f9fafb;
 `;
 
 const UserInfo = styled.div`
-  background-color: #e5e7eb;
+  background-color: #334155;
   padding: 10px 16px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: bold;
-  color: #1f2937;
+  color: #f9fafb;
 `;
 
 const ButtonGroup = styled.div`
@@ -67,13 +67,15 @@ const GridWrapper = styled.div`
   gap: 20px;
   width: 80%;
   margin: 0 auto;
+  align-items: start;
 `;
 
 const SchedulingForm = styled.div`
-  background-color: white;
+  background-color: #1e293b;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  color: #f9fafb;
 `;
 
 const FormGroup = styled.div`
@@ -83,31 +85,36 @@ const FormGroup = styled.div`
 const Label = styled.label`
   display: block;
   font-size: 14px;
-  color: #1f2937;
+  color: #cbd5e1;
   margin-bottom: 4px;
 `;
 
 const Select = styled.select`
   width: 100%;
   padding: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  color: #f9fafb;
   border-radius: 6px;
   font-size: 14px;
+
+  &:focus {
+    border-color: #3b82f6;
+    outline: none;
+  }
 `;
 
 const AppointmentsList = styled.div`
-  background-color: white;
+  background-color: #1e293b;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  max-height: 500px;
-  overflow-y: auto;
-  height: auto;
-  align-self: flex-start;
+  color: #f9fafb;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  align-self: start;
 `;
 
 const AppointmentCard = styled.div`
-  background-color: #f3f4f6;
+  background-color: #334155;
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 12px;
@@ -118,7 +125,7 @@ const AppointmentCard = styled.div`
 
 const AppointmentInfo = styled.div`
   font-size: 14px;
-  color: #1f2937;
+  color: #f1f5f9;
 `;
 
 const ActionButton = styled.button`
@@ -139,6 +146,7 @@ const ActionButton = styled.button`
     opacity: 0.8;
   }
 `;
+
 
 const EstabelecimentoCliente = () => {
   const { id } = useParams();

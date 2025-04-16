@@ -9,22 +9,22 @@ const Container = styled.div`
   min-height: 100vh;
   align-items: center;
   justify-content: center;
-  background-color: #f3f4f6;
+  background-color: #0f172a; // fundo escuro
 `;
 
 const FormWrapper = styled.div`
   width: 100%;
   max-width: 400px;
-  padding: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  background: #1e293b; // container escuro
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 `;
 
 const Title = styled.h2`
   font-size: 24px;
   font-weight: bold;
-  color: #374151;
+  color: #f1f5f9; // texto claro
   text-align: center;
   margin-bottom: 20px;
 `;
@@ -37,17 +37,23 @@ const ErrorMessage = styled.p`
 `;
 
 const Input = styled.input`
-  width: 94%;
+  width: 94.5%;
   padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
+  margin-bottom: 12px;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  border-radius: 6px;
   font-size: 16px;
+  color: #f1f5f9;
+
+  &::placeholder {
+    color: #94a3b8;
+  }
 
   &:focus {
     outline: none;
     border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
   }
 `;
 
@@ -59,9 +65,9 @@ const Button = styled.button`
   font-size: 16px;
   font-weight: bold;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s ease;
 
   &:hover {
     background-color: #2563eb;
@@ -70,11 +76,12 @@ const Button = styled.button`
 
 const RegisterLink = styled.p`
   text-align: center;
-  margin-top: 10px;
+  margin-top: 12px;
   font-size: 14px;
+  color: #f1f5f9;
 
   a {
-    color: #3b82f6;
+    color: #60a5fa;
     text-decoration: none;
 
     &:hover {
@@ -82,6 +89,7 @@ const RegisterLink = styled.p`
     }
   }
 `;
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -127,7 +135,7 @@ const Login = () => {
   return (
     <Container>
       <FormWrapper>
-        <Title>Login</Title>
+        <Title>Login - AgendaVip</Title>
         {error && <ErrorMessage>{error}</ErrorMessage>}
         {success && <p style={{ color: "green", textAlign: "center", fontSize: "14px", marginTop: "10px" }}>{success}</p>}
         <form onSubmit={handleLogin}>

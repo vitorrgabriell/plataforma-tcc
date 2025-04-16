@@ -9,23 +9,24 @@ const Container = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f9fafb;
+  background-color: #0f172a; /* fundo escuro */
 `;
 
 const Card = styled.div`
-  background-color: #ffffff;
+  background-color: #1e293b; /* fundo do card */
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   padding: 32px;
   max-width: 400px;
   width: 100%;
+  color: #f9fafb; /* texto claro */
 `;
 
 const Title = styled.h2`
   font-size: 24px;
   font-weight: bold;
   text-align: center;
-  color: #1f2937;
+  color: #f9fafb;
   margin-bottom: 16px;
 `;
 
@@ -38,29 +39,34 @@ const Form = styled.form`
 
 const Label = styled.label`
   font-size: 14px;
-  color: #374151;
+  color: #cbd5e1;
   font-weight: 500;
   justify-self: end;
 `;
 
 const Input = styled.input`
   padding: 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #334155;
   border-radius: 6px;
   font-size: 14px;
-  color: #1f2937;
+  color: #f1f5f9;
+  background-color: #0f172a;
 
   &:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
   }
+
+  &::placeholder {
+    color: #94a3b8;
+  }
 `;
 
 const Button = styled.button`
-  grid-column: span 2; /* Botão ocupa duas colunas */
+  grid-column: span 2;
   background-color: #3b82f6;
-  color: #ffffff;
+  color: white;
   font-weight: bold;
   padding: 12px;
   border: none;
@@ -78,6 +84,7 @@ const ErrorMessage = styled.p`
   color: #ef4444;
   font-size: 14px;
   text-align: center;
+  margin-bottom: 12px;
 `;
 
 const RegisterEstabelecimento = () => {

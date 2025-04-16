@@ -8,23 +8,23 @@ const RegisterContainer = styled.div`
   min-height: 100vh;
   align-items: center;
   justify-content: center;
-  background-color: #f3f4f6;
+  background-color: #0f172a; // fundo escuro
 `;
 
 const FormWrapper = styled.div`
   width: 100%;
   max-width: 400px;
-  background: #fff;
+  background: #1e293b; // card escuro
   padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 `;
 
 const Title = styled.h2`
   font-size: 1.5rem;
   font-weight: bold;
   text-align: center;
-  color: #4b5563;
+  color: #f1f5f9;
   margin-bottom: 1.5rem;
 `;
 
@@ -32,6 +32,7 @@ const Message = styled.p`
   color: ${(props) => (props.error ? "#ef4444" : "#10b981")};
   font-size: 0.875rem;
   text-align: center;
+  margin-bottom: 1rem;
 `;
 
 const FormGroup = styled.div`
@@ -40,18 +41,24 @@ const FormGroup = styled.div`
   label {
     display: block;
     font-size: 0.875rem;
-    color: #6b7280;
+    color: #cbd5e1;
     margin-bottom: 0.5rem;
   }
 
   input {
-    width: 92%;
+    width: 91.5%;
     padding: 0.5rem 1rem;
-    border: 1px solid #d1d5db;
+    background-color: #0f172a;
+    color: #f1f5f9;
+    border: 1px solid #334155;
     border-radius: 8px;
     font-size: 1rem;
     outline: none;
     transition: border 0.2s ease;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
 
     &:focus {
       border-color: #3b82f6;
@@ -62,8 +69,8 @@ const FormGroup = styled.div`
 
 const Button = styled.button`
   width: 100%;
-  background-color: ${(props) => (props.disabled ? "#9ca3af" : "#3b82f6")};
-  color: #fff;
+  background-color: ${(props) => (props.disabled ? "#475569" : "#3b82f6")};
+  color: #f1f5f9;
   padding: 0.75rem;
   border: none;
   border-radius: 8px;
@@ -73,24 +80,7 @@ const Button = styled.button`
   transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: ${(props) => (props.disabled ? "#9ca3af" : "#2563eb")};
-  }
-`;
-
-const Text = styled.p`
-  text-align: center;
-  font-size: 0.875rem;
-  margin-top: 1rem;
-  color: #6b7280;
-
-  span {
-    color: #3b82f6;
-    cursor: pointer;
-    text-decoration: underline;
-
-    &:hover {
-      color: #2563eb;
-    }
+    background-color: ${(props) => (props.disabled ? "#475569" : "#2563eb")};
   }
 `;
 

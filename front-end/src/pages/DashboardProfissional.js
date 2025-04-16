@@ -8,31 +8,32 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: #0f172a; /* fundo escuro */
+  color: #f1f5f9;
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #ffffff;
+  background-color: #1e293b;
   padding: 16px 32px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 `;
 
 const Title = styled.h1`
   font-size: 24px;
   font-weight: bold;
-  color: #1f2937;
+  color: #f9fafb;
 `;
 
 const UserInfo = styled.div`
-  background-color: #e5e7eb;
+  background-color: #334155;
   padding: 10px 16px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: bold;
-  color: #1f2937;
+  color: #f9fafb;
 `;
 
 const ButtonGroup = styled.div`
@@ -59,8 +60,9 @@ const Button = styled.button`
 const Content = styled.div`
   flex-grow: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* evita centralizar verticalmente */
   justify-content: center;
+  padding: 32px;
 `;
 
 const DashboardProfissional = () => {

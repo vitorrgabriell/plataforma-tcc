@@ -14,15 +14,18 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @router.post("/")
 def register(user: RegisterUser, db: Session = Depends(get_db)):
-    if user["tipo_usuario"] != "cliente" and not user.estabelecimento_id:
+    user = user.dict()
+
+    if user["tipo_usuario"] != "cliente" and not user["estabelecimento_id"]:
         raise HTTPException(
-            status_code=400, detail="Estabelecimento ID é obrigatório para este tipo de usuário"
+            status_code=400,
+            detail="Estabelecimento ID é obrigatório para este tipo de usuário"
         )
 
-    if user.estabelecimento_id:
+    if user["estabelecimento_id"]:
         estabelecimento = db.execute(
             "SELECT id FROM estabelecimentos WHERE id = :id",
-            {"id": user.estabelecimento_id}
+            {"id": user["estabelecimento_id"]}
         ).fetchone()
 
         if not estabelecimento:
@@ -30,13 +33,13 @@ def register(user: RegisterUser, db: Session = Depends(get_db)):
 
     existing_user = db.execute(
         "SELECT * FROM usuarios WHERE email = :email",
-        {"email": user.email}
+        {"email": user["email"]}
     ).fetchone()
 
     if existing_user:
         raise HTTPException(status_code=400, detail="Email já está em uso")
 
-    hashed_password = get_password_hash(user.senha)
+    hashed_password = get_password_hash(user["senha"])
 
     db.execute(
         """
@@ -44,11 +47,11 @@ def register(user: RegisterUser, db: Session = Depends(get_db)):
         VALUES (:nome, :email, :senha, :tipo_usuario, :estabelecimento_id)
         """,
         {
-            "nome": user.nome,
-            "email": user.email,
+            "nome": user["nome"],
+            "email": user["email"],
             "senha": hashed_password,
             "tipo_usuario": user["tipo_usuario"],
-            "estabelecimento_id": user.estabelecimento_id,
+            "estabelecimento_id": user["estabelecimento_id"],
         }
     )
     db.commit()
