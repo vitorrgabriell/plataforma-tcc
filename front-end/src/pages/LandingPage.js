@@ -295,7 +295,7 @@ const LandingPage = () => {
             <CheckCircle size={20} /> Sistema próprio de notificações
           </Card>
           <Card>
-            <CheckCircle size={20} /> Chat direto com o profissional
+            <CheckCircle size={20} /> Sistema de pagamento após o serviço
           </Card>
           <Card>
             <CheckCircle size={20} /> Sem overbooking — agenda 100% sincronizada
