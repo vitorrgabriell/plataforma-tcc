@@ -106,7 +106,7 @@ const Register = () => {
       await axios.post(`${api}/users/`, payload);
 
       setSuccess("Cadastro realizado com sucesso! Redirecionando...");
-      setTimeout(() => navigate("/"), 2000);
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       const errorMsg =
         err.response?.data?.detail ||

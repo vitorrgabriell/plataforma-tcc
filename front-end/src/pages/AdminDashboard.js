@@ -58,14 +58,6 @@ const CardColumn = styled.div`
   overflow-y: auto;
 `;
 
-const Card = styled.div`
-  background-color: #334155;
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  color: #f1f5f9;
-`;
-
 const CustomCard = styled.div`
   background-color: #475569;
   border-radius: 10px;
@@ -188,14 +180,6 @@ const FuncionarioInfoWrapper = styled.div`
 
 const NomeFuncionario = styled.strong`
   font-size: 14px;
-  color: #f9fafb;
-`;
-
-const ServicosContainer = styled.div`
-  background-color: #334155;
-  padding: 16px;
-  border-radius: 12px;
-  margin-top: 16px;
   color: #f9fafb;
 `;
 
