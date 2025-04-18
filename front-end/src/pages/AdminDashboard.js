@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { redirect, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import styled from "styled-components";
@@ -269,9 +269,14 @@ const handleConfirmarExclusao = async () => {
         Authorization: `Bearer ${token}`,
       },
     });
-
-    const data = await response.json(); 
-
+  
+    let data = {};
+    try {
+      data = await response.json(); 
+    } catch (err) {
+      console.warn("Resposta sem JSON (provável 204):", err);
+    }
+  
     if (response.ok) {
       showToast(data.message || `${tipoExclusao === "funcionario" ? "Funcionário" : "Serviço"} excluído com sucesso!`, "success");
       fetchDashboardData();
@@ -281,7 +286,7 @@ const handleConfirmarExclusao = async () => {
   } catch (err) {
     console.error(`Erro ao excluir ${tipoExclusao}:`, err);
     showToast(`Erro inesperado ao excluir ${tipoExclusao}.`, "error");
-  } finally {
+  } finally{
     setMostrarConfirmacao(false);
   }
 };
@@ -372,6 +377,13 @@ const handleConfirmarExclusao = async () => {
       console.error("Erro no logout", error);
     }
   };
+  const agendamentosFuturos = agendamentos.filter((a) => {
+    return new Date(a.horario) > new Date();
+  });
+  
+  const canceladosFuturos = cancelados.filter((c) => {
+    return new Date(c.horario) > new Date();
+  });
 
   return (
     <Container>
@@ -432,14 +444,14 @@ const handleConfirmarExclusao = async () => {
                 Gerar Agenda
               </Button>
             </div>
-            {agendamentos.map((a) => (
+            {agendamentosFuturos.map((a) => (
               <CustomCard key={a.id}>
               {a.cliente} agendou {a.servico} com {a.profissional} <br />
               💵 R$ {a.preco.toFixed(2)} em {new Date(a.horario).toLocaleString("pt-BR")}
             </CustomCard>            
             ))}
             <CardTitle>Cancelados Recentemente <span style={{ color: '#ef4444' }}>({cancelados.length})</span></CardTitle>
-            {cancelados.map((c, index) => (
+            {canceladosFuturos.map((c, index) => (
               <CustomCard key={index}>
                 {c.cliente} cancelou {c.servico} com {c.profissional} <br />
                 ❌ {new Date(c.cancelado_em).toLocaleString("pt-BR")}
@@ -474,7 +486,7 @@ const handleConfirmarExclusao = async () => {
                       <ActionButton
                         bgColor="#EF4444"
                         onClick={() => {
-                          setTipoExclusao("servico");
+                          setTipoExclusao("servicos");
                           setIdParaExcluir(servico.id);
                           setMostrarConfirmacao(true);
                         }}>
@@ -544,6 +556,7 @@ const handleConfirmarExclusao = async () => {
       {mostrarModalServico && (
         <ModalServico
           estabelecimento_id={estabelecimentoId}
+          showToast={showToast}
           onClose={() => setMostrarModalServico(false)}
           onSuccess={() => {
             fetchDashboardData();
@@ -559,6 +572,7 @@ const handleConfirmarExclusao = async () => {
           fetchDashboardData();
           setMostrarModalEditarServico(false);
         }}
+        showToast={showToast}
       />
     )}
     {mostrarModalGerarAgenda && (

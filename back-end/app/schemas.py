@@ -217,8 +217,12 @@ class ServicoBase(BaseModel):
     nome: str
     descricao: str
     preco: float
+    tempo: int  # novo campo (em minutos)
 
 class ServicoCreate(ServicoBase):
+    pass
+
+class ServicoUpdate(ServicoBase):
     pass
 
 class ServicoResponse(ServicoBase):
@@ -227,5 +231,5 @@ class ServicoResponse(ServicoBase):
     estabelecimento_id: int
 
     class Config:
-        from_attributes = True
+        orm_mode = True
         

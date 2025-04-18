@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.servico import Servico
-from app.schemas import ServicoCreate, ServicoResponse
+from app.schemas import ServicoCreate, ServicoResponse, ServicoUpdate
 from app.utils.dependencies import get_current_user
 from datetime import datetime
 
@@ -17,6 +17,7 @@ def criar_servico(servico: ServicoCreate, db: Session = Depends(get_db), user=De
         nome=servico.nome,
         descricao=servico.descricao,
         preco=servico.preco,
+        tempo=servico.tempo,
         estabelecimento_id=user["estabelecimento_id"],
         criado_em=datetime.utcnow()
     )
@@ -40,7 +41,7 @@ def buscar_servico(servico_id: int, db: Session = Depends(get_db), user=Depends(
     return servico
 
 @router.put("/{servico_id}", response_model=ServicoResponse)
-def atualizar_servico(servico_id: int, servico_atualizado: ServicoCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
+def atualizar_servico(servico_id: int, servico_atualizado: ServicoUpdate, db: Session = Depends(get_db), user=Depends(get_current_user)):
     servico = db.query(Servico).filter(Servico.id == servico_id).first()
     if not servico or servico.estabelecimento_id != user["estabelecimento_id"]:
         raise HTTPException(status_code=404, detail="Serviço não encontrado.")
@@ -48,6 +49,7 @@ def atualizar_servico(servico_id: int, servico_atualizado: ServicoCreate, db: Se
     servico.nome = servico_atualizado.nome
     servico.descricao = servico_atualizado.descricao
     servico.preco = servico_atualizado.preco
+    servico.tempo = servico_atualizado.tempo    
     db.commit()
     db.refresh(servico)
     return servico
@@ -60,3 +62,4 @@ def deletar_servico(servico_id: int, db: Session = Depends(get_db), user=Depends
     
     db.delete(servico)
     db.commit()
+    return {"message": "Serviço excluído com sucesso"}

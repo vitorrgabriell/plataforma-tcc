@@ -10,6 +10,7 @@ class Servico(Base):
     nome = Column(String, nullable=False)
     descricao = Column(String, nullable=True)
     preco = Column(Float, nullable=False)
+    tempo = Column(Integer, nullable=False)
     criado_em = Column(DateTime, default=datetime.utcnow)
     estabelecimento_id = Column(Integer, ForeignKey("estabelecimentos.id"), nullable=False)
 

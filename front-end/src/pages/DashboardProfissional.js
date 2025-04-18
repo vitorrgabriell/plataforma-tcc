@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import styled from "styled-components";
 import { jwtDecode } from "jwt-decode";
+import ModalGerarAgendaProfissional from "../components/modalGerarAgendaProfissional";
+import ToastNotification from "../components/ToastNotification";
 
 const Container = styled.div`
   display: flex;
@@ -57,31 +59,174 @@ const Button = styled.button`
   }
 `;
 
+const ActionButtons = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+`;
+
+const SmallButton = styled.button`
+  background-color: ${(props) => props.bgColor || "#3b82f6"};
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 600;
+
+  &:hover {
+    opacity: 0.85;
+  }
+`;
+
 const Content = styled.div`
   flex-grow: 1;
-  display: flex;
-  align-items: flex-start; /* evita centralizar verticalmente */
-  justify-content: center;
   padding: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 24px;
+  width: 100%;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const Card = styled.div`
+  background-color: #1e293b;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: #f9fafb;
+`;
+
+const Footer = styled.footer`
+  background-color: #1e293b; // um tom acima do fundo geral
+  color: #cbd5e1; // cinza claro
+  padding: 24px 40px;
+  text-align: center;
+  font-size: 14px;
+  margin-top: 48px;
+  border-top: 1px solid #334155;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+    font-size: 13px;
+    margin-top: 32px;
+  }
+`;
+
+const FooterLink = styled.a`
+  color: #60a5fa;
+  text-decoration: none;
+  margin: 0 10px;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const DashboardProfissional = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
+  const [agendamentos, setAgendamentos] = useState([]);
+  const [agendamentosPendentes, setAgendamentosPendentes] = useState([]);
+  const [agendamentosConfirmados, setAgendamentosConfirmados] = useState([]);
+  const [mostrarModalGerarAgenda, setMostrarModalGerarAgenda] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+  };
 
   useEffect(() => {
     const token = Cookies.get("token");
-    const api = process.env.REACT_APP_API_URL;
     if (token) {
       try {
         const decoded = jwtDecode(token);
         console.log("Token decodificado:", decoded);
-        setUserName(decoded.nome || decoded.email); 
+        setUserName(decoded.nome || decoded.email);
+        fetchDashboardData();
       } catch (error) {
         console.error("Erro ao decodificar o token", error);
       }
     }
   }, []);
+
+  const fetchDashboardData = async () => {
+    const token = Cookies.get("token");
+  
+    if (!token) return;
+  
+    try {
+      const decoded = jwtDecode(token);
+      const api = process.env.REACT_APP_API_URL;
+      const profissionalId = decoded.sub;
+  
+      const res = await fetch(`${api}/agendamentos/profissional?profissional_id=${profissionalId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setAgendamentosPendentes(data.filter((a) => a.status === "pendente"));
+        setAgendamentosConfirmados(data.filter((a) => a.status === "confirmado"));
+      }
+    } catch (err) {
+      console.error("Erro ao buscar agendamentos do profissional:", err);
+    }
+  };
+
+  const confirmarAgendamento = async (id) => {
+    try {
+      const token = Cookies.get("token");
+      const api = process.env.REACT_APP_API_URL;
+  
+      await fetch(`${api}/agendamentos/confirmar/${id}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      showToast("Agendamento confirmado com sucesso!");
+      fetchDashboardData();
+    } catch (err) {
+      console.error("Erro ao confirmar agendamento:", err);
+      showToast("Erro ao confirmar agendamento.", "error");
+    }
+  };
+  
+  const cancelarAgendamento = async (id) => {
+    try {
+      const token = Cookies.get("token");
+      const api = process.env.REACT_APP_API_URL;
+  
+      await fetch(`${api}/agendamentos/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      showToast("Agendamento cancelado com sucesso!");
+      fetchDashboardData();
+    } catch (err) {
+      console.error("Erro ao cancelar agendamento:", err);
+      showToast("Erro ao cancelar agendamento.", "error");
+    }
+  };
+  
+  // A função editarAgendamento() a gente conecta depois
+  const editarAgendamento = (id) => {
+    showToast("Funcionalidade de edição em breve!", "info");
+  };
+
 
   const handleLogout = async () => {
     try {
@@ -108,14 +253,88 @@ const DashboardProfissional = () => {
         <Title>AgendaVip</Title>
         {userName && <UserInfo>Bem-vindo de volta, {userName}!</UserInfo>}
         <ButtonGroup>
+          <Button onClick={() => setMostrarModalGerarAgenda(true)} style={{ fontSize: "12px", padding: "8px 12px" }}>
+            Gerar Agenda
+          </Button>
           <Button bgColor="#ef4444" hoverColor="#dc2626" onClick={handleLogout}>
             Sair
           </Button>
         </ButtonGroup>
       </Header>
       <Content>
-        <p>Conteúdo da dashboard aqui...</p>
+      <Grid>
+        <Card style={{ gridColumn: "span 4" }}>
+          <h2>Agendamentos Pendentes</h2>
+          {agendamentosPendentes.length === 0 ? (
+            <p style={{ marginTop: "12px" }}>Nenhum agendamento pendente.</p>
+          ) : (
+            agendamentosPendentes.map((a) => (
+              <div key={a.id} style={{ marginTop: "12px", background: "#334155", padding: "12px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <p><strong>Cliente:</strong> {a.cliente}</p>
+                  <p><strong>Serviço:</strong> {a.servico}</p>
+                  <p><strong>Horário:</strong> {new Date(a.horario).toLocaleString("pt-BR")}</p>
+                  <p><strong>Status:</strong> Pendente</p>
+                </div>
+                <ActionButtons>
+                  <SmallButton bgColor="#006400" onClick={() => confirmarAgendamento(a.id)}>
+                    Confirmar
+                  </SmallButton>
+                  <SmallButton bgColor="#ef4444" onClick={() => cancelarAgendamento(a.id)}>
+                    Cancelar
+                  </SmallButton>
+                </ActionButtons>
+              </div>
+            ))
+          )}
+        </Card>
+        <Card style={{ gridColumn: "span 4" }}>
+          <h2>Meus Agendamentos Confirmados</h2>
+          {agendamentosConfirmados.length === 0 ? (
+            <p style={{ marginTop: "12px" }}>Nenhum agendamento confirmado.</p>
+          ) : (
+            agendamentosConfirmados.map((a) => (
+              <div key={a.id} style={{ marginTop: "12px", background: "#334155", padding: "12px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <p><strong>Cliente:</strong> {a.cliente}</p>
+                  <p><strong>Serviço:</strong> {a.servico}</p>
+                  <p><strong>Horário:</strong> {new Date(a.horario).toLocaleString("pt-BR")}</p>
+                  <p><strong>Status:</strong> Confirmado</p>
+                </div>
+              </div>
+            ))
+          )}
+        </Card>
+        <Card style={{ gridColumn: "span 8" }}>
+          <h2>Histórico de Atendimentos</h2>
+          {/* ...em breve... */}
+        </Card>
+      </Grid>
       </Content>
+      <Footer>
+        <p>
+          © {new Date().getFullYear()} AgendaVip. Todos os direitos reservados.
+          <br />
+          <FooterLink href="/sobre">Sobre</FooterLink>|
+          <FooterLink href="/contato">Contato</FooterLink>
+        </p>
+      </Footer>
+      {mostrarModalGerarAgenda && (
+        <ModalGerarAgendaProfissional
+          onClose={() => setMostrarModalGerarAgenda(false)}
+          onSuccess={() => {
+            fetchDashboardData(); // se tiver
+            setMostrarModalGerarAgenda(false);
+          }}
+          showToast={showToast}
+        />
+      )}
+      <ToastNotification
+        message={toast.message}
+        type={toast.type}
+        show={toast.show}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
     </Container>
   );
 };

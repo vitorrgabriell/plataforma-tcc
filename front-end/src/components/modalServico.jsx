@@ -109,18 +109,16 @@ const CloseButton = styled.button`
   cursor: pointer;
 `;
 
-const ModalServico = ({ estabelecimento_id, onClose, onSuccess }) => {
+const ModalServico = ({ estabelecimento_id, onClose, onSuccess, showToast }) => {
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState("");
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
+  const [tempo, setTempo] = useState("");
 
   const api = process.env.REACT_APP_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
 
     try {
       await axios.post(
@@ -130,6 +128,7 @@ const ModalServico = ({ estabelecimento_id, onClose, onSuccess }) => {
           descricao,
           preco: parseFloat(preco),
           estabelecimento_id,
+          tempo: tempo,
         },
         {
           headers: {
@@ -138,10 +137,10 @@ const ModalServico = ({ estabelecimento_id, onClose, onSuccess }) => {
         }
       );
 
-      setSuccess("Serviço cadastrado com sucesso!");
+      showToast("Serviço cadastrado com sucesso!");
       onSuccess();
     } catch (err) {
-      setError("Erro ao cadastrar serviço. Tente novamente.");
+      showToast("Erro ao cadastrar serviço. Tente novamente.");
       console.error(err);
     }
   };
@@ -151,8 +150,6 @@ const ModalServico = ({ estabelecimento_id, onClose, onSuccess }) => {
       <ModalContainer>
         <CloseButton onClick={onClose}>&times;</CloseButton>
         <Title>Novo Serviço</Title>
-        {error && <Message error>{error}</Message>}
-        {success && <Message>{success}</Message>}
         <form onSubmit={handleSubmit}>
           <FormGroup>
             <label>Nome</label>
@@ -179,6 +176,16 @@ const ModalServico = ({ estabelecimento_id, onClose, onSuccess }) => {
               value={preco}
               onChange={(e) => setPreco(e.target.value)}
               required
+            />
+          </FormGroup>
+          <FormGroup>
+            <label>Duração do Serviço (em minutos)</label>
+            <input
+              type="number"
+              value={tempo}
+              onChange={(e) => setTempo(parseInt(e.target.value))}
+              min="1"
+              placeholder="Ex: 30"
             />
           </FormGroup>
           <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>

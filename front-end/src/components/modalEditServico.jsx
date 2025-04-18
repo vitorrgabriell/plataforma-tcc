@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 import Cookies from "js-cookie";
+import ToastNotification from "./ToastNotification";
 
 const fadeIn = keyframes`
   from {
@@ -108,12 +109,11 @@ const CloseButton = styled.button`
   cursor: pointer;
 `;
 
-const ModalEditarServico = ({ servicoId, onClose, onSuccess }) => {
+const ModalEditarServico = ({ servicoId, onClose, onSuccess, showToast }) => {
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState("");
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
+  const [tempo, setTempo] = useState("");
 
   const api = process.env.REACT_APP_API_URL;
 
@@ -148,18 +148,22 @@ const ModalEditarServico = ({ servicoId, onClose, onSuccess }) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ nome, descricao, preco: parseFloat(preco) }),
+        body: JSON.stringify({ nome, 
+          descricao, 
+          preco: parseFloat(preco),
+          tempo: tempo,
+         })
       });
 
       if (res.ok) {
-        setSuccess("Serviço atualizado com sucesso!");
+        showToast("Serviço atualizado com sucesso!");
         onSuccess();
       } else {
-        setError("Erro ao atualizar serviço.");
+        showToast("Erro ao atualizar serviço.");
       }
     } catch (err) {
       console.error("Erro:", err);
-      setError("Erro ao atualizar serviço.");
+      showToast("Erro ao atualizar serviço.");
     }
   };
 
@@ -168,8 +172,6 @@ const ModalEditarServico = ({ servicoId, onClose, onSuccess }) => {
       <ModalContainer>
         <CloseButton onClick={onClose}>&times;</CloseButton>
         <Title>Editar Serviço</Title>
-        {error && <Message error>{error}</Message>}
-        {success && <Message>{success}</Message>}
         <form onSubmit={handleSubmit}>
           <FormGroup>
             <label>Nome</label>
@@ -198,6 +200,16 @@ const ModalEditarServico = ({ servicoId, onClose, onSuccess }) => {
               required
             />
           </FormGroup>
+          <FormGroup>
+            <label>Duração do Serviço (em minutos)</label>
+            <input
+              type="number"
+              value={tempo}
+              onChange={(e) => setTempo(parseInt(e.target.value))}
+              min="1"
+              placeholder="Ex: 30"
+            />
+          </FormGroup>
           <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
             <Button type="submit">Salvar</Button>
             <Button type="button" bgColor="#64748b" hoverColor="#475569" onClick={onClose}>
@@ -207,6 +219,7 @@ const ModalEditarServico = ({ servicoId, onClose, onSuccess }) => {
         </form>
       </ModalContainer>
     </Overlay>
+    
   );
 };
 

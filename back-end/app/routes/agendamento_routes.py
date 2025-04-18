@@ -44,7 +44,7 @@ def criar_agendamento(
     return novo_agendamento
 
 @router.get("/")
-def listar_agendamentos(
+def listar_agendamentos_admin(
     estabelecimento_id: int,
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
@@ -68,6 +68,35 @@ def listar_agendamentos(
 
     return [dict(r) for r in resultados]
 
+@router.get("/profissional")
+def listar_agendamentos_profissional(
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    if user["tipo_usuario"] != "profissional":
+        raise HTTPException(status_code=403, detail="Apenas profissionais podem acessar esta rota")
+
+    resultados = db.execute("""
+        SELECT 
+            a.id,
+            u.nome AS cliente,
+            s.nome AS servico,
+            s.preco,
+            a.horario,
+            a.status,
+            CASE 
+                WHEN a.status = 'confirmado' THEN true
+                ELSE false
+            END AS confirmado
+        FROM agendamentos a
+        JOIN usuarios u ON u.id = a.cliente_id
+        JOIN servicos s ON s.id = a.servico_id
+        WHERE a.profissional_id = :profissional_id
+        ORDER BY a.horario ASC
+    """, {"profissional_id": user["id"]}).fetchall()
+
+    return [dict(r) for r in resultados]
+
 @router.get("/cancelados")
 def listar_agendamentos_cancelados(estabelecimento_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
     if user["tipo_usuario"] != "admin":
@@ -80,11 +109,13 @@ def listar_agendamentos_cancelados(estabelecimento_id: int, db: Session = Depend
             f.nome AS profissional,
             s.nome AS servico,
             s.preco,
+            ag.horario,
             a.cancelado_em
         FROM agendamentos_cancelados a
         JOIN usuarios u ON u.id = a.cliente_id
         JOIN funcionarios f ON f.id = a.profissional_id
         JOIN servicos s ON s.id = a.servico_id
+        JOIN agendamentos ag on s.id = a.id
         WHERE f.estabelecimento_id = :estabelecimento_id
         ORDER BY a.cancelado_em DESC
     """, {"estabelecimento_id": estabelecimento_id}).fetchall()
@@ -143,6 +174,32 @@ def editar_agendamento(
     db.commit()
     db.refresh(agendamento)
     return agendamento
+
+@router.put("/confirmar/{agendamento_id}")
+def confirmar_agendamento(
+    agendamento_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    if user["tipo_usuario"] != "profissional":
+        raise HTTPException(status_code=403, detail="Apenas profissionais podem confirmar agendamentos.")
+
+    agendamento = db.query(Agendamento).filter(Agendamento.id == agendamento_id).first()
+
+    if not agendamento:
+        raise HTTPException(status_code=404, detail="Agendamento não encontrado.")
+
+    if agendamento.profissional_id != user["id"]:
+        raise HTTPException(status_code=403, detail="Você só pode confirmar seus próprios agendamentos.")
+
+    if agendamento.status == "confirmado":
+        raise HTTPException(status_code=400, detail="Agendamento já está confirmado.")
+
+    agendamento.status = "confirmado"
+    db.commit()
+
+    return {"message": "Agendamento confirmado com sucesso!"}
+
 
 @router.delete("/{agendamento_id}", status_code=status.HTTP_200_OK)
 def cancelar_agendamento(
