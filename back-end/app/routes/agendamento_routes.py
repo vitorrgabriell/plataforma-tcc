@@ -105,18 +105,41 @@ def listar_meus_agendamentos(
 ):
     return db.query(Agendamento).filter(Agendamento.cliente_id == user["id"]).all()
 
-@router.put("/{agendamento_id}", response_model=AgendamentoResponse)
-def atualizar_status_agendamento(
+@router.put("/editar/{agendamento_id}", response_model=AgendamentoResponse)
+def editar_agendamento(
     agendamento_id: int,
-    status: str,
+    payload: dict,  # espera { "horario_id": int }
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
     agendamento = db.query(Agendamento).filter(Agendamento.id == agendamento_id).first()
-    if not agendamento:
-        raise HTTPException(status_code=404, detail="Agendamento não encontrado")
 
-    agendamento.status = status
+    if not agendamento:
+        raise HTTPException(status_code=404, detail="Agendamento não encontrado.")
+
+    if agendamento.cliente_id != user["id"]:
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+
+    novo_horario = db.query(AgendaDisponivel).filter(
+        AgendaDisponivel.id == payload["horario_id"],
+        AgendaDisponivel.ocupado == False
+    ).first()
+
+    if not novo_horario:
+        raise HTTPException(status_code=400, detail="Horário indisponível.")
+
+    # Liberar horário antigo
+    horario_antigo = db.query(AgendaDisponivel).filter(
+        AgendaDisponivel.profissional_id == agendamento.profissional_id,
+        AgendaDisponivel.data_hora == agendamento.horario
+    ).first()
+    if horario_antigo:
+        horario_antigo.ocupado = False
+
+    # Atualizar agendamento
+    agendamento.horario = novo_horario.data_hora
+    novo_horario.ocupado = True
+
     db.commit()
     db.refresh(agendamento)
     return agendamento
@@ -134,6 +157,14 @@ def cancelar_agendamento(
 
     if agendamento.cliente_id != user["id"] and user["tipo_usuario"] != "admin":
         raise HTTPException(status_code=403, detail="Você não tem permissão para cancelar este agendamento.")
+
+    horario = db.query(AgendaDisponivel).filter(
+    AgendaDisponivel.profissional_id == agendamento.profissional_id,
+    AgendaDisponivel.data_hora == agendamento.horario
+    ).first()
+
+    if horario:
+        horario.ocupado = False
 
     db.delete(agendamento)
     db.commit()

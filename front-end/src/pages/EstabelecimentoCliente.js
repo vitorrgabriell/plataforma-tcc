@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
 import styled from "styled-components";
-import { jwtDecode } from "jwt-decode";
 import DatePicker from "react-datepicker";
+import ModalEditarAgendamento from "../components/modalEditarAgendamento";
+import ModalConfirmacao from "../components/modalConfirmacao";
 import ToastNotification from "../components/ToastNotification";
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/calendario.css";
@@ -193,6 +195,10 @@ const EstabelecimentoCliente = () => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("success");
   const [showToast, setShowToast] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [agendamentoParaEditar, setAgendamentoParaEditar] = useState(null);
+  const [mostrarModalConfirmacao, setMostrarModalConfirmacao] = useState(false);
+  const [agendamentoParaExcluir, setAgendamentoParaExcluir] = useState(null);
 
   useEffect(() => {
     const token = Cookies.get("token");
@@ -208,27 +214,39 @@ const EstabelecimentoCliente = () => {
     const fetchDados = async () => {
       try {
         const api = process.env.REACT_APP_API_URL;
-        const [estabRes, servRes, agendamentoRes] = await Promise.all([
+    
+        const [estabRes, servRes, profRes, agendamentoRes] = await Promise.all([
           fetch(`${api}/estabelecimentos/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           fetch(`${api}/servicos/?estabelecimento_id=${id}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
+          fetch(`${api}/funcionarios/?estabelecimento_id=${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
           fetch(`${api}/agendamentos/meus?estabelecimento_id=${id}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
-  
+    
         const estabelecimento = await estabRes.json();
         const servicos = await servRes.json();
+        const profissionais = await profRes.json();
         const agendamentos = await agendamentoRes.json();
-  
+        const agora = new Date();
+
+        const agendamentosFuturos = agendamentos.filter((a) => {
+          const dataAgendada = new Date(a.horario);
+          return dataAgendada.getTime() > agora.getTime();
+        });
+
+        setAppointments(agendamentosFuturos);
+    
         setEstabelecimento(estabelecimento);
         setServices(servicos);
-        console.log("Serviços retornados:", servicos);
-        setAppointments(agendamentos);
-        console.log("Agendamentos recebidos:", agendamentos);
+        setProfessionals(profissionais); // <- importante!
+        // setAppointments(agendamentos);
       } catch (err) {
         console.error("Erro ao buscar dados:", err);
       }
@@ -345,12 +363,108 @@ const EstabelecimentoCliente = () => {
     }
   };
 
-  const handleEditAppointment = (appointmentId) => {
-    alert(`Editar agendamento ${appointmentId}`);
+  const handleEditAppointment = (appointment) => {
+    setAgendamentoParaEditar(appointment);
+    setShowEditModal(true);
+  };
+  
+  const handleConfirmarEdicao = async (agendamentoId, novoHorarioId) => {
+    const token = Cookies.get("token");
+    const api = process.env.REACT_APP_API_URL;
+  
+    try {
+      const res = await fetch(`${api}/agendamentos/editar/${agendamentoId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ horario_id: novoHorarioId }),
+      });
+  
+      if (res.ok) {
+        setToastMessage("Agendamento atualizado com sucesso!");
+        setShowEditModal(false);
+        setAgendamentoParaEditar(null);
+        const atualizados = await res.json();
+        setAppointments((prev) =>
+          prev.map((a) => (a.id === agendamentoId ? atualizados : a))
+        );
+      } else {
+        setToastMessage("Erro ao editar agendamento.");
+      }
+    } catch (err) {
+      console.error("Erro ao editar agendamento:", err);
+      setToastMessage("Erro ao conectar com o servidor.");
+    }
   };
 
-  const handleDeleteAppointment = (appointmentId) => {
-    alert(`Excluir agendamento ${appointmentId}`);
+  const handleDeleteAppointment = async (appointmentId) => {
+    const confirm = window.confirm("Tem certeza que deseja cancelar este agendamento?");
+    if (!confirm) return;
+  
+    const token = Cookies.get("token");
+    const api = process.env.REACT_APP_API_URL;
+  
+    try {
+      const res = await fetch(`${api}/agendamentos/${appointmentId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (res.ok) {
+        setAppointments((prev) => prev.filter((a) => a.id !== appointmentId));
+        setToastMessage("Agendamento cancelado com sucesso.");
+        setToastType("success");
+        setShowToast(true);
+      } else {
+        setToastMessage("Erro ao cancelar o agendamento.");
+        setToastType("error");
+        setShowToast(true);
+      }
+    } catch (error) {
+      console.error("Erro ao excluir agendamento:", error);
+      setToastMessage("Erro ao se comunicar com o servidor.");
+      setToastType("error");
+      setShowToast(true);
+    }
+  };
+
+  const handleConfirmarExclusao = async () => {
+    if (!agendamentoParaExcluir) return;
+  
+    const token = Cookies.get("token");
+    const api = process.env.REACT_APP_API_URL;
+  
+    try {
+      const res = await fetch(`${api}/agendamentos/${agendamentoParaExcluir.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (res.ok) {
+        setToastMessage("Agendamento cancelado com sucesso!");
+        setToastType("success");
+        setAppointments((prev) =>
+          prev.filter((a) => a.id !== agendamentoParaExcluir.id)
+        );
+      } else {
+        setToastMessage("Erro ao cancelar agendamento.");
+        setToastType("error");
+      }
+    } catch (err) {
+      console.error("Erro ao cancelar:", err);
+      setToastMessage("Erro ao conectar com o servidor.");
+      setToastType("error");
+    }
+  
+    setShowToast(true);
+    setMostrarModalConfirmacao(false);
+    setAgendamentoParaExcluir(null);
   };
 
   const handleLogout = async () => {
@@ -468,18 +582,21 @@ const EstabelecimentoCliente = () => {
                 </AppointmentInfo>
                 </div>
                 <div>
-                  <ActionButton
-                    bgColor="#3b82f6"
-                    onClick={() => handleEditAppointment(app.id)}
-                  >
-                    Editar
-                  </ActionButton>
-                  <ActionButton
-                    bgColor="#ef4444"
-                    onClick={() => handleDeleteAppointment(app.id)}
-                  >
-                    Excluir
-                  </ActionButton>
+                <ActionButton
+                  bgColor="#3b82f6"
+                  onClick={() => handleEditAppointment(app)}
+                >
+                  Editar
+                </ActionButton>
+                <ActionButton
+                  bgColor="#ef4444"
+                  onClick={() => {
+                    setAgendamentoParaExcluir(app);
+                    setMostrarModalConfirmacao(true);
+                  }}
+                >
+                  Excluir
+                </ActionButton>
                 </div>
               </AppointmentCard>
             ))}
@@ -492,6 +609,24 @@ const EstabelecimentoCliente = () => {
         show={showToast}
         onClose={() => setShowToast(false)}
       />
+      {showEditModal && agendamentoParaEditar && (
+      <ModalEditarAgendamento
+      agendamento={agendamentoParaEditar}
+      horarios={availableSlots}
+      onClose={() => setShowEditModal(false)}
+      onConfirm={handleConfirmarEdicao}
+      setToastMessage={setToastMessage}
+      setToastType={setToastType}
+      setShowToast={setShowToast}
+      />
+      )}
+      {mostrarModalConfirmacao && (
+      <ModalConfirmacao
+        tipo="agendamento"
+        onConfirmar={handleConfirmarExclusao}
+        onCancelar={() => setMostrarModalConfirmacao(false)}
+      />
+    )}
     </Container>
   );
 };

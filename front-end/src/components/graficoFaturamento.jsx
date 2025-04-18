@@ -28,8 +28,8 @@ import {
           <YAxis />
           <Tooltip
             contentStyle={{
-                backgroundColor: "#1e293b", // fundo escuro
-                border: "1px solid #334155", // borda sutil
+                backgroundColor: "#1e293b", 
+                border: "1px solid #334155",
                 borderRadius: "8px",
                 color: "#f1f5f9",
                 boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
@@ -39,7 +39,7 @@ import {
                 fontWeight: "bold",
             }}
             itemStyle={{
-                color: "#4ade80", // verde limão para o valor
+                color: "#4ade80", 
             }}
             />
           <Legend />

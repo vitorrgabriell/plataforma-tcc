@@ -131,6 +131,9 @@ class AgendamentoBase(BaseModel):
 class AgendamentoCreate(AgendamentoBase):
     pass
 
+class AgendamentoUpdate(BaseModel):
+    horario_id: int
+
 class AgendamentoResponse(AgendamentoBase):
     id: int
     cliente_id: int  # agora aqui sim
