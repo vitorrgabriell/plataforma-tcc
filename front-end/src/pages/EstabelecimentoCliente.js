@@ -3,6 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import styled from "styled-components";
 import { jwtDecode } from "jwt-decode";
+import DatePicker from "react-datepicker";
+import ToastNotification from "../components/ToastNotification";
+import "react-datepicker/dist/react-datepicker.css";
+import "../styles/calendario.css";
 
 const Container = styled.div`
   display: flex;
@@ -147,6 +151,30 @@ const ActionButton = styled.button`
   }
 `;
 
+const HorariosGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+`;
+
+const BotaoHorario = styled.button`
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  border: 2px solid transparent;
+  background-color: ${({ selected }) => (selected ? "#3b82f6" : "#1e293b")};
+  color: ${({ selected }) => (selected ? "#ffffff" : "#f1f5f9")};
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+
+  &:hover {
+    background-color: ${({ selected }) => (selected ? "#2563eb" : "#334155")};
+    border-color: #3b82f6;
+  }
+`;
+
 
 const EstabelecimentoCliente = () => {
   const { id } = useParams();
@@ -160,6 +188,11 @@ const EstabelecimentoCliente = () => {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState("");
   const [appointments, setAppointments] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [allSlots, setAllSlots] = useState([]);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("success");
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     const token = Cookies.get("token");
@@ -228,6 +261,9 @@ const EstabelecimentoCliente = () => {
   const handleProfessionalChange = async (e) => {
     const profissionalId = e.target.value;
     setSelectedProfessional(profissionalId);
+    setSelectedDate(null);
+    setAllSlots([]);
+    setAvailableSlots([]);
   
     const token = Cookies.get("token");
     const api = process.env.REACT_APP_API_URL;
@@ -250,16 +286,27 @@ const EstabelecimentoCliente = () => {
                 hour: "2-digit",
                 minute: "2-digit",
               }),
-              originalDate: h.data_hora, // <-- salva o formato bruto do backend
+              originalDate: h.data_hora,
             }))
         : [];
-        console.log("Horários recebidos da API:", horarios);
   
-      setAvailableSlots(horariosFiltrados);
+      setAllSlots(horariosFiltrados);
     } catch (err) {
       console.error("Erro ao buscar horários disponíveis:", err);
     }
   };
+
+  useEffect(() => {
+    if (selectedDate && allSlots.length > 0) {
+      const dataSelecionada = selectedDate.toLocaleDateString("pt-BR");
+  
+      const filtrados = allSlots.filter(
+        (slot) => slot.date === dataSelecionada
+      );
+  
+      setAvailableSlots(filtrados);
+    }
+  }, [selectedDate, allSlots]);
 
   const handleAgendar = async () => {
     const token = Cookies.get("token");
@@ -280,11 +327,18 @@ const EstabelecimentoCliente = () => {
       });
 
       if (res.ok) {
-        alert("Agendamento realizado com sucesso!");
         const novos = await res.json();
         setAppointments((prev) => [...prev, novos]);
+        setToastMessage("Agendamento realizado com sucesso!");
+        setToastType("success");
+        setShowToast(true);
+        setTimeout(() => {
+          navigate("/dashboard-cliente");
+        }, 4000);
       } else {
-        alert("Erro ao agendar. Verifique os dados.");
+        setToastMessage("Erro ao agendar. Verifique os dados.");
+        setToastType("error");
+        setShowToast(true);
       }
     } catch (err) {
       console.error("Erro no agendamento:", err);
@@ -364,20 +418,36 @@ const EstabelecimentoCliente = () => {
                     ))}
                   </Select>
                 </FormGroup>
+                          {selectedProfessional && (
                 <FormGroup>
-                  <Label>Selecione o Horário:</Label>
-                  <Select
-                    value={selectedSlot}
-                    onChange={(e) => setSelectedSlot(e.target.value)}
-                  >
-                    <option value="">Escolha um horário</option>
-                    {availableSlots.map((slot) => (
-                      <option key={slot.id} value={slot.id}>
-                        {slot.date} - {slot.time}
-                      </option>
-                    ))}
-                  </Select>
+                  <Label>Selecione a Data:</Label>
+                  <div className="custom-datepicker-wrapper">
+                    <DatePicker
+                      selected={selectedDate}
+                      onChange={(date) => setSelectedDate(date)}
+                      dateFormat="dd/MM/yyyy"
+                      minDate={new Date()}
+                      inline
+                    />
+                  </div>
                 </FormGroup>
+              )}
+              {selectedDate && availableSlots.length > 0 && (
+                <FormGroup>
+                  <Label>Horários disponíveis:</Label>
+                  <HorariosGrid>
+                    {availableSlots.map((slot) => (
+                      <BotaoHorario
+                        key={slot.id}
+                        selected={selectedSlot === slot.id}
+                        onClick={() => setSelectedSlot(slot.id)}
+                      >
+                        {slot.time}
+                      </BotaoHorario>
+                    ))}
+                  </HorariosGrid>
+                </FormGroup>
+              )}
                 <Button onClick={handleAgendar}>Agendar</Button>
               </>
             )}
@@ -416,6 +486,12 @@ const EstabelecimentoCliente = () => {
           </AppointmentsList>
         </GridWrapper>
       </Content>
+      <ToastNotification
+        message={toastMessage}
+        type={toastType}
+        show={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </Container>
   );
 };

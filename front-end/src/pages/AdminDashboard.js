@@ -5,7 +5,13 @@ import { jwtDecode } from "jwt-decode";
 import styled from "styled-components";
 import GraficoFaturamento from "../components/graficoFaturamento"
 import GraficoClientesAgendamentos from "../components/graficoClientesAgendamentos";
-
+import ModalFuncionario from "../components/modalFuncionario"; 
+import ModalEditarFuncionario from "../components/modalEditFuncionario";
+import ModalServico from "../components/modalServico";
+import ModalEditarServico from "../components/modalEditServico";
+import ModalGerarAgenda from "../components/modalGerarAgenda"
+import ModalConfirmacao from "../components/modalConfirmacao";
+import ToastNotification from "../components/ToastNotification";
 
 const Div1 = styled.div`
   grid-column: 1 / span 2;
@@ -212,13 +218,29 @@ const FooterLink = styled.a`
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
-
   const [profissionais, setProfissionais] = useState([]);
   const [agendamentos, setAgendamentos] = useState([]);
   const [metricas, setMetricas] = useState(null);
   const [cancelados, setCancelados] = useState([]);
   const [servicos, setServicos] = useState([]);
   const [avaliacoes, setAvaliacoes] = useState([]);
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [estabelecimentoId, setEstabelecimentoId] = useState(null);
+  const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
+  const [funcionarioSelecionado, setFuncionarioSelecionado] = useState(null);
+  const [mostrarModalServico, setMostrarModalServico] = useState(false);
+  const [mostrarModalEditarServico, setMostrarModalEditarServico] = useState(false);
+  const [servicoSelecionado, setServicoSelecionado] = useState(null);
+  const [mostrarModalGerarAgenda, setMostrarModalGerarAgenda] = useState(false);
+  const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false);
+  const [tipoExclusao, setTipoExclusao] = useState("");
+  const [idParaExcluir, setIdParaExcluir] = useState(null);
+
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+  };
 
   useEffect(() => {
     const token = Cookies.get("token");
@@ -232,107 +254,105 @@ const AdminDashboard = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      const token = Cookies.get("token");
-      const api = process.env.REACT_APP_API_URL;
-  
-      if (token) {
-        const decoded = jwtDecode(token);
-        const estabelecimento_id = decoded.estabelecimento_id;
-  
-        try {
-          const resProfissionais = await fetch(`${api}/funcionarios/?estabelecimento_id=${estabelecimento_id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }); 
-          const profissionaisData = await resProfissionais.json();
-          setProfissionais(Array.isArray(profissionaisData) ? profissionaisData : []);
-  
-          const resAgendamentos = await fetch(`${api}/agendamentos/?estabelecimento_id=${estabelecimento_id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });          
-          const agendamentosData = await resAgendamentos.json();
-          setAgendamentos(Array.isArray(agendamentosData) ? agendamentosData : []);
-  
-          const resMetricas = await fetch(`${api}/metricas/?estabelecimento_id=${estabelecimento_id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          setMetricas(await resMetricas.json());
+const handleConfirmarExclusao = async () => {
+  const token = Cookies.get("token");
+  const api = process.env.REACT_APP_API_URL;
 
-          const resCancelados = await fetch(`${api}/agendamentos/cancelados?estabelecimento_id=${estabelecimento_id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const canceladosData = await resCancelados.json();
-          setCancelados(Array.isArray(canceladosData) ? canceladosData : []);
-          
-  
-          const resServicos = await fetch(`${api}/servicos/?estabelecimento_id=${estabelecimento_id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const servicosData = await resServicos.json();
-          setServicos(Array.isArray(servicosData) ? servicosData : []);
-  
-          const resAvaliacoes = await fetch(`${api}/avaliacoes/?estabelecimento_id=${estabelecimento_id}`);
-          const avaliacoesData = await resAvaliacoes.json();
-          setAvaliacoes(Array.isArray(avaliacoesData) ? avaliacoesData : []);
-  
-        } catch (error) {
-          console.error("Erro ao buscar dados do dashboard:", error);
-          setProfissionais([]);
-          setAgendamentos([]);
-          setMetricas(null);
-          setServicos([]);
-          setAvaliacoes([]);
-        }
-      }
-    };
-  
-    fetchDashboardData();
-  }, []);
+  let rota = "";
+  if (tipoExclusao === "funcionario") rota = "funcionarios";
+  else if (tipoExclusao === "servicos") rota = "servicos";
 
-  const handleCadastrarServico = () => {
-    navigate("/register-servico");
-  };
-  
-  const handleEditarServico = (id) => {
-    navigate(`/editar-servico/${id}`);
-  };
-  
-  const handleExcluirServico = async (id) => {
-    const confirm = window.confirm("Tem certeza que deseja excluir este serviço?");
-    if (!confirm) return;
-  
+  try {
+    const response = await fetch(`${api}/${rota}/${idParaExcluir}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json(); 
+
+    if (response.ok) {
+      showToast(data.message || `${tipoExclusao === "funcionario" ? "Funcionário" : "Serviço"} excluído com sucesso!`, "success");
+      fetchDashboardData();
+    } else {
+      showToast(data.message || `Erro ao excluir ${tipoExclusao}.`, "error");
+    }
+  } catch (err) {
+    console.error(`Erro ao excluir ${tipoExclusao}:`, err);
+    showToast(`Erro inesperado ao excluir ${tipoExclusao}.`, "error");
+  } finally {
+    setMostrarConfirmacao(false);
+  }
+};
+
+  const fetchDashboardData = async () => {
     const token = Cookies.get("token");
     const api = process.env.REACT_APP_API_URL;
-  
-    try {
-      const response = await fetch(`${api}/servicos/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-  
-      if (response.ok) {
-        setServicos(prev => prev.filter(s => s.id !== id));
-        alert("Serviço excluído com sucesso!");
-      } else {
-        alert("Erro ao excluir o serviço.");
+
+    if (token) {
+      const decoded = jwtDecode(token);
+      const estabelecimento_id = decoded.estabelecimento_id;
+
+      try {
+        const resProfissionais = await fetch(`${api}/funcionarios/?estabelecimento_id=${estabelecimento_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }); 
+        const profissionaisData = await resProfissionais.json();
+        setProfissionais(Array.isArray(profissionaisData) ? profissionaisData : []);
+
+        const resAgendamentos = await fetch(`${api}/agendamentos/?estabelecimento_id=${estabelecimento_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });          
+        const agendamentosData = await resAgendamentos.json();
+        setAgendamentos(Array.isArray(agendamentosData) ? agendamentosData : []);
+
+        const resMetricas = await fetch(`${api}/metricas/?estabelecimento_id=${estabelecimento_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setMetricas(await resMetricas.json());
+
+        const resCancelados = await fetch(`${api}/agendamentos/cancelados?estabelecimento_id=${estabelecimento_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const canceladosData = await resCancelados.json();
+        setCancelados(Array.isArray(canceladosData) ? canceladosData : []);
+        
+
+        const resServicos = await fetch(`${api}/servicos/?estabelecimento_id=${estabelecimento_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const servicosData = await resServicos.json();
+        setServicos(Array.isArray(servicosData) ? servicosData : []);
+
+        const resAvaliacoes = await fetch(`${api}/avaliacoes/?estabelecimento_id=${estabelecimento_id}`);
+        const avaliacoesData = await resAvaliacoes.json();
+        setAvaliacoes(Array.isArray(avaliacoesData) ? avaliacoesData : []);
+
+      } catch (error) {
+        console.error("Erro ao buscar dados do dashboard:", error);
+        setProfissionais([]);
+        setAgendamentos([]);
+        setMetricas(null);
+        setServicos([]);
+        setAvaliacoes([]);
       }
-    } catch (error) {
-      console.error("Erro ao excluir serviço:", error);
     }
   };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
   
   const handleLogout = async () => {
     try {
@@ -373,7 +393,7 @@ const AdminDashboard = () => {
           <Div1>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
               <CardTitle>Funcionários</CardTitle>
-              <Button onClick={() => navigate("/register-funcionario")}>
+              <Button onClick={() => setMostrarModal(true)}>
                 Cadastrar Funcionário
               </Button>
             </div>
@@ -382,12 +402,23 @@ const AdminDashboard = () => {
                 <FuncionarioInfoWrapper>
                   <NomeFuncionario>{p.nome}</NomeFuncionario>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <ActionButton bgColor="#6366F1" onClick={() => navigate(`/edit-funcionario/${p.id}`)}>
-                      Editar
-                    </ActionButton>
-                    <ActionButton bgColor="#EF4444" onClick={() => console.log("Delete", p.id)}>
-                      Excluir
-                    </ActionButton>
+                  <ActionButton
+                    bgColor="#6366F1"
+                    onClick={() => {
+                      setFuncionarioSelecionado(p.id);
+                      setMostrarModalEditar(true);
+                    }}>
+                    Editar
+                  </ActionButton>
+                  <ActionButton
+                  bgColor="#EF4444"
+                  onClick={() => {
+                    setTipoExclusao("funcionario");
+                    setIdParaExcluir(p.id);
+                    setMostrarConfirmacao(true);
+                  }}>
+                  Excluir
+                </ActionButton>
                   </div>
                 </FuncionarioInfoWrapper>
               </CustomCard>
@@ -395,7 +426,12 @@ const AdminDashboard = () => {
           </Div1>
 
           <Div2>
-            <CardTitle>Agendamentos</CardTitle>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <CardTitle>Agendamentos</CardTitle>
+              <Button onClick={() => setMostrarModalGerarAgenda(true)}>
+                Gerar Agenda
+              </Button>
+            </div>
             {agendamentos.map((a) => (
               <CustomCard key={a.id}>
               {a.cliente} agendou {a.servico} com {a.profissional} <br />
@@ -415,7 +451,7 @@ const AdminDashboard = () => {
             <CardColumn>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                 <CardTitle>Serviços</CardTitle>
-                <Button onClick={handleCadastrarServico}>
+                <Button onClick={() => setMostrarModalServico(true)}>
                   Cadastrar Serviço
                 </Button>
               </div>
@@ -427,12 +463,23 @@ const AdminDashboard = () => {
                     <FuncionarioInfoWrapper>
                       <NomeFuncionario>{servico.nome}</NomeFuncionario>
                       <div style={{ display: "flex", gap: "8px" }}>
-                        <ActionButton bgColor="#6366F1" onClick={() => handleEditarServico(servico.id)}>
-                          Editar
-                        </ActionButton>
-                        <ActionButton bgColor="#EF4444" onClick={() => handleExcluirServico(servico.id)}>
-                          Excluir
-                        </ActionButton>
+                      <ActionButton
+                        bgColor="#6366F1"
+                        onClick={() => {
+                          setServicoSelecionado(servico.id);
+                          setMostrarModalEditarServico(true);
+                        }}>
+                        Editar
+                      </ActionButton>
+                      <ActionButton
+                        bgColor="#EF4444"
+                        onClick={() => {
+                          setTipoExclusao("servico");
+                          setIdParaExcluir(servico.id);
+                          setMostrarConfirmacao(true);
+                        }}>
+                        Excluir
+                      </ActionButton>
                       </div>
                     </FuncionarioInfoWrapper>
                   </CustomCard>
@@ -473,6 +520,69 @@ const AdminDashboard = () => {
           <FooterLink href="/contato">Contato</FooterLink>
         </p>
       </Footer>
+      {mostrarModal && (
+        <ModalFuncionario
+          onClose={() => setMostrarModal(false)}
+          estabelecimento_id={estabelecimentoId}
+          onSuccess={() => {
+            fetchDashboardData();
+            setMostrarModal(false);
+          }}
+          showToast={showToast} 
+        />
+      )}
+      {mostrarModalEditar && funcionarioSelecionado && (
+        <ModalEditarFuncionario
+          funcionarioId={funcionarioSelecionado}
+          onClose={() => setMostrarModalEditar(false)}
+          onSuccess={() => {
+            fetchDashboardData();
+            setMostrarModalEditar(false);
+          }}
+        />
+      )}
+      {mostrarModalServico && (
+        <ModalServico
+          estabelecimento_id={estabelecimentoId}
+          onClose={() => setMostrarModalServico(false)}
+          onSuccess={() => {
+            fetchDashboardData();
+            setMostrarModalServico(false);
+          }}
+        />
+      )}
+      {mostrarModalEditarServico && servicoSelecionado && (
+      <ModalEditarServico
+        servicoId={servicoSelecionado}
+        onClose={() => setMostrarModalEditarServico(false)}
+        onSuccess={() => {
+          fetchDashboardData();
+          setMostrarModalEditarServico(false);
+        }}
+      />
+    )}
+    {mostrarModalGerarAgenda && (
+      <ModalGerarAgenda
+        onClose={() => setMostrarModalGerarAgenda(false)}
+        onSuccess={() => {
+          fetchDashboardData();
+          setMostrarModalGerarAgenda(false);
+        }}
+      />
+    )}
+    {mostrarConfirmacao && (
+      <ModalConfirmacao
+        tipo={tipoExclusao}
+        onConfirmar={handleConfirmarExclusao}
+        onCancelar={() => setMostrarConfirmacao(false)}
+      />
+    )}
+    <ToastNotification
+      message={toast.message}
+      type={toast.type}
+      show={toast.show}
+      onClose={() => setToast({ ...toast, show: false })}
+    />
     </Container>
   );
 };

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import Column, Integer, String, DateTime, func
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date, time
 
 class EstabelecimentoBase(BaseModel):
     nome: str
@@ -80,10 +80,15 @@ class FuncionarioUpdate(BaseModel):
     email: str
     senha: Optional[str] = None
 
-class FuncionarioResponse(FuncionarioBase):
+class FuncionarioResponse(BaseModel):
     id: int
+    nome: str
+    email: str
+    cargo: str | None = None  # se tiver esse campo
     estabelecimento_id: int
 
+    class Config:
+        orm_mode = True
     class Config:
         from_attributes = True
 
@@ -152,8 +157,14 @@ class AgendaBase(BaseModel):
     profissional_id: int
     data_hora: datetime
 
-class AgendaCreate(AgendaBase):
-    pass
+class AgendaCreate(BaseModel):
+    profissional_id: int
+    estabelecimento_id: int
+    data_inicio: date
+    data_fim: date
+    dias_semana: list[int]
+    horario_inicio: time
+    horario_fim: time
 
 class AgendaResponse(AgendaBase):
     id: int
@@ -162,6 +173,42 @@ class AgendaResponse(AgendaBase):
 
     class Config:
         from_attributes = True
+
+class GerarAgendaRequest(BaseModel):
+    profissional_id: int
+    data: str 
+    duracao_minutos: int = 30
+
+class GerarAgendaAdminRequest(BaseModel):
+    data_inicio: str
+    data_fim: str
+    dias_semana: list[int]
+    horario_inicio: str
+    horario_fim: str
+    duracao_minutos: int
+
+class ConfiguracaoAgendaCreate(BaseModel):
+    profissional_id: int
+    dia_semana: str
+    hora_inicio: str
+    hora_fim: str
+    duracao_slot: int = 30
+
+class ConfiguracaoAgendaUpdate(BaseModel):
+    hora_inicio: str
+    hora_fim: str
+    duracao_slot: int = 30
+
+class ConfiguracaoAgendaResponse(BaseModel):
+    id: int
+    profissional_id: int
+    dia_semana: str
+    hora_inicio: str
+    hora_fim: str
+    duracao_slot: int
+
+    class Config:
+        orm_mode = True
 
 class ServicoBase(BaseModel):
     nome: str

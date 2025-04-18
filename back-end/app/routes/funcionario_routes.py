@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 import traceback
 from app.db.database import get_db
@@ -114,18 +114,23 @@ def atualizar_funcionario(
 
     return funcionario_db
 
-@router.delete("/{funcionario_id}")
+@router.delete("/{id}", status_code=status.HTTP_200_OK)
 def deletar_funcionario(
-    funcionario_id: int,
+    id: int,
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    funcionario_db = db.query(Funcionario).filter(Funcionario.id == funcionario_id).first()
+    funcionario = db.query(Funcionario).filter_by(id=id).first()
 
-    if not funcionario_db:
-        raise HTTPException(status_code=404, detail="Funcionário não encontrado")
+    if not funcionario:
+        raise HTTPException(status_code=404, detail="Funcionário não encontrado.")
 
-    db.delete(funcionario_db)
+    usuario = db.query(User).filter_by(id=funcionario.usuario_id).first()
+
+    db.delete(funcionario)
+    if usuario:
+        db.delete(usuario)
+
     db.commit()
 
-    return {"message": "Funcionário deletado com sucesso"}
+    return {"message": "Funcionário excluído com sucesso!"}

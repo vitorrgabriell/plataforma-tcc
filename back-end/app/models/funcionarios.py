@@ -16,4 +16,5 @@ class Funcionario(Base):
     estabelecimento = relationship("Estabelecimento", back_populates="funcionarios")
     agendamentos_profissional = relationship("Agendamento", back_populates="profissional")
     agenda = relationship("AgendaDisponivel", back_populates="profissional")
+    configuracoes_agenda = relationship("ConfiguracaoAgenda", back_populates="profissional")
 

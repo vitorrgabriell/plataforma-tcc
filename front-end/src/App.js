@@ -8,7 +8,6 @@ import Register from "./pages/Register";
 import RegisterEstabelecimento from "./pages/RegisterEstabelecimento";
 import EditEstabelecimento from "./pages/EditarEstabelecimento";
 import Logout from "./pages/Logout";
-import RegisterFuncionario from "./pages/RegisterFuncionario";
 import EditarFuncionario from "./pages/EditarFuncionario";
 import EstabelecimentoCliente from "./pages/EstabelecimentoCliente";
 import RegisterServico from "./pages/RegisterServico";
@@ -38,10 +37,6 @@ function App() {
         <Route
           path="/edit-estabelecimento"
           element={<EditEstabelecimento />}
-        />
-        <Route
-          path="/register-funcionario"
-          element={<RegisterFuncionario />}
         />
         <Route
           path="/edit-funcionario/:id"
