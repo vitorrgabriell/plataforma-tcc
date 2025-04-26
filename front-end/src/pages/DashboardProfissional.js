@@ -90,13 +90,14 @@ const Content = styled.div`
 `;
 
 const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  display: flex;
   gap: 24px;
+  align-items: flex-start;
   width: 100%;
+  flex-wrap: wrap;
 
   @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 `;
 
@@ -140,6 +141,7 @@ const DashboardProfissional = () => {
   const [agendamentos, setAgendamentos] = useState([]);
   const [agendamentosPendentes, setAgendamentosPendentes] = useState([]);
   const [agendamentosConfirmados, setAgendamentosConfirmados] = useState([]);
+  const [historicoFinalizados, setHistoricoFinalizados] = useState([]);
   const [mostrarModalGerarAgenda, setMostrarModalGerarAgenda] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
@@ -163,26 +165,32 @@ const DashboardProfissional = () => {
 
   const fetchDashboardData = async () => {
     const token = Cookies.get("token");
-  
     if (!token) return;
   
     try {
-      const decoded = jwtDecode(token);
       const api = process.env.REACT_APP_API_URL;
-      const profissionalId = decoded.sub;
   
-      const res = await fetch(`${api}/agendamentos/profissional?profissional_id=${profissionalId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setAgendamentosPendentes(data.filter((a) => a.status === "pendente"));
-        setAgendamentosConfirmados(data.filter((a) => a.status === "confirmado"));
-      }
+      const [resPendentes, resConfirmados, resFinalizados] = await Promise.all([
+        fetch(`${api}/agendamentos/profissional/pendentes`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${api}/agendamentos/profissional/confirmados`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${api}/agendamentos/profissional/finalizados`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+  
+      const pendentes = await resPendentes.json();
+      const confirmados = await resConfirmados.json();
+      const finalizados = await resFinalizados.json();
+  
+      if (Array.isArray(pendentes)) setAgendamentosPendentes(pendentes);
+      if (Array.isArray(confirmados)) setAgendamentosConfirmados(confirmados);
+      if (Array.isArray(finalizados)) setHistoricoFinalizados(finalizados);
     } catch (err) {
-      console.error("Erro ao buscar agendamentos do profissional:", err);
+      console.error("Erro ao buscar agendamentos:", err);
     }
   };
 
@@ -204,25 +212,42 @@ const DashboardProfissional = () => {
     }
   };
   
-  const cancelarAgendamento = async (id) => {
+  const recusarAgendamento = async (id) => {
     try {
       const token = Cookies.get("token");
       const api = process.env.REACT_APP_API_URL;
   
-      await fetch(`${api}/agendamentos/${id}`, {
-        method: "DELETE",
+      await fetch(`${api}/agendamentos/recusar/${id}`, {
+        method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
       });
   
       showToast("Agendamento cancelado com sucesso!");
       fetchDashboardData();
     } catch (err) {
-      console.error("Erro ao cancelar agendamento:", err);
-      showToast("Erro ao cancelar agendamento.", "error");
+      console.error("Erro ao recusar agendamento:", err);
+      showToast("Erro ao recusar agendamento.", "error");
+    }
+  };
+
+  const finalizarAgendamento = async (id) => {
+    try {
+      const token = Cookies.get("token");
+      const api = process.env.REACT_APP_API_URL;
+  
+      await fetch(`${api}/agendamentos/finalizar/${id}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      showToast("Serviços finalizados com sucesso!");
+      fetchDashboardData();
+    } catch (err) {
+      console.error("Erro ao finalizar agendamento:", err);
+      showToast("Erro ao finalizar serviço.", "error");
     }
   };
   
-  // A função editarAgendamento() a gente conecta depois
   const editarAgendamento = (id) => {
     showToast("Funcionalidade de edição em breve!", "info");
   };
@@ -263,7 +288,7 @@ const DashboardProfissional = () => {
       </Header>
       <Content>
       <Grid>
-        <Card style={{ gridColumn: "span 4" }}>
+        <Card style={{ flex: 1, gridColumn: "span 4" }}>
           <h2>Agendamentos Pendentes</h2>
           {agendamentosPendentes.length === 0 ? (
             <p style={{ marginTop: "12px" }}>Nenhum agendamento pendente.</p>
@@ -280,34 +305,70 @@ const DashboardProfissional = () => {
                   <SmallButton bgColor="#006400" onClick={() => confirmarAgendamento(a.id)}>
                     Confirmar
                   </SmallButton>
-                  <SmallButton bgColor="#ef4444" onClick={() => cancelarAgendamento(a.id)}>
-                    Cancelar
+                  <SmallButton bgColor="#ef4444" onClick={() => recusarAgendamento(a.id)}>
+                    Recusar
                   </SmallButton>
                 </ActionButtons>
               </div>
             ))
           )}
         </Card>
-        <Card style={{ gridColumn: "span 4" }}>
-          <h2>Meus Agendamentos Confirmados</h2>
+        <Card style={{ flex: 1, gridColumn: "span 4" }}>
+          <h2>Agendamentos Futuros</h2>
           {agendamentosConfirmados.length === 0 ? (
             <p style={{ marginTop: "12px" }}>Nenhum agendamento confirmado.</p>
           ) : (
-            agendamentosConfirmados.map((a) => (
-              <div key={a.id} style={{ marginTop: "12px", background: "#334155", padding: "12px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <p><strong>Cliente:</strong> {a.cliente}</p>
-                  <p><strong>Serviço:</strong> {a.servico}</p>
-                  <p><strong>Horário:</strong> {new Date(a.horario).toLocaleString("pt-BR")}</p>
-                  <p><strong>Status:</strong> Confirmado</p>
+            agendamentosConfirmados.map((a) => {
+              const horaAgendada = new Date(a.horario);
+              const horaFinalPrevista = new Date(horaAgendada.getTime() + a.tempo * 60000);
+              const agora = new Date();
+              const podeFinalizar = agora > horaFinalPrevista;
+
+              return (
+                <div
+                  key={a.id}
+                  style={{
+                    marginTop: "12px",
+                    background: "#334155",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <p><strong>Cliente:</strong> {a.cliente}</p>
+                    <p><strong>Serviço:</strong> {a.servico}</p>
+                    <p><strong>Horário:</strong> {new Date(a.horario).toLocaleString("pt-BR")}</p>
+                    <p><strong>Status:</strong> Confirmado</p>
+                  </div>
+                  {podeFinalizar && (
+                    <ActionButtons>
+                      <SmallButton bgColor="#10b981" onClick={() => finalizarAgendamento(a.id)}>
+                        Finalizar
+                      </SmallButton>
+                    </ActionButtons>
+                  )}
                 </div>
+              );
+            })
+          )}
+        </Card>
+        <Card style={{ flex: 1, gridColumn: "span 8" }}>
+          <h2>Histórico de Atendimentos</h2>
+          {historicoFinalizados.length === 0 ? (
+            <p style={{ marginTop: "12px" }}>Nenhum atendimento finalizado nos últimos 2 dias.</p>
+          ) : (
+            historicoFinalizados.map((a) => (
+              <div key={a.id} style={{ marginTop: "12px", background: "#334155", padding: "12px", borderRadius: "8px" }}>
+                <p><strong>Cliente:</strong> {a.cliente}</p>
+                <p><strong>Serviço:</strong> {a.servico}</p>
+                <p><strong>Horário:</strong> {new Date(a.horario).toLocaleString("pt-BR")}</p>
+                <p><strong>Status:</strong> Finalizado</p>
               </div>
             ))
           )}
-        </Card>
-        <Card style={{ gridColumn: "span 8" }}>
-          <h2>Histórico de Atendimentos</h2>
-          {/* ...em breve... */}
         </Card>
       </Grid>
       </Content>

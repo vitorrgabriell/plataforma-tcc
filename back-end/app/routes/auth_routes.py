@@ -8,6 +8,7 @@ from app.utils.dependencies import get_current_user
 from app.db.database import get_db
 from app.schemas import Login
 from app.models.blacklist import BlacklistToken
+from app.models.funcionarios import Funcionario
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login/")
@@ -26,14 +27,25 @@ def login(user: Login, response: Response, db: Session = Depends(get_db)):
     if not verify_password(user.senha, user_db.senha):
         raise HTTPException(status_code=401, detail="Senha incorreta")
 
+    payload = {
+        "sub": user_db.email,
+        "id": user_db.id,
+        "nome": user_db.nome,
+        "tipo_usuario": user_db.tipo_usuario,
+        "estabelecimento_id": user_db.estabelecimento_id
+    }
+
+    if user_db.tipo_usuario == "profissional":
+        funcionario = db.execute(
+            "SELECT id FROM funcionarios WHERE usuario_id = :usuario_id",
+            {"usuario_id": user_db.id}
+        ).fetchone()
+
+        if funcionario:
+            payload["funcionario_id"] = funcionario.id
+
     access_token = create_access_token(
-        data={
-            "sub": user_db.email,
-            "id": user_db.id,
-            "nome": user_db.nome,
-            "tipo_usuario": user_db.tipo_usuario,
-            "estabelecimento_id": user_db.estabelecimento_id
-        },
+        data=payload,
         expires_delta=timedelta(minutes=30)
     )
 

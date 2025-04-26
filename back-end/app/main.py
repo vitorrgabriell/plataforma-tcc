@@ -9,6 +9,7 @@ from app.routes.agenda_routes import router as agenda_router
 from app.routes.agendamento_routes import router as agendamento_router
 from app.routes.servico_routes import router as servico_router
 from app.routes.configuracao_agenda_routes import router as configuracao_agenda_router
+from app.routes.metricas_routes import router as metricas_router
 
 
 app = FastAPI()
@@ -30,3 +31,4 @@ app.include_router(agenda_router, prefix="/agenda", tags=["agenda"])
 app.include_router(agendamento_router, prefix="/agendamentos", tags=["agendamentos"])
 app.include_router(servico_router, prefix="/servicos", tags=["servicos"])
 app.include_router(configuracao_agenda_router, prefix="/agenda/configuracao", tags=["configuracao"])
+app.include_router(metricas_router, prefix="/metricas", tags=["metricas"])

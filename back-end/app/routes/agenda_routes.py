@@ -61,78 +61,66 @@ def excluir_horario(
     db.commit()
 
 @router.post("/gerar-agenda/")
-def gerar_horarios_automaticamente(
+def gerar_horarios_profissional(
     dados: GerarAgendaRequest,
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    profissional_id = dados.profissional_id
-    data = dados.data
+    if user["tipo_usuario"] != "profissional":
+        raise HTTPException(status_code=403, detail="Apenas profissionais podem gerar suas agendas.")
 
-    if user["tipo_usuario"] == "cliente":
-        raise HTTPException(status_code=403, detail="Clientes não têm permissão para gerar agendas.")
+    funcionario = db.query(Funcionario).filter_by(usuario_id=user["id"]).first()
+    if not funcionario or funcionario.id != dados.profissional_id:
+        raise HTTPException(status_code=403, detail="Você só pode gerar sua própria agenda.")
 
-    elif user["tipo_usuario"] == "profissional":
-        funcionario = db.query(Funcionario).filter_by(usuario_id=user["id"]).first()
-        if not funcionario:
-            raise HTTPException(status_code=403, detail="Funcionário não encontrado.")
-        if funcionario.id != profissional_id:
-            raise HTTPException(status_code=403, detail="Você só pode gerar sua própria agenda.")
+    data_inicio = datetime.strptime(dados.data_inicial, "%Y-%m-%d").date()
+    data_fim = data_inicio + timedelta(days=6) if dados.semana_toda else data_inicio
 
-    data_base = datetime.strptime(data, "%Y-%m-%d")
-    dia_semana = data_base.strftime("%A").lower()
-    dia_semana = {
-        "monday": "segunda",
-        "tuesday": "terca",
-        "wednesday": "quarta",
-        "thursday": "quinta",
-        "friday": "sexta",
-        "saturday": "sabado",
-        "sunday": "domingo"
-    }[dia_semana]
-
-    config = db.query(ConfiguracaoAgenda).filter_by(
-        profissional_id=profissional_id,
-        dia_semana=dia_semana
+    conflitos = db.query(AgendaDisponivel).filter(
+        AgendaDisponivel.profissional_id == funcionario.id,
+        AgendaDisponivel.data_hora >= datetime.combine(data_inicio, datetime.min.time()),
+        AgendaDisponivel.data_hora <= datetime.combine(data_fim, datetime.max.time())
     ).first()
 
-    if not config:
+    if conflitos:
         raise HTTPException(
-            status_code=404,
-            detail=f"Não há configuração de agenda cadastrada para {dia_semana.title()}."
+            status_code=400,
+            detail="Já existem horários cadastrados neste período. Não é possível gerar novamente."
         )
 
-    hora_inicio = datetime.combine(data_base, datetime.strptime(config.hora_inicio, "%H:%M").time())
-    hora_fim = datetime.combine(data_base, datetime.strptime(config.hora_fim, "%H:%M").time())
-    duracao_minutos = config.duracao_slot
+    duracao = timedelta(minutes=dados.duracao_minutos)
+    horarios_personalizados = dados.horarios_personalizados or []
+    total_criados = 0
+    horarios_criados = []
+    data_atual = data_inicio
 
-    slots = []
-    atual = hora_inicio
-    while atual + timedelta(minutes=duracao_minutos) <= hora_fim:
-        existe = db.query(AgendaDisponivel).filter_by(
-            profissional_id=profissional_id,
-            data_hora=atual
-        ).first()
+    if dados.usar_padrao or not horarios_personalizados:
+        horarios_personalizados = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
 
-        if not existe:
-            novo_slot = AgendaDisponivel(
-                profissional_id=profissional_id,
-                data_hora=atual,
+    while data_atual <= data_fim:
+        for horario_str in horarios_personalizados:
+            hora = datetime.strptime(horario_str, "%H:%M").time()
+            data_hora = datetime.combine(data_atual, hora)
+
+            slot = AgendaDisponivel(
+                profissional_id=funcionario.id,
+                estabelecimento_id=funcionario.estabelecimento_id,
+                data_hora=data_hora,
                 ocupado=False
             )
-            db.add(novo_slot)
-            slots.append(atual.strftime("%H:%M"))
-
-        atual += timedelta(minutes=duracao_minutos)
+            db.add(slot)
+            total_criados += 1
+            horarios_criados.append(data_hora.strftime("%Y-%m-%d %H:%M"))
+        data_atual += timedelta(days=1)
 
     db.commit()
 
     return {
-        "mensagem": "Horários gerados com sucesso com base na configuração",
-        "data": data,
-        "dia_semana": dia_semana,
-        "total_criados": len(slots),
-        "horarios_criados": slots
+        "mensagem": "Agenda gerada com sucesso!",
+        "de": str(data_inicio),
+        "ate": str(data_fim),
+        "total_criados": total_criados,
+        "horarios_criados": horarios_criados
     }
 
 @router.post("/gerar-agenda-admin/", status_code=200)

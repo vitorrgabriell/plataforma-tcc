@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import Column, Integer, String, DateTime, func
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime, date, time
 
 class EstabelecimentoBase(BaseModel):
@@ -179,8 +179,11 @@ class AgendaResponse(AgendaBase):
 
 class GerarAgendaRequest(BaseModel):
     profissional_id: int
-    data: str 
-    duracao_minutos: int = 30
+    data_inicial: str
+    semana_toda: bool
+    usar_padrao: bool
+    horarios_personalizados: list[str]
+    duracao_minutos: int
 
 class GerarAgendaAdminRequest(BaseModel):
     data_inicio: str

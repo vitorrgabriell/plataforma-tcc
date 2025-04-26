@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import Cookies from "js-cookie";
 import axios from "axios";
@@ -96,30 +96,70 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
       showToast("Escolha uma data inicial.", "error");
       return;
     }
-
+  
     try {
       const token = Cookies.get("token");
       const decoded = JSON.parse(atob(token.split(".")[1]));
-
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/agenda/profissional`,
+      const api = process.env.REACT_APP_API_URL?.replace(/\/+$/, "");
+      const url = `${api}/agenda/gerar-agenda/`;
+  
+      console.log("API URL sendo usada:", api);
+      console.log("Requisição POST para:", url);
+      console.log("Payload:", {
+        data_inicial: dataInicial,
+        semana_toda: semanaToda,
+        usar_padrao: usarPadrao,
+        horarios_personalizados: usarPadrao ? [] : horarios,
+        profissional_id: decoded.funcionario_id,
+        duracao_minutos: 30,
+      });
+  
+      if (!decoded.funcionario_id) {
+        showToast("ID do profissional não encontrado no token.", "error");
+        return;
+      }
+  
+      const response = await axios.post(
+        url,
         {
           data_inicial: dataInicial,
           semana_toda: semanaToda,
           usar_padrao: usarPadrao,
           horarios_personalizados: usarPadrao ? [] : horarios,
-          profissional_id: decoded.sub,
+          profissional_id: decoded.funcionario_id,
+          duracao_minutos: 30,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
-      showToast("Agenda gerada com sucesso!", "success");
-      onSuccess();
+  
+      if (response.status === 200 || response.status === 201) {
+        showToast("Agenda gerada com sucesso!", "success");
+        onSuccess();
+      } else {
+        showToast("Erro ao gerar agenda. Código: " + response.status, "error");
+      }
     } catch (error) {
       console.error("Erro ao gerar agenda:", error);
-      showToast("Erro ao gerar agenda.", "error");
+  
+      if (error.response) {
+        const err = error.response.data;
+  
+        if (Array.isArray(err)) {
+          const msgs = err.map(e => e.msg).join(" | ");
+          showToast(msgs, "error");
+        } else if (typeof err.detail === "string") {
+          showToast(err.detail, "error");
+        } else if (Array.isArray(err.detail)) {
+          const msgs = err.detail.map(e => e.msg).join(" | ");
+          showToast(msgs, "error");
+        } else {
+          showToast("Erro ao gerar agenda. Detalhes desconhecidos.", "error");
+        }
+      } else {
+        showToast("Erro inesperado ao gerar agenda.", "error");
+      }
     }
   };
 

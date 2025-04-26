@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import styled from "styled-components";
 import GraficoFaturamento from "../components/graficoFaturamento"
-import GraficoClientesAgendamentos from "../components/graficoClientesAgendamentos";
+import GraficoServicosAgendamentos from "../components/graficoServicosAgendamentos";
 import ModalFuncionario from "../components/modalFuncionario"; 
 import ModalEditarFuncionario from "../components/modalEditFuncionario";
 import ModalServico from "../components/modalServico";
@@ -505,8 +505,8 @@ const handleConfirmarExclusao = async () => {
               <GraficoFaturamento />
             </div>
             <div>
-              <CardTitle>Clientes x Agendamentos</CardTitle>
-              <GraficoClientesAgendamentos />
+              <CardTitle>Serviços x Agendamentos</CardTitle>
+              <GraficoServicosAgendamentos />
             </div>
             <div>
               <CardTitle>Avaliações Recentes</CardTitle>
