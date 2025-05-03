@@ -6,12 +6,8 @@ import DashboardProfissional from "./pages/DashboardProfissional";
 import AdminDashboard from "./pages/AdminDashboard";
 import Register from "./pages/Register";
 import RegisterEstabelecimento from "./pages/RegisterEstabelecimento";
-import EditEstabelecimento from "./pages/EditarEstabelecimento";
 import Logout from "./pages/Logout";
-import EditarFuncionario from "./pages/EditarFuncionario";
 import EstabelecimentoCliente from "./pages/EstabelecimentoCliente";
-import RegisterServico from "./pages/RegisterServico";
-import EditarServico from "./pages/EditarServico";
 
 function App() {
   return (
@@ -33,23 +29,7 @@ function App() {
         <Route
           path="/register-estabelecimento"
           element={<RegisterEstabelecimento />}
-        />
-        <Route
-          path="/edit-estabelecimento"
-          element={<EditEstabelecimento />}
-        />
-        <Route
-          path="/edit-funcionario/:id"
-          element={<EditarFuncionario />}
-        />
-        <Route 
-          path="/register-servico"
-          element={<RegisterServico />}
-        />
-        <Route 
-          path="/editar-servico/:id"
-          element={<EditarServico />}
-        />        
+        />  
         <Route path="/logout" element={<Logout />} />
       </Routes>
     </Router>

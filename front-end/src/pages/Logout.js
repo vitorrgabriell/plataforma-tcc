@@ -26,7 +26,7 @@ const Logout = () => {
 
         Cookies.remove("token");
 
-        navigate("/");
+        navigate("/login");
       } catch (err) {
         console.error("Erro ao fazer logout", err);
       }

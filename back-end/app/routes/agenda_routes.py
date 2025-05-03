@@ -5,6 +5,7 @@ from app.db.database import get_db
 from app.models.agenda_disponivel import AgendaDisponivel
 from app.models.funcionarios import Funcionario
 from app.schemas import AgendaCreate, AgendaResponse, GerarAgendaRequest, GerarAgendaAdminRequest
+from app.models.agendamento import Agendamento
 from app.models.configuracao_agenda import ConfiguracaoAgenda
 from app.utils.dependencies import get_current_user
 from pprint import pprint
@@ -38,11 +39,18 @@ def listar_agenda(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    return db.query(AgendaDisponivel).filter(
+    horarios_com_agendamento = db.query(Agendamento.horario).filter(
+        Agendamento.profissional_id == profissional_id,
+        Agendamento.status == "confirmado"
+    ).subquery()
+
+    horarios_disponiveis = db.query(AgendaDisponivel).filter(
         AgendaDisponivel.profissional_id == profissional_id,
         AgendaDisponivel.data_hora >= datetime.now(),
-        AgendaDisponivel.ocupado == False
+        AgendaDisponivel.data_hora.notin_(horarios_com_agendamento)
     ).order_by(AgendaDisponivel.data_hora).all()
+
+    return horarios_disponiveis
 
 @router.delete("/{horario_id}", status_code=status.HTTP_204_NO_CONTENT)
 def excluir_horario(

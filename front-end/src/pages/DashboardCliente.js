@@ -41,7 +41,9 @@ const ButtonGroup = styled.div`
   gap: 12px;
 `;
 
-const Button = styled.button`
+const Button = styled.button.withConfig({
+  shouldForwardProp: (prop) => !['bgColor', 'hoverColor'].includes(prop),
+})`
   background-color: ${(props) => props.bgColor || "#3b82f6"};
   color: white;
   padding: 10px 16px;
@@ -98,6 +100,10 @@ const EstablishmentCard = styled.div`
   }
 `;
 
+const MotionWrapper = styled(motion.div)`
+  width: 100%;
+`;
+
 const TitleSection = styled.div`
   text-align: center;
   margin-bottom: 24px;
@@ -126,10 +132,16 @@ const CardDescription = styled.p`
   color: #cbd5e1;
 `;
 
-const ArrowButton = styled.button.attrs(({ right }) => ({}))`
+const ArrowButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'right',
+}).attrs(({ right }) => ({
+  style: {
+    right: right ? '10px' : undefined,
+    left: !right ? '10px' : undefined,
+  },
+}))`
   position: absolute;
   top: 50%;
-  ${(props) => (props.right ? "right: 10px;" : "left: 10px;")}
   transform: translateY(-50%);
   background-color: #3b82f6;
   color: white;
@@ -142,6 +154,15 @@ const ArrowButton = styled.button.attrs(({ right }) => ({}))`
 
   &:hover {
     background-color: #2563eb;
+  }
+
+  @media (max-width: 600px) {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 400px) {
+    display: none;
   }
 `;
 
@@ -159,6 +180,29 @@ const SectionTitle = styled.h3`
   font-weight: 600;
   color: #f1f5f9;
   margin-bottom: 16px;
+`;
+
+const FlexWrapper = styled(motion.div)`
+  display: flex;
+  justify-content: ${({ count }) => {
+    if (count === 1) return 'center';
+    if (count === 2) return 'space-evenly';
+    return 'space-between';
+  }};
+  flex-wrap: wrap;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px;
+`;
+
+const SectionGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 32px;
 `;
 
 const CardList = styled.div`
@@ -237,6 +281,13 @@ const AgendarEstabelecimentoPage = () => {
   const [estabelecimentos, setEstabelecimentos] = useState([]);
   const [avaliacoesRecentes, setAvaliacoesRecentes] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [pontosFidelidade, setPontosFidelidade] = useState([]);
+  const [loadingPontos, setLoadingPontos] = useState(true);
+  const [pontosFidelidadeEstabelecimento, setPontosFidelidadeEstabelecimento] = useState([]);
+  const [loadingPontosEstabelecimento, setLoadingPontosEstabelecimento] = useState(true);
+  const estabelecimentoMaisPontos = pontosFidelidadeEstabelecimento.reduce((maisPontos, atual) => {
+    return (atual.pontos_acumulados > (maisPontos?.pontos_acumulados || 0)) ? atual : maisPontos;
+  }, null);  
   const itemsPerPage = 3;
 
   const totalPages = Math.ceil(estabelecimentos.length / itemsPerPage);
@@ -293,6 +344,65 @@ const AgendarEstabelecimentoPage = () => {
       setAvaliacoesRecentes([]);
     }
   };
+
+  useEffect(() => {
+    const fetchPontos = async () => {
+      const token = Cookies.get("token");
+      const api = process.env.REACT_APP_API_URL;
+  
+      try {
+        const res = await fetch(`${api}/fidelidade/meus-pontos/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setPontosFidelidade(data);
+        } else {
+          setPontosFidelidade([]);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar pontos:", error);
+        setPontosFidelidade([]);
+      } finally {
+        setLoadingPontos(false);
+      }
+    };
+  
+    fetchPontos();
+  }, []);
+
+  useEffect(() => {
+    const fetchPontosEstabelecimento = async() => {
+      const token = Cookies.get("token");
+      const api = process.env.REACT_APP_API_URL;
+  
+      try {
+        const res = await fetch(`${api}/fidelidade/meus-pontos/estabelecimentos`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setPontosFidelidadeEstabelecimento(data);
+        } else {
+          setPontosFidelidadeEstabelecimento([]);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar pontos:", error);
+        setPontosFidelidadeEstabelecimento([]);
+      } finally {
+        setLoadingPontosEstabelecimento(false);
+      }
+    };
+    const estabelecimentoMaisPontos = pontosFidelidadeEstabelecimento.reduce((maisPontos, atual) => {
+      return (atual.pontos_acumulados > (maisPontos?.pontos_acumulados || 0)) ? atual : maisPontos;
+    }, null);
+      
+    fetchPontosEstabelecimento();
+  }, []);
   
   useEffect(() => {
     fetchAvaliacoes();
@@ -321,6 +431,17 @@ const AgendarEstabelecimentoPage = () => {
     navigate(`/estabelecimento-cliente/${id}`);
   };
 
+  const renderEstrelas = (nota) => {
+    const notaNumerica = parseInt(nota, 10);
+    const estrelasCheias = "⭐".repeat(notaNumerica);
+    const estrelasVazias = "☆".repeat(5 - notaNumerica);
+    return (
+      <div style={{ color: "#facc15", fontSize: "16px" }}>
+        {estrelasCheias}{estrelasVazias}
+      </div>
+    );
+  };
+
   return (
     <Container>
       <Header>
@@ -346,60 +467,98 @@ const AgendarEstabelecimentoPage = () => {
         <p>Escolha um local para agendar seus serviços favoritos com facilidade.</p>
       </TitleSection>
       <Content>
-      <div style={{ position: 'relative', width: '100%' }}>
-        <ArrowButton
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
-          disabled={currentPage === 0}
-        >
-          &lt;
-        </ArrowButton>
-        <GridWrapper as={motion.div}>
-          <AnimatePresence mode="wait">
-            {currentEstabelecimentos.map((est) => (
-              <motion.div
-                key={est.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -30 }}
-                transition={{ duration: 0.4 }}
-              >
-                <EstablishmentCard onClick={() => handleSelectEstabelecimento(est.id)}>
+        <div style={{ position: 'relative', width: '100%' }}>
+        {currentPage > 0 && (
+          <ArrowButton onClick={() => setCurrentPage((prev) => prev - 1)}>
+            &lt;
+          </ArrowButton>
+        )}
+        {currentPage < totalPages - 1 && (
+          <ArrowButton right onClick={() => setCurrentPage((prev) => prev + 1)}>
+            &gt;
+          </ArrowButton>
+        )}
+        <FlexWrapper count={currentEstabelecimentos.length}>
+        <AnimatePresence mode="wait">
+          <MotionWrapper
+            key={currentPage}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.4 }}
+          >
+            <FlexWrapper count={currentEstabelecimentos.length}>
+              {currentEstabelecimentos.map((est) => (
+                <EstablishmentCard key={est.id} onClick={() => handleSelectEstabelecimento(est.id)}>
                   <CardTitle>{est.nome}</CardTitle>
                   <CardDescription>
                     <strong>Tipo:</strong> {est.tipo_servico}
                   </CardDescription>
                 </EstablishmentCard>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </GridWrapper>
-        <ArrowButton
-          right
-          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
-          disabled={currentPage >= totalPages - 1}
-        >
-          &gt;
-        </ArrowButton>
+              ))}
+            </FlexWrapper>
+          </MotionWrapper>
+        </AnimatePresence>
+        </FlexWrapper>
       </div>
       </Content>
       <SectionWrapper>
-        <SectionTitle>📢 Avaliações Recentes</SectionTitle>
-        <CardList>
-        {avaliacoesRecentes.map((a, index) => (
-          <AvaliacaoCard key={index}>
-            <strong>{a.cliente} para    {a.estabelecimento}</strong>
-            <p>{a.comentario}</p>
-            <div style={{ color: "#facc15" }}>⭐⭐⭐⭐⭐</div> {/* Fixo por enquanto */}
-          </AvaliacaoCard>
-        ))}
-        </CardList>
+        <SectionGrid>
+        <div>
+            <SectionTitle>🎯 Meus Pontos de Fidelidade</SectionTitle>
+            {loadingPontos ? (
+              <p style={{ color: "#cbd5e1" }}>Carregando pontos...</p>
+            ) : pontosFidelidade.length === 0 ? (
+              <p style={{ color: "#cbd5e1" }}>Você ainda não acumulou pontos.</p>
+            ) : (
+              <CardList>
+                {pontosFidelidade.map((ponto, index) => (
+                  <AvaliacaoCard key={index}>
+                    <strong>Serviço:</strong> {ponto.servico_realizado}<br/>
+                    <strong>Valor:</strong> R${Number(ponto.valor_servico).toFixed(2)}<br/>
+                    <strong>Data:</strong> {new Date(ponto.data_servico).toLocaleDateString()}<br/>
+                    <strong>Pontos Ganhos:</strong> {ponto.pontos_ganhos}
+                  </AvaliacaoCard>
+                ))}
+              </CardList>
+            )}
+          </div>
 
-        <SectionTitle style={{ marginTop: "32px" }}>⚡ Atalhos Rápidos</SectionTitle>
-        <AtalhoWrapper>
-          <AtalhoButton onClick={() => navigate("/meus-agendamentos")}>📅 Ver meus agendamentos</AtalhoButton>
-          <AtalhoButton onClick={() => navigate("/avaliar-servico")}>✍️ Avaliar um serviço</AtalhoButton>
-          <AtalhoButton onClick={() => navigate("/historico")}>🕓 Histórico completo</AtalhoButton>
-        </AtalhoWrapper>
+          <div>
+            <SectionTitle>🏆 Estabelecimento com mais pontos</SectionTitle>
+            {loadingPontosEstabelecimento ? (
+              <p style={{ color: "#cbd5e1" }}>Carregando pontos...</p>
+            ) : estabelecimentoMaisPontos ? (
+              <AvaliacaoCard>
+                <strong>Estabelecimento:</strong> {estabelecimentoMaisPontos.estabelecimento_nome}<br/>
+                <strong>Pontos acumulados:</strong> {estabelecimentoMaisPontos.pontos_acumulados}
+              </AvaliacaoCard>
+            ) : (
+              <p style={{ color: "#cbd5e1" }}>Você ainda não acumulou pontos em estabelecimentos.</p>
+            )}
+          </div>
+          <div>
+            <SectionTitle>📢 Avaliações Recentes</SectionTitle>
+            <CardList>
+            {avaliacoesRecentes.map((a, index) => {
+              return (
+                <AvaliacaoCard key={index}>
+                  <strong>{a.cliente} para {a.estabelecimento}</strong>
+                  <p>{a.comentario}</p>
+                  {renderEstrelas(a.nota)}
+                </AvaliacaoCard>
+              );
+            })}
+            </CardList>
+          </div>
+        </SectionGrid>
+          <SectionTitle style={{ marginTop: "32px" }}>⚡ Atalhos Rápidos</SectionTitle>
+          <AtalhoWrapper>
+            <AtalhoButton onClick={() => navigate("/recompensa-fidelidade")}>🎉 Aproveitar pontos</AtalhoButton>
+            <AtalhoButton onClick={() => navigate("/meus-agendamentos")}>📅 Ver meus agendamentos</AtalhoButton>
+            <AtalhoButton onClick={() => navigate("/avaliar-servico")}>✍️ Avaliar um serviço</AtalhoButton>
+            <AtalhoButton onClick={() => navigate("/historico")}>🕓 Histórico completo</AtalhoButton>
+          </AtalhoWrapper>
       </SectionWrapper>
       <Footer>
         <p>

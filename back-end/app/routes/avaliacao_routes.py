@@ -8,12 +8,24 @@ from app.schemas import AvaliacaoCreate, AvaliacaoResponse, AvaliacaoUpdate, Ava
 
 router = APIRouter()
 
-@router.get("/", response_model=list[AvaliacaoResponse])
-def listar_avaliacoes(estabelecimento_id: Optional[int] = None, db: Session = Depends(get_db)):
-    query = db.query(Avaliacao)
-    if estabelecimento_id:
-        query = query.filter(Avaliacao.estabelecimento_id == estabelecimento_id)
-    return query.all()
+@router.get("/", response_model=List[AvaliacaoPublicaResponse])
+def listar_avaliacoes_com_nomes(estabelecimento_id: int, db: Session = Depends(get_db)):
+    resultados = db.execute("""
+        SELECT 
+            u.nome AS cliente, 
+            e.nome AS estabelecimento, 
+            a.comentario,
+            a.nota
+        FROM avaliacoes a
+        JOIN usuarios u ON u.id = a.cliente_id
+        JOIN estabelecimentos e ON e.id = a.estabelecimento_id
+        WHERE a.estabelecimento_id = :estabelecimento_id
+        ORDER BY a.criado_em DESC
+        LIMIT 10
+    """, {"estabelecimento_id": estabelecimento_id}).mappings().all()
+
+    return resultados
+
 
 @router.get("/publicas", response_model=List[AvaliacaoPublicaResponse])
 def listar_avaliacoes_publicas(db: Session = Depends(get_db)):
@@ -21,7 +33,8 @@ def listar_avaliacoes_publicas(db: Session = Depends(get_db)):
         SELECT 
             u.nome AS cliente, 
             e.nome AS estabelecimento, 
-            a.comentario
+            a.comentario,
+            a.nota
         FROM avaliacoes a
         JOIN usuarios u ON u.id = a.cliente_id
         JOIN estabelecimentos e ON e.id = a.estabelecimento_id

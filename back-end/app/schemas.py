@@ -37,6 +37,7 @@ class UserResponse(BaseModel):
     nome: str
     email: EmailStr
     tipo_usuario: str
+    pontos_acumulados: int
 
 class UpdateUser(BaseModel):
     nome: str
@@ -44,8 +45,6 @@ class UpdateUser(BaseModel):
     tipo_usuario: str
     senha: Optional[str] = None
 
-class Config:
-    orm_mode = True
 
 class RegisterUser(BaseModel):
     nome: str
@@ -89,8 +88,6 @@ class FuncionarioResponse(BaseModel):
 
     class Config:
         orm_mode = True
-    class Config:
-        from_attributes = True
 
 class AvaliacaoBase(BaseModel):
     cliente_id: int
@@ -110,6 +107,7 @@ class AvaliacaoPublicaResponse(BaseModel):
     cliente: str
     estabelecimento: str
     comentario: str
+    nota: int
 
 class AvaliacaoResponse(BaseModel):
     id: int
@@ -235,4 +233,43 @@ class ServicoResponse(ServicoBase):
 
     class Config:
         orm_mode = True
+    
+class ProgramaFidelidadeBase(BaseModel):
+    descricao_premio: str
+    pontos_necessarios: int
+
+class ProgramaFidelidadeCreate(BaseModel):
+    estabelecimento_id: int
+    descricao_premio: str
+    pontos_necessarios: int
+    ativo: bool = True
+
+class ProgramaFidelidadeUpdate(BaseModel):
+    descricao_premio: str
+    pontos_necessarios: int
+    ativo: bool
+
+class ProgramaFidelidadeResponse(ProgramaFidelidadeBase):
+    id: int
+    estabelecimento_id: int
+    criado_em: datetime
+    ativo: bool
+
+    class Config:
+        orm_mode = True
+
+class ResgateFidelidadeBase(BaseModel):
+    cliente_id: int
+    programa_fidelidade_id: int
+
+class ResgateFidelidadeCreate(ResgateFidelidadeBase):
+    pass
+
+class ResgateFidelidadeResponse(ResgateFidelidadeBase):
+    id: int
+    data_resgate: datetime
+
+    class Config:
+        orm_mode = True
+
         

@@ -144,17 +144,21 @@ const DashboardProfissional = () => {
   const [historicoFinalizados, setHistoricoFinalizados] = useState([]);
   const [mostrarModalGerarAgenda, setMostrarModalGerarAgenda] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const agora = new Date();
 
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
   };
+
+  const agendamentosPendentesFuturos = agendamentosPendentes.filter(
+    (agendamento) => new Date(agendamento.horario) > agora
+  );
 
   useEffect(() => {
     const token = Cookies.get("token");
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        console.log("Token decodificado:", decoded);
         setUserName(decoded.nome || decoded.email);
         fetchDashboardData();
       } catch (error) {
@@ -290,10 +294,10 @@ const DashboardProfissional = () => {
       <Grid>
         <Card style={{ flex: 1, gridColumn: "span 4" }}>
           <h2>Agendamentos Pendentes</h2>
-          {agendamentosPendentes.length === 0 ? (
+          {agendamentosPendentesFuturos.length === 0 ? (
             <p style={{ marginTop: "12px" }}>Nenhum agendamento pendente.</p>
           ) : (
-            agendamentosPendentes.map((a) => (
+            agendamentosPendentesFuturos.map((a) => (
               <div key={a.id} style={{ marginTop: "12px", background: "#334155", padding: "12px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <p><strong>Cliente:</strong> {a.cliente}</p>
@@ -305,6 +309,9 @@ const DashboardProfissional = () => {
                   <SmallButton bgColor="#006400" onClick={() => confirmarAgendamento(a.id)}>
                     Confirmar
                   </SmallButton>
+                  <SmallButton bgColor="#ff9900" onClick={() => editarAgendamento(a.id)}>
+                    Editar
+                  </SmallButton> 
                   <SmallButton bgColor="#ef4444" onClick={() => recusarAgendamento(a.id)}>
                     Recusar
                   </SmallButton>

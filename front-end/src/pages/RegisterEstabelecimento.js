@@ -105,8 +105,6 @@ const RegisterEstabelecimento = () => {
         tipo_servico: tipoServico,
       };
   
-      console.log("Payload enviado:", payload); 
-  
       const token = Cookies.get("token");
   
       const api = process.env.REACT_APP_API_URL;
@@ -120,8 +118,6 @@ const RegisterEstabelecimento = () => {
           },
         }
       );
-  
-      console.log("Resposta do backend:", response.data);
       navigate("/dashboard-admin");
     } catch (err) {
       console.error("Erro recebido:", err.response?.data);

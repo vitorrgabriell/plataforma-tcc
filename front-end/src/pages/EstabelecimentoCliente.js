@@ -5,6 +5,7 @@ import Cookies from "js-cookie";
 import styled from "styled-components";
 import DatePicker from "react-datepicker";
 import ModalEditarAgendamento from "../components/modalEditarAgendamento";
+import ModalConfirmarAgendamento from "../components/modalConfirmarAgendamento";
 import ModalConfirmacao from "../components/modalConfirmacao";
 import ToastNotification from "../components/ToastNotification";
 import "react-datepicker/dist/react-datepicker.css";
@@ -134,6 +135,14 @@ const AppointmentInfo = styled.div`
   color: #f1f5f9;
 `;
 
+const PrecoDestaque = styled.span`
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #10b981;
+`;
+
 const ActionButton = styled.button`
   background-color: ${(props) => props.bgColor};
   color: white;
@@ -184,6 +193,8 @@ const EstabelecimentoCliente = () => {
   const [userName, setUserName] = useState("");
   const [estabelecimento, setEstabelecimento] = useState(null);
   const [services, setServices] = useState([]);
+  const [valorServico, setValorServico] = useState(0);
+  const [valorServicoSelecionado, setValorServicoSelecionado] = useState(0);
   const [selectedService, setSelectedService] = useState("");
   const [professionals, setProfessionals] = useState([]);
   const [selectedProfessional, setSelectedProfessional] = useState("");
@@ -199,6 +210,8 @@ const EstabelecimentoCliente = () => {
   const [agendamentoParaEditar, setAgendamentoParaEditar] = useState(null);
   const [mostrarModalConfirmacao, setMostrarModalConfirmacao] = useState(false);
   const [agendamentoParaExcluir, setAgendamentoParaExcluir] = useState(null);
+  const [mostrarModalFinalizacao, setMostrarModalFinalizacao] = useState(false);
+  const [agendamentoEmConfirmacao, setAgendamentoEmConfirmacao] = useState(null);
 
   useEffect(() => {
     const token = Cookies.get("token");
@@ -214,7 +227,7 @@ const EstabelecimentoCliente = () => {
     const fetchDados = async () => {
       try {
         const api = process.env.REACT_APP_API_URL;
-    
+
         const [estabRes, servRes, profRes, agendamentoRes] = await Promise.all([
           fetch(`${api}/estabelecimentos/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -231,21 +244,20 @@ const EstabelecimentoCliente = () => {
         ]);
     
         const estabelecimento = await estabRes.json();
-        const servicos = await servRes.json();
+        const servicos = (await servRes.json()).filter(s => s.preco !== undefined);
         const profissionais = await profRes.json();
         const agendamentos = await agendamentoRes.json();
         const agora = new Date();
 
         const agendamentosFuturos = agendamentos.filter((a) => {
           const dataAgendada = new Date(a.horario);
-          return dataAgendada.getTime() > agora.getTime();
+          return a.status === "confirmado" && dataAgendada.getTime() > agora.getTime();
         });
 
         setAppointments(agendamentosFuturos);
-    
         setEstabelecimento(estabelecimento);
         setServices(servicos);
-        setProfessionals(profissionais); // <- importante!
+        setProfessionals(profissionais);
         // setAppointments(agendamentos);
       } catch (err) {
         console.error("Erro ao buscar dados:", err);
@@ -259,6 +271,12 @@ const EstabelecimentoCliente = () => {
     const serviceId = e.target.value;
     setSelectedService(serviceId);
   
+    const servico = services.find(s => s.id === parseInt(serviceId));
+    setValorServicoSelecionado(servico?.valor || 0);
+
+    const servicoSelecionado = services.find(s => s.id === parseInt(serviceId));
+    setValorServico(servicoSelecionado?.preco || 0);
+
     const token = Cookies.get("token");
     const api = process.env.REACT_APP_API_URL;
   
@@ -292,13 +310,13 @@ const EstabelecimentoCliente = () => {
       });
   
       const horarios = await res.json();
-  
       const horariosFiltrados = Array.isArray(horarios)
         ? horarios
             .filter((h) => new Date(h.data_hora).getTime() >= Date.now())
             .sort((a, b) => new Date(a.data_hora) - new Date(b.data_hora))
             .map((h) => ({
               id: h.id,
+              ocupado: h.ocupado,
               date: new Date(h.data_hora).toLocaleDateString("pt-BR"),
               time: new Date(h.data_hora).toLocaleTimeString("pt-BR", {
                 hour: "2-digit",
@@ -327,39 +345,38 @@ const EstabelecimentoCliente = () => {
   }, [selectedDate, allSlots]);
 
   const handleAgendar = async () => {
+    if (!agendamentoEmConfirmacao) return;
+  
     const token = Cookies.get("token");
     const api = process.env.REACT_APP_API_URL;
 
-    try {
-      const res = await fetch(`${api}/agendamentos`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          servico_id: selectedService,
-          profissional_id: selectedProfessional,
-          horario: availableSlots.find(h => h.id === parseInt(selectedSlot))?.originalDate,
-        }),
-      });
+    const agendamentosParaEnviar = [agendamentoEmConfirmacao];
 
-      if (res.ok) {
-        const novos = await res.json();
-        setAppointments((prev) => [...prev, novos]);
-        setToastMessage("Agendamento realizado com sucesso!");
-        setToastType("success");
-        setShowToast(true);
-        setTimeout(() => {
-          navigate("/dashboard-cliente");
-        }, 4000);
-      } else {
-        setToastMessage("Erro ao agendar. Verifique os dados.");
-        setToastType("error");
-        setShowToast(true);
+    try {
+      for (const agendamento of agendamentosParaEnviar) {
+        const res = await fetch(`${api}/agendamentos`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(agendamento),
+        });
+  
+        if (!res.ok) throw new Error("Erro ao agendar");
       }
+  
+      setToastMessage("Serviço solicitado ao profissional, você será notificado quando houver mudanças do estado da sua solicitação!");
+      setToastType("success");
+      setShowToast(true);
+      setTimeout(() => {
+        navigate("/dashboard-cliente");
+      }, 2000);
     } catch (err) {
       console.error("Erro no agendamento:", err);
+      setToastMessage("Erro ao agendar um ou mais serviços.");
+      setToastType("error");
+      setShowToast(true);
     }
   };
 
@@ -506,7 +523,9 @@ const EstabelecimentoCliente = () => {
             <h2>{estabelecimento?.nome}</h2>
             <p>{estabelecimento?.descricao}</p>
             <FormGroup>
-              <Label>Selecione o Serviço:</Label>
+              <Label>
+                Escolha o serviço:
+              </Label>
               <Select value={selectedService} onChange={handleServiceChange}>
                 <option value="">Escolha um serviço</option>
                 {services.map((service) => (
@@ -515,11 +534,23 @@ const EstabelecimentoCliente = () => {
                   </option>
                 ))}
               </Select>
+              {selectedService && (
+                <FormGroup>
+                  <Label style={{ marginTop: '16px' }}>
+                    Preço estimado:
+                  </Label>
+                  <PrecoDestaque>
+                    R${valorServico.toFixed(2)}
+                  </PrecoDestaque>
+                </FormGroup>
+              )}
             </FormGroup>
             {selectedService && (
               <>
                 <FormGroup>
-                  <Label>Selecione o Profissional:</Label>
+                  <Label>
+                    Profissional disponível:
+                  </Label>
                   <Select
                     value={selectedProfessional}
                     onChange={handleProfessionalChange}
@@ -552,17 +583,37 @@ const EstabelecimentoCliente = () => {
                   <HorariosGrid>
                     {availableSlots.map((slot) => (
                       <BotaoHorario
-                        key={slot.id}
-                        selected={selectedSlot === slot.id}
-                        onClick={() => setSelectedSlot(slot.id)}
-                      >
-                        {slot.time}
-                      </BotaoHorario>
+                      key={slot.id}
+                      selected={selectedSlot === slot.id}
+                      onClick={() => {
+                        if (!slot.ocupado) setSelectedSlot(slot.id);
+                      }}
+                      title={slot.ocupado ? "Horário em solicitação por outro cliente" : "Clique para selecionar"}
+                    >
+                      {slot.time} {slot.ocupado ? "⏳" : ""}
+                    </BotaoHorario>
                     ))}
                   </HorariosGrid>
                 </FormGroup>
               )}
-                <Button onClick={handleAgendar}>Agendar</Button>
+                <Button onClick={() => {
+                  const horarioSelecionado = availableSlots.find(h => String(h.id) === String(selectedSlot));
+                  if (!horarioSelecionado) return;
+
+                  const servicoSelecionado = services.find((s) => s.id === parseInt(selectedService));
+                  
+                  setAgendamentoEmConfirmacao({
+                    servico_id: servicoSelecionado?.id, 
+                    profissional_id: selectedProfessional,
+                    horario: horarioSelecionado.originalDate,
+                    valor: servicoSelecionado?.preco || 0,
+                    servico: servicoSelecionado?.nome || "",
+                    estabelecimento: estabelecimento?.nome,
+                  });
+                  setMostrarModalFinalizacao(true);
+                }}>
+                  Agendar
+                </Button>
               </>
             )}
           </SchedulingForm>
@@ -626,6 +677,23 @@ const EstabelecimentoCliente = () => {
         onConfirmar={handleConfirmarExclusao}
         onCancelar={() => setMostrarModalConfirmacao(false)}
       />
+    )}
+    {mostrarModalFinalizacao && agendamentoEmConfirmacao && services.length > 0 && (
+      <ModalConfirmarAgendamento
+      isOpen={mostrarModalFinalizacao}
+      onClose={() => setMostrarModalFinalizacao(false)}
+      onConfirm={() => {
+        handleAgendar();
+        setMostrarModalFinalizacao(false);
+      }}
+      agendamentoData={{
+        estabelecimento: estabelecimento?.nome || "",
+        servico_id: agendamentoEmConfirmacao.servico_id,
+        servico: services.find((s) => s.id === parseInt(agendamentoEmConfirmacao.servico_id))?.nome || "",
+        valor: services.find((s) => s.id === parseInt(agendamentoEmConfirmacao.servico_id))?.preco || 0,
+        horario: agendamentoEmConfirmacao.horario,
+      }}
+    />
     )}
     </Container>
   );

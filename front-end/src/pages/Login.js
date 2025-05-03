@@ -105,7 +105,6 @@ const Login = () => {
   
     try {
       const api = process.env.REACT_APP_API_URL;
-      console.log("API URL:", process.env.REACT_APP_API_URL);
 
       const response = await axios.post(`${api}/auth/login/`, {
         email,
@@ -114,8 +113,6 @@ const Login = () => {
   
       const { access_token, tipo_usuario } = response.data;
   
-      console.log("Token de autenticação recebido:", access_token);
-
       setSuccess("Login realizado");
   
       Cookies.set("token", access_token, { expires: 1 });

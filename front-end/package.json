@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@radix-ui/react-switch": "^1.2.2",
     "autoprefixer": "^10.4.20",
     "axios": "^1.8.4",
     "cra-template": "1.2.0",

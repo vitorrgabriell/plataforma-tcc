@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
-import { redirect, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import styled from "styled-components";
 import GraficoFaturamento from "../components/graficoFaturamento"
 import GraficoServicosAgendamentos from "../components/graficoServicosAgendamentos";
+import ModalEditarEstabelecimento from "../components/modalEditarEstabelecimento";
 import ModalFuncionario from "../components/modalFuncionario"; 
 import ModalEditarFuncionario from "../components/modalEditFuncionario";
 import ModalServico from "../components/modalServico";
 import ModalEditarServico from "../components/modalEditServico";
 import ModalGerarAgenda from "../components/modalGerarAgenda"
 import ModalConfirmacao from "../components/modalConfirmacao";
+import ModalFidelidade from "../components/modalFidelidade";
 import ToastNotification from "../components/ToastNotification";
 
 const Div1 = styled.div`
@@ -119,7 +121,7 @@ const ButtonGroup = styled.div`
 `;
 
 const Button = styled.button`
-  background-color: ${(props) => props.bgColor || "#3b82f6"};
+  background-color: ${(props) => props.$bgColor || "#3b82f6"};
   color: white;
   padding: 10px 16px;
   font-size: 14px;
@@ -130,7 +132,7 @@ const Button = styled.button`
   transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: ${(props) => props.hoverColor || "#2563eb"};
+    background-color: ${(props) => props.$hoverColor || "#2563eb"};
   }
 `;
 
@@ -226,6 +228,7 @@ const AdminDashboard = () => {
   const [avaliacoes, setAvaliacoes] = useState([]);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [estabelecimentoId, setEstabelecimentoId] = useState(null);
+  const [mostrarModalEditarEstabelecimento, setMostrarModalEditarEstabelecimento] = useState(false);
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [funcionarioSelecionado, setFuncionarioSelecionado] = useState(null);
   const [mostrarModalServico, setMostrarModalServico] = useState(false);
@@ -235,7 +238,9 @@ const AdminDashboard = () => {
   const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false);
   const [tipoExclusao, setTipoExclusao] = useState("");
   const [idParaExcluir, setIdParaExcluir] = useState(null);
-
+  const [fidelidade, setFidelidade] = useState(null);
+  const [resumoFidelidade, setResumoFidelidade] = useState(null);
+  const [mostrarModalFidelidade, setMostrarModalFidelidade] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
   const showToast = (message, type = "success") => {
@@ -316,13 +321,6 @@ const handleConfirmarExclusao = async () => {
         const agendamentosData = await resAgendamentos.json();
         setAgendamentos(Array.isArray(agendamentosData) ? agendamentosData : []);
 
-        const resMetricas = await fetch(`${api}/metricas/?estabelecimento_id=${estabelecimento_id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setMetricas(await resMetricas.json());
-
         const resCancelados = await fetch(`${api}/agendamentos/cancelados?estabelecimento_id=${estabelecimento_id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -352,11 +350,31 @@ const handleConfirmarExclusao = async () => {
         setServicos([]);
         setAvaliacoes([]);
       }
+      const resFidelidade = await fetch(`${api}/fidelidade/resumo?estabelecimento_id=${estabelecimento_id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const fidelidadeData = await resFidelidade.json();
+      setFidelidade(fidelidadeData);      
     }
   };
 
   useEffect(() => {
     fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const decoded = JSON.parse(atob(token.split(".")[1]));
+    const estabelecimento_id = decoded.estabelecimento_id;
+  
+    fetch(`${process.env.REACT_APP_API_URL}/fidelidade/resumo?estabelecimento_id=${estabelecimento_id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setResumoFidelidade(data))
+      .catch((err) => console.error("Erro ao carregar fidelidade:", err));
   }, []);
   
   const handleLogout = async () => {
@@ -391,7 +409,7 @@ const handleConfirmarExclusao = async () => {
         <Title>AgendaVip</Title>
         {userName && <UserInfo>Bem-vindo de volta, {userName}!</UserInfo>}
         <ButtonGroup>
-        <Button onClick={() => navigate("/edit-estabelecimento")}>
+        <Button onClick={() => setMostrarModalEditarEstabelecimento(true)}>
           Editar Estabelecimento
         </Button>
           <Button bgColor="#ef4444" hoverColor="#dc2626" onClick={handleLogout}>
@@ -454,7 +472,8 @@ const handleConfirmarExclusao = async () => {
             {canceladosFuturos.map((c, index) => (
               <CustomCard key={index}>
                 {c.cliente} cancelou {c.servico} com {c.profissional} <br />
-                ❌ {new Date(c.cancelado_em).toLocaleString("pt-BR")}
+                ❌ Cancelado em: {new Date(c.cancelado_em).toLocaleDateString("pt-BR")} <br />
+                🕓 Horario do agendamento: {new Date(c.horario).toLocaleString("pt-BR")}
               </CustomCard>
             ))}
           </Div2>
@@ -497,6 +516,24 @@ const handleConfirmarExclusao = async () => {
                   </CustomCard>
                 ))
               )}
+              {fidelidade && (
+                <>
+                  <div style={{ marginBottom: "12px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <CardTitle>Fidelidade</CardTitle>
+                      <Button onClick={() => setMostrarModalFidelidade(true)}>
+                        Configurar
+                      </Button>
+                    </div>
+                  </div>
+                  <CustomCard>
+                    <p>🎁 Programa: <strong>{fidelidade.ativo ? "Ativo ✅" : "Inativo ❌"}</strong></p>
+                    <p>📋 Regra: {fidelidade.regra}</p>
+                    <p>👥 Participantes: {fidelidade.participantes}</p>
+                    <p>✅ Gratuitos concedidos: {fidelidade.servicosGratuitos}</p>
+                  </CustomCard>
+                </>
+              )}
             </CardColumn>
           </Div3>
           <Div4>
@@ -516,7 +553,7 @@ const handleConfirmarExclusao = async () => {
                 avaliacoes.map((a, index) => (
                   <CustomCard key={index}>
                     <span style={{ fontStyle: "italic" }}>“{a.comentario}”</span><br />
-                    <small>⭐ {a.estrelas} — {a.nome}</small>
+                    <small>⭐ {a.nota ?? "Sem nota"} — {a.cliente ?? "Anônimo"}</small>
                   </CustomCard>
                 ))
               )}
@@ -532,6 +569,15 @@ const handleConfirmarExclusao = async () => {
           <FooterLink href="/contato">Contato</FooterLink>
         </p>
       </Footer>
+      {mostrarModalEditarEstabelecimento && (
+        <ModalEditarEstabelecimento
+          onClose={() => setMostrarModalEditarEstabelecimento(false)}
+          onSuccess={() => {
+            fetchDashboardData();
+            setMostrarModalEditarEstabelecimento(false);
+          }}
+        />
+      )}
       {mostrarModal && (
         <ModalFuncionario
           onClose={() => setMostrarModal(false)}
@@ -597,6 +643,17 @@ const handleConfirmarExclusao = async () => {
       show={toast.show}
       onClose={() => setToast({ ...toast, show: false })}
     />
+    {mostrarModalFidelidade && (
+      <ModalFidelidade
+        onClose={() => setMostrarModalFidelidade(false)}
+        onSuccess={() => {
+          fetchDashboardData();
+          setMostrarModalFidelidade(false);
+        }}
+        showToast={showToast} 
+      />
+    )}
+
     </Container>
   );
 };

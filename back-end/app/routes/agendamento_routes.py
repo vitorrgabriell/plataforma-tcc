@@ -7,10 +7,12 @@ from app.utils.dependencies import get_current_user
 from datetime import datetime, timedelta
 from app.models.agenda_disponivel import AgendaDisponivel
 from app.models.agendamento_cancelado import AgendamentoCancelado
-from app.utils.dynamo_client import salvar_servico_finalizado
 from app.models.servico import Servico
 from app.models.user import User
 from app.models.funcionarios import Funcionario
+from app.models.pontos_fidelidade_cliente import PontosFidelidadeCliente
+from app.utils.dynamo_client import salvar_servico_finalizado, salvar_ponto_fidelidade
+
 
 
 router = APIRouter()
@@ -24,25 +26,22 @@ def criar_agendamento(
     horario_disponivel = db.query(AgendaDisponivel).filter(
         AgendaDisponivel.profissional_id == agendamento.profissional_id,
         AgendaDisponivel.data_hora == agendamento.horario,
-        AgendaDisponivel.ocupado == False
     ).first()
 
-    if not horario_disponivel:
+    if not horario_disponivel or horario_disponivel.ocupado:
         raise HTTPException(
             status_code=400,
             detail="Horário não está disponível para esse profissional."
         )
 
     novo_agendamento = Agendamento(
-    cliente_id=user["id"], 
-    profissional_id=agendamento.profissional_id,
-    servico_id=agendamento.servico_id,
-    horario=agendamento.horario,
-    status="pendente"
+        cliente_id=user["id"],
+        profissional_id=agendamento.profissional_id,
+        servico_id=agendamento.servico_id,
+        horario=agendamento.horario,
+        status="pendente"
     )
     db.add(novo_agendamento)
-
-    horario_disponivel.ocupado = True
     db.commit()
     db.refresh(novo_agendamento)
 
@@ -69,6 +68,7 @@ def listar_agendamentos_admin(
         JOIN funcionarios f ON f.id = a.profissional_id
         JOIN servicos s ON s.id = a.servico_id
         WHERE f.estabelecimento_id = :estabelecimento_id
+        AND a.status = 'confirmado'
     """, {"estabelecimento_id": estabelecimento_id}).fetchall()
 
     return [dict(r) for r in resultados]
@@ -170,18 +170,21 @@ def listar_agendamentos_cancelados(estabelecimento_id: int, db: Session = Depend
             f.nome AS profissional,
             s.nome AS servico,
             s.preco,
-            ag.horario,
+            a.horario,
             a.cancelado_em
         FROM agendamentos_cancelados a
         JOIN usuarios u ON u.id = a.cliente_id
         JOIN funcionarios f ON f.id = a.profissional_id
         JOIN servicos s ON s.id = a.servico_id
-        JOIN agendamentos ag on s.id = a.id
-        WHERE f.estabelecimento_id = :estabelecimento_id
+        WHERE 
+            f.estabelecimento_id = :estabelecimento_id
+            AND a.cancelado_por = 'cliente'
+            AND a.horario > NOW()
         ORDER BY a.cancelado_em DESC
     """, {"estabelecimento_id": estabelecimento_id}).fetchall()
 
     return [dict(r) for r in resultados]
+
 
 @router.get("/meus-cancelados", response_model=list[AgendamentoCanceladoResponse])
 def listar_cancelamentos_cliente(
@@ -228,7 +231,6 @@ def editar_agendamento(
         horario_antigo.ocupado = False
 
     agendamento.horario = novo_horario.data_hora
-    novo_horario.ocupado = True
 
     db.commit()
     db.refresh(agendamento)
@@ -255,7 +257,14 @@ def confirmar_agendamento(
         raise HTTPException(status_code=400, detail="Agendamento já está confirmado.")
 
     agendamento.status = "confirmado"
-    db.commit()
+    horario = db.query(AgendaDisponivel).filter(
+        AgendaDisponivel.profissional_id == agendamento.profissional_id,
+        AgendaDisponivel.data_hora == agendamento.horario
+        ).first()
+
+    if horario:
+        horario.ocupado = True
+        db.commit()
 
     return {"message": "Agendamento confirmado com sucesso!"}
 
@@ -284,8 +293,6 @@ def recusar_agendamento(
 
     return {"message": "Agendamento recusado com sucesso!"}
 
-
-
 @router.delete("/{agendamento_id}", status_code=status.HTTP_200_OK)
 def cancelar_agendamento(
     agendamento_id: int,
@@ -300,14 +307,15 @@ def cancelar_agendamento(
     if user["tipo_usuario"] == "cliente":
         if agendamento.cliente_id != user["id"]:
             raise HTTPException(status_code=403, detail="Você não tem permissão para cancelar este agendamento.")
+        cancelado_por = "cliente"
 
     elif user["tipo_usuario"] == "profissional":
         if agendamento.profissional_id != user["funcionario_id"]:
             raise HTTPException(status_code=403, detail="Você não tem permissão para cancelar este agendamento.")
+        cancelado_por = "profissional"
 
     elif user["tipo_usuario"] == "admin":
-        pass  
-
+        cancelado_por = "admin"
     else:
         raise HTTPException(status_code=403, detail="Tipo de usuário não autorizado.")
 
@@ -319,10 +327,24 @@ def cancelar_agendamento(
     if horario:
         horario.ocupado = False
 
+    agendamento_cancelado = AgendamentoCancelado(
+        id=agendamento.id,
+        cliente_id=agendamento.cliente_id,
+        profissional_id=agendamento.profissional_id,
+        servico_id=agendamento.servico_id,
+        status=agendamento.status,
+        horario=agendamento.horario,
+        criado_em=agendamento.criado_em,
+        cancelado_em=datetime.utcnow(),
+        cancelado_por=cancelado_por
+    )
+
+    db.add(agendamento_cancelado)
     db.delete(agendamento)
     db.commit()
 
     return {"message": "Agendamento cancelado com sucesso!"}
+
 
 @router.put("/finalizar/{agendamento_id}")
 def finalizar_agendamento(
@@ -361,6 +383,34 @@ def finalizar_agendamento(
         valor=servico.preco,
         estabelecimento_id=profissional.estabelecimento_id 
     )
+
+    salvar_ponto_fidelidade(
+    cliente_id=cliente.id,
+    cliente_nome=cliente.nome,
+    estabelecimento_id=profissional.estabelecimento_id,
+    estabelecimento_nome=estabelecimento_nome,
+    servico_nome=servico.nome,
+    valor_servico=servico.preco,
+    data_servico=agendamento.horario
+    )
+
+    if cliente and cliente.tipo_usuario == "cliente":
+        registro_pontos = db.query(PontosFidelidadeCliente).filter_by(
+            cliente_id=cliente.id,
+            estabelecimento_id=profissional.estabelecimento_id
+        ).first()
+
+        if registro_pontos:
+            registro_pontos.pontos_acumulados += 1
+            registro_pontos.atualizado_em = datetime.utcnow()
+        else:
+            registro_pontos = PontosFidelidadeCliente(
+                cliente_id=cliente.id,
+                estabelecimento_id=profissional.estabelecimento_id,
+                pontos_acumulados=1
+            )
+            db.add(registro_pontos)
+
     db.commit()
 
-    return {"message": "Agendamento finalizado com sucesso!"}
+    return {"message": "Agendamento finalizado e ponto de fidelidade acumulado com sucesso!"}
