@@ -262,8 +262,9 @@ class ResgateFidelidadeBase(BaseModel):
     cliente_id: int
     programa_fidelidade_id: int
 
-class ResgateFidelidadeCreate(ResgateFidelidadeBase):
-    pass
+class ResgateFidelidadeCreate(BaseModel):
+    cliente_id: int
+    programa_fidelidade_id: int
 
 class ResgateFidelidadeResponse(ResgateFidelidadeBase):
     id: int

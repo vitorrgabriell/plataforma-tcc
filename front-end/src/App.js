@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import RegisterEstabelecimento from "./pages/RegisterEstabelecimento";
 import Logout from "./pages/Logout";
 import EstabelecimentoCliente from "./pages/EstabelecimentoCliente";
+import RecompensaFidelidadePage from "./pages/ResgateFidelidade";
 
 function App() {
   return (
@@ -30,6 +31,10 @@ function App() {
           path="/register-estabelecimento"
           element={<RegisterEstabelecimento />}
         />  
+        <Route
+          path="/recompensa-fidelidade"
+          element={<RecompensaFidelidadePage />}
+        />
         <Route path="/logout" element={<Logout />} />
       </Routes>
     </Router>

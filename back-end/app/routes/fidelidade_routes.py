@@ -7,7 +7,8 @@ from app.models.resgate_fidelidade import ResgateFidelidade
 from app.models.pontos_fidelidade_cliente import PontosFidelidadeCliente
 from app.schemas import ProgramaFidelidadeCreate, ProgramaFidelidadeResponse, ProgramaFidelidadeUpdate, ResgateFidelidadeCreate, ResgateFidelidadeResponse
 from app.utils.dependencies import get_current_user
-from app.utils.dynamo_client import listar_pontos_cliente
+from app.utils.dynamo_client import listar_pontos_cliente, buscar_ultimo_servico_cliente
+from datetime import datetime
 
 router = APIRouter()
 
@@ -78,12 +79,19 @@ def resgatar_premio(resgate: ResgateFidelidadeCreate, db: Session = Depends(get_
     if not programa:
         raise HTTPException(status_code=404, detail="Programa de fidelidade não encontrado")
     
-    if cliente.pontos_acumulados < programa.pontos_necessarios:
+    pontos_cliente = db.query(PontosFidelidadeCliente).filter_by(
+        cliente_id=cliente.id,
+        estabelecimento_id=programa.estabelecimento_id
+    ).first()
+
+    if not pontos_cliente or pontos_cliente.pontos_acumulados < programa.pontos_necessarios:
         raise HTTPException(status_code=400, detail="Pontos insuficientes para resgatar o prêmio")
-    
-    cliente.pontos_acumulados -= programa.pontos_necessarios
+
+    pontos_cliente.pontos_acumulados -= programa.pontos_necessarios
+
     novo_resgate = ResgateFidelidade(cliente_id=cliente.id, programa_fidelidade_id=programa.id)
     db.add(novo_resgate)
+    db.add(pontos_cliente)
     db.commit()
     db.refresh(novo_resgate)
     
@@ -133,3 +141,17 @@ def resumo_fidelidade(estabelecimento_id: int, db: Session = Depends(get_db)):
         "participantes": total_participantes,
         "servicosGratuitos": servicos_gratuitos
     }
+
+@router.get("/ultimo-servico")
+def obter_ultimo_servico_cliente(user=Depends(get_current_user)):
+    if user["tipo_usuario"] != "cliente":
+        raise HTTPException(status_code=403, detail="Apenas clientes podem acessar o último serviço.")
+
+    cliente_id = user["id"]
+    print("Cliente logado:", cliente_id)
+    servico = buscar_ultimo_servico_cliente(cliente_id)
+
+    if not servico:
+        return {}
+
+    return servico

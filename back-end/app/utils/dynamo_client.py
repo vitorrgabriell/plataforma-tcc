@@ -1,4 +1,5 @@
 import boto3
+from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime, timedelta
 from uuid import uuid4
 from decimal import Decimal
@@ -67,3 +68,16 @@ def listar_pontos_cliente(cliente_id: int):
     )
     return response.get("Items", [])
 
+def buscar_ultimo_servico_cliente(cliente_id: int):
+    try:
+        response = table.query(
+            IndexName="cliente_id-data_fim-index",  # requer GSI com sort por data_fim
+            KeyConditionExpression=Key("cliente_id").eq(cliente_id),
+            ScanIndexForward=False,  # do mais recente para o mais antigo
+            Limit=1
+        )
+        items = response.get("Items", [])
+        return items[0] if items else None
+    except Exception as e:
+        print(f"Erro ao buscar último serviço no DynamoDB: {e}")
+        return None

@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 import styled from "styled-components";
 import { jwtDecode } from "jwt-decode";
 import {motion, AnimatePresence } from "framer-motion"
+import CadastrarEstabelecimentoModal from "../components/modalCadastrarEstabelecimento";
 
 const Container = styled.div`
   display: flex;
@@ -65,16 +66,6 @@ const Content = styled.div`
   display: flex;
   justify-content: center;
   align-items: flex-start;
-`;
-
-const GridWrapper = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 12px;
 `;
 
 const EstablishmentCard = styled.div`
@@ -219,10 +210,11 @@ const AvaliacaoCard = styled.div`
   max-width: 300px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   color: #f1f5f9;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
   }
 `;
 
@@ -275,10 +267,11 @@ const FooterLink = styled.a`
   }
 `;
 
-const AgendarEstabelecimentoPage = () => {
+const DashboardCliente = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
   const [estabelecimentos, setEstabelecimentos] = useState([]);
+  const [mostrarModalCadastroEstabelecimento, setMostrarModalCadastroEstabelecimento] = useState(false);
   const [avaliacoesRecentes, setAvaliacoesRecentes] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [pontosFidelidade, setPontosFidelidade] = useState([]);
@@ -351,16 +344,16 @@ const AgendarEstabelecimentoPage = () => {
       const api = process.env.REACT_APP_API_URL;
   
       try {
-        const res = await fetch(`${api}/fidelidade/meus-pontos/`, {
+        const res = await fetch(`${api}/fidelidade/ultimo-servico`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         const data = await res.json();
-        if (Array.isArray(data)) {
+        if (data && typeof data === "object" && Object.keys(data).length > 0) {
           setPontosFidelidade(data);
         } else {
-          setPontosFidelidade([]);
+          setPontosFidelidade({});
         }
       } catch (error) {
         console.error("Erro ao buscar pontos:", error);
@@ -414,7 +407,7 @@ const AgendarEstabelecimentoPage = () => {
       const api = process.env.REACT_APP_API_URL;
   
       await fetch(`${api}/auth/logout`, {
-        method: "POST", // importante!
+        method: "POST", 
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -449,7 +442,7 @@ const AgendarEstabelecimentoPage = () => {
         {userName && <UserInfo>Bem-vindo, {userName}!</UserInfo>}
         <ButtonGroup>
           <ButtonGroup>
-            <Button onClick={() => navigate("/register-estabelecimento")}>
+            <Button onClick={() => setMostrarModalCadastroEstabelecimento(true)}>
               Cadastrar meu estabelecimento
             </Button>
             <Button
@@ -504,23 +497,21 @@ const AgendarEstabelecimentoPage = () => {
       </Content>
       <SectionWrapper>
         <SectionGrid>
-        <div>
-            <SectionTitle>🎯 Meus Pontos de Fidelidade</SectionTitle>
+          <div>
+            <SectionTitle>🎯 Último serviço realizado</SectionTitle>
             {loadingPontos ? (
-              <p style={{ color: "#cbd5e1" }}>Carregando pontos...</p>
-            ) : pontosFidelidade.length === 0 ? (
-              <p style={{ color: "#cbd5e1" }}>Você ainda não acumulou pontos.</p>
-            ) : (
+              <p style={{ color: "#cbd5e1" }}>Carregando serviço...</p>
+            ) : pontosFidelidade && pontosFidelidade.estabelecimento_nome ? (
               <CardList>
-                {pontosFidelidade.map((ponto, index) => (
-                  <AvaliacaoCard key={index}>
-                    <strong>Serviço:</strong> {ponto.servico_realizado}<br/>
-                    <strong>Valor:</strong> R${Number(ponto.valor_servico).toFixed(2)}<br/>
-                    <strong>Data:</strong> {new Date(ponto.data_servico).toLocaleDateString()}<br/>
-                    <strong>Pontos Ganhos:</strong> {ponto.pontos_ganhos}
-                  </AvaliacaoCard>
-                ))}
+                <AvaliacaoCard>
+                  <strong>Estabelecimento:</strong> {pontosFidelidade.estabelecimento_nome}<br />
+                  <strong>Serviço:</strong> {pontosFidelidade.servico_nome || '---'}<br />
+                  <strong>Valor:</strong> R${pontosFidelidade.valor ? Number(pontosFidelidade.valor).toFixed(2) : '---'}<br />
+                  <strong>Data:</strong> {pontosFidelidade.data_inicio ? new Date(pontosFidelidade.data_inicio).toLocaleDateString('pt-BR') : '---'}<br />
+                </AvaliacaoCard>
               </CardList>
+            ) : (
+              <p style={{ color: "#cbd5e1" }}>Você ainda não finalizou nenhum serviço.</p>
             )}
           </div>
 
@@ -556,7 +547,6 @@ const AgendarEstabelecimentoPage = () => {
           <AtalhoWrapper>
             <AtalhoButton onClick={() => navigate("/recompensa-fidelidade")}>🎉 Aproveitar pontos</AtalhoButton>
             <AtalhoButton onClick={() => navigate("/meus-agendamentos")}>📅 Ver meus agendamentos</AtalhoButton>
-            <AtalhoButton onClick={() => navigate("/avaliar-servico")}>✍️ Avaliar um serviço</AtalhoButton>
             <AtalhoButton onClick={() => navigate("/historico")}>🕓 Histórico completo</AtalhoButton>
           </AtalhoWrapper>
       </SectionWrapper>
@@ -568,8 +558,17 @@ const AgendarEstabelecimentoPage = () => {
           <FooterLink href="/contato">Contato</FooterLink>
         </p>
       </Footer>
+      <CadastrarEstabelecimentoModal
+        isOpen={mostrarModalCadastroEstabelecimento}
+        onClose={() => setMostrarModalCadastroEstabelecimento(false)}
+        onSuccess={() => {
+          setMostrarModalCadastroEstabelecimento(false);
+        }}
+      />
+
+
     </Container>
   );
 };
 
-export default AgendarEstabelecimentoPage;
+export default DashboardCliente;
