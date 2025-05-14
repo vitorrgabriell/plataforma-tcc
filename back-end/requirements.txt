@@ -50,3 +50,4 @@ ujson==5.10.0
 uvicorn==0.22.0
 watchfiles==1.0.4
 websockets==14.2
+boto3==1.38.16
