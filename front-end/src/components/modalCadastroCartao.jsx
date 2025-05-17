@@ -72,14 +72,14 @@ const CadastroCartaoForm = ({ onClose }) => {
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [loading, setLoading] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("user")); // ou useContext/Auth dependendo do seu projeto
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_URL}/pagamento/cadastrar-cartao/`, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/pagamentos/cadastrar-cartao/`, {
         nome: user?.nome,
         email: user?.email,
       });
