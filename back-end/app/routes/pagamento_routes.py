@@ -37,18 +37,22 @@ def cadastrar_cartao(dados: CartaoRequest):
 def get_cartao_salvo(usuario: dict = Depends(get_current_user)):
     try:
         email = usuario.get("sub")
+        print("recebeu o email: ", email)
         if not email:
             raise HTTPException(status_code=400, detail="Email não encontrado no token.")
 
         clientes = stripe.Customer.list(email=email).data
         if not clientes:
             return {}
+        print("passou no if de clientes")
 
         cliente = clientes[0]
         payment_method_id = cliente.invoice_settings.default_payment_method
 
         if not payment_method_id:
             return {}
+        
+        print("passou no if de payment_method_id")
 
         metodo = stripe.PaymentMethod.retrieve(payment_method_id)
         print("Token recebido:", usuario)
