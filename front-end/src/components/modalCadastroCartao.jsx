@@ -128,19 +128,12 @@ const CadastroCartaoForm = ({ onClose }) => {
         setToast({ show: true, message: "Cartão cadastrado com sucesso!", type: "success" });
         setTimeout(() => onClose(), 2500);
         }
-
-      if (result.error) {
-        setToast({ show: true, message: result.error.message, type: "error" });
-      } else {
-        setToast({ show: true, message: "Cartão cadastrado com sucesso!", type: "success" });
-        setTimeout(() => onClose(), 2500);
-      }
-    } catch (err) {
-      console.error(err);
-      setToast({ show: true, message: "Erro ao cadastrar o cartão.", type: "error" });
-    } finally {
-      setLoading(false);
-    }
+        } catch (err) {
+          console.error(err);
+          setToast({ show: true, message: "Erro ao cadastrar o cartão.", type: "error" });
+        } finally {
+          setLoading(false);
+        }
   };
 
   return (

@@ -15,3 +15,4 @@ class User(Base):
     pontos_acumulados = Column(Integer, default=0)
 
     agendamentos_cliente = relationship("Agendamento", back_populates="cliente")
+    cliente = relationship("Cliente", back_populates="usuario", uselist=False)

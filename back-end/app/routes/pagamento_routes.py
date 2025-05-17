@@ -1,10 +1,13 @@
 import stripe
 from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 import os
 from dotenv import load_dotenv
-from app.schemas import CartaoRequest, ConfirmarCobrancaRequest, AgendamentoPagamento
+from app.schemas import CartaoRequest, ConfirmarCobrancaRequest, AgendamentoPagamento, DefinirCartaoPadraoRequest
 from app.utils.dependencies import get_current_user
+from app.db.database import get_db
+from app.models.clientes import Cliente
 
 load_dotenv()
 
@@ -12,40 +15,57 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 router = APIRouter()
 
 @router.post("/cadastrar-cartao/")
-def cadastrar_cartao(dados: CartaoRequest):
+def cadastrar_cartao(dados: CartaoRequest, usuario: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     try:
-        cliente = stripe.Customer.create(
+        stripe_cliente = stripe.Customer.create(
             email=dados.email,
             name=dados.nome
         )
 
         setup_intent = stripe.SetupIntent.create(
-            customer=cliente.id,
+            customer=stripe_cliente.id,
             payment_method_types=["card"]
         )
 
+        cliente = db.query(Cliente).filter(Cliente.usuario_id == usuario["id"]).first()
+        if not cliente:
+            cliente = Cliente(usuario_id=usuario["id"])
+            db.add(cliente)
+            db.commit()
+            db.refresh(cliente)
+
+        cliente.stripe_customer_id = stripe_cliente.id
+        db.commit()
+
         return {
             "client_secret": setup_intent.client_secret,
-            "customer_id": cliente.id
+            "customer_id": stripe_cliente.id
         }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao iniciar cadastro do cartão: {str(e)}")
+
     
 @router.post("/definir-cartao-padrao/")
-def definir_cartao_padrao(data: ConfirmarCobrancaRequest):  # reutilizando o schema com os dois campos
+def definir_cartao_padrao(data: DefinirCartaoPadraoRequest, usuario: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     try:
         stripe.Customer.modify(
             data.customer_id,
             invoice_settings={"default_payment_method": data.payment_method_id}
         )
+
+        cliente = db.query(Cliente).filter(Cliente.usuario_id == usuario["id"]).first()
+        if cliente:
+            cliente.default_payment_method_id = data.payment_method_id
+            db.commit()
+
         return {"message": "Cartão definido como padrão com sucesso"}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao definir cartão padrão: {str(e)}")
-    
 
 @router.get("/cartao-salvo/")
-def get_cartao_salvo(usuario: dict = Depends(get_current_user)):
+def get_cartao_salvo(usuario: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     try:
         email = usuario.get("email")
         print("recebeu o email: ", email)
@@ -53,12 +73,13 @@ def get_cartao_salvo(usuario: dict = Depends(get_current_user)):
         if not email:
             raise HTTPException(status_code=400, detail="Email não encontrado no token.")
 
-        clientes = stripe.Customer.list(email=email).data
-        if not clientes:
+        db_cliente = db.query(Cliente).filter(Cliente.usuario_id == usuario["id"]).first()
+
+        if not db_cliente or not db_cliente.stripe_customer_id:
             return {}
 
-        cliente = clientes[0]
-        payment_method_id = cliente.invoice_settings.default_payment_method
+        stripe_cliente = stripe.Customer.retrieve(db_cliente.stripe_customer_id)
+        payment_method_id = stripe_cliente.invoice_settings.default_payment_method
 
         print("Default Payment Method ID:", payment_method_id)
 
