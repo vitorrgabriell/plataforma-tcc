@@ -34,25 +34,32 @@ def cadastrar_cartao(dados: CartaoRequest):
     
 
 @router.get("/cartao-salvo/")
-def cartao_salvo(usuario: dict = Depends(get_current_user)):
+def get_cartao_salvo(usuario: dict = Depends(get_current_user)):
     try:
         email = usuario.get("sub")
         if not email:
-            raise HTTPException(status_code=400, detail="Email do cliente não encontrado no token")
+            raise HTTPException(status_code=400, detail="Email não encontrado no token.")
 
         clientes = stripe.Customer.list(email=email).data
         if not clientes:
-            return {"cartao": None}
+            return {}
 
-        customer = clientes[0]
-        if not customer.invoice_settings.default_payment_method:
-            return {"cartao": None}
+        cliente = clientes[0]
+        payment_method_id = cliente.invoice_settings.default_payment_method
 
-        payment_method = stripe.PaymentMethod.retrieve(customer.invoice_settings.default_payment_method)
+        if not payment_method_id:
+            return {}
+
+        metodo = stripe.PaymentMethod.retrieve(payment_method_id)
+        print("Token recebido:", usuario)
+        print("Email extraído:", email)
+
+
         return {
-            "bandeira": payment_method.card.brand,
-            "ultimos4": payment_method.card.last4,
-            "exp": f"{payment_method.card.exp_month}/{payment_method.card.exp_year}"
+            "brand": metodo.card.brand,
+            "last4": metodo.card.last4,
+            "exp_month": metodo.card.exp_month,
+            "exp_year": metodo.card.exp_year
         }
 
     except Exception as e:
