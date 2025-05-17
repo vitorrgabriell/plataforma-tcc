@@ -234,23 +234,51 @@ const DashboardProfissional = () => {
     }
   };
 
-  const finalizarAgendamento = async (id) => {
-    try {
-      const token = Cookies.get("token");
-      const api = process.env.REACT_APP_API_URL;
-  
-      await fetch(`${api}/agendamentos/finalizar/${id}`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-  
-      showToast("Serviços finalizados com sucesso!");
-      fetchDashboardData();
-    } catch (err) {
-      console.error("Erro ao finalizar agendamento:", err);
-      showToast("Erro ao finalizar serviço.", "error");
+const finalizarAgendamento = async (agendamento) => {
+  try {
+    const token = Cookies.get("token");
+    const api = process.env.REACT_APP_API_URL;
+
+    await fetch(`${api}/agendamentos/finalizar/${agendamento.id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const pagamentoRes = await fetch(`${api}/pagamentos/cobrar-agendamento/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        valor_em_centavos: Math.round(agendamento.valor * 100),
+        cliente_id: agendamento.cliente_id,
+        email_cliente: agendamento.email_cliente,
+      }),
+    });
+    console.log("Enviando payload:", {
+      valor_em_centavos: Math.round(agendamento.valor * 100),
+      email_cliente: agendamento.email_cliente,
+      cliente_id: agendamento.cliente_id
+    });
+
+
+    const result = await pagamentoRes.json();
+
+    if (pagamentoRes.ok) {
+      showToast("Pagamento realizado com sucesso!");
+    } else {
+      showToast(`Erro no pagamento: ${result.detail}`, "error");
     }
-  };
+
+    fetchDashboardData();
+  } catch (err) {
+    console.error("Erro ao finalizar ou cobrar:", err);
+    showToast("Erro ao processar finalização e pagamento.", "error");
+  }
+};
   
   const editarAgendamento = (id) => {
     showToast("Funcionalidade de edição em breve!", "info");
@@ -352,7 +380,17 @@ const DashboardProfissional = () => {
                   </div>
                   {podeFinalizar && (
                     <ActionButtons>
-                      <SmallButton bgColor="#10b981" onClick={() => finalizarAgendamento(a.id)}>
+                      <SmallButton
+                        bgColor="#10b981"
+                        onClick={() =>
+                          finalizarAgendamento({
+                            id: a.id,
+                            valor: a.preco,
+                            cliente_id: a.cliente_id,  // <-- aqui estava "cliente_id"
+                            email_cliente: a.email,
+                          })
+                        }
+                      >
                         Finalizar
                       </SmallButton>
                     </ActionButtons>

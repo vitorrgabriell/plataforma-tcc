@@ -293,6 +293,7 @@ class ConfirmarCobrancaRequest(BaseModel):
 class AgendamentoPagamento(BaseModel):
     valor_em_centavos: int
     email_cliente: EmailStr
+    cliente_id: int
 
 class DefinirCartaoPadraoRequest(BaseModel):
     customer_id: str

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+import stripe
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.agendamento import Agendamento
@@ -89,10 +90,13 @@ def listar_agendamentos_profissional(
             s.preco,
             a.horario,
             s.tempo,
-            a.status
+            a.status,
+            c.id as cliente_id,
+            u.email
         FROM agendamentos a
         JOIN usuarios u ON u.id = a.cliente_id
         JOIN servicos s ON s.id = a.servico_id
+        JOIN clientes c on u.id = c.usuario_id
         WHERE a.profissional_id = :profissional_id
         AND a.status = 'confirmado'
         ORDER BY a.horario ASC
@@ -393,6 +397,16 @@ def finalizar_agendamento(
     valor_servico=servico.preco,
     data_servico=agendamento.horario
     )
+
+    try:
+        stripe.PaymentIntent.create(
+            amount=int(servico.preco * 100), 
+            currency="brl",
+            receipt_email=cliente.email,
+            metadata={"descricao": f"Pagamento de serviço '{servico.nome}' no AgendaVip"},
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao realizar cobrança: {str(e)}")
 
     if cliente and cliente.tipo_usuario == "cliente":
         registro_pontos = db.query(PontosFidelidadeCliente).filter_by(

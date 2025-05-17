@@ -172,9 +172,18 @@ const CadastroCartaoForm = ({ onClose }) => {
       {etapa === "ver" && cartao && (
         <>
           <h2>Cartão Atual</h2>
-          <p><strong>Bandeira:</strong> {cartao.brand}</p>
+          <p style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <strong>Bandeira:</strong>
+            <img
+              src={`https://img.icons8.com/color/32/000000/${cartao.brand}.png`}
+              alt={cartao.brand}
+              style={{ height: "20px" }}
+              onError={(e) => (e.target.style.display = "none")} // se não achar o ícone
+            />
+            <span style={{ textTransform: "capitalize" }}>{cartao.brand}</span>
+          </p>
           <p><strong>Final:</strong> **** **** **** {cartao.last4}</p>
-          <p><strong>Expira:</strong> {cartao.exp_month}/{cartao.exp_year}</p>
+          <p><strong>Expira:</strong> {String(cartao.exp_month).padStart(2, "0")}/{String(cartao.exp_year).slice(-2)}</p>
           <Button onClick={() => setEtapa("novo")}>Cadastrar Novo Cartão</Button>
           <BackButton onClick={() => setEtapa("inicio")}>Voltar</BackButton>
         </>
