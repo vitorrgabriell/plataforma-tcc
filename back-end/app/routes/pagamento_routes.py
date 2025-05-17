@@ -51,6 +51,9 @@ def get_cartao_salvo(usuario: dict = Depends(get_current_user)):
 
         if not payment_method_id:
             return {}
+        print("Cliente ID:", cliente.id)
+        print("Default Payment Method ID:", cliente.invoice_settings.default_payment_method)
+
 
         metodo = stripe.PaymentMethod.retrieve(payment_method_id)
 
