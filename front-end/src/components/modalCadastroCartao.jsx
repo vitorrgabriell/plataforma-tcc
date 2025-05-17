@@ -1,14 +1,9 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements,
-} from "@stripe/react-stripe-js";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import ToastNotification from "./ToastNotification";
@@ -57,7 +52,7 @@ const BackButton = styled(Button)`
   }
 `;
 
-const CadastroCartaoModal = ({ onClose }) => {
+const CadastroCartaoForm = ({ onClose }) => {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -72,11 +67,7 @@ const CadastroCartaoModal = ({ onClose }) => {
 
   useEffect(() => {
     if (!token) {
-      setToast({
-        show: true,
-        message: "Você precisa estar logado para ver o cartão.",
-        type: "error",
-      });
+      setToast({ show: true, message: "Você precisa estar logado para ver o cartão.", type: "error" });
       setTokenValido(false);
     } else {
       try {
@@ -85,11 +76,7 @@ const CadastroCartaoModal = ({ onClose }) => {
         user.email = decoded.sub || "";
       } catch (e) {
         console.error("Erro ao decodificar o token:", e);
-        setToast({
-          show: true,
-          message: "Token inválido.",
-          type: "error",
-        });
+        setToast({ show: true, message: "Token inválido.", type: "error" });
         setTokenValido(false);
       }
     }
@@ -98,20 +85,12 @@ const CadastroCartaoModal = ({ onClose }) => {
   const buscarCartaoSalvo = async () => {
     try {
       const api = process.env.REACT_APP_API_URL;
-      const res = await axios.post(
-      `${api}/pagamentos/cadastrar-cartao/`,
-      {
-        nome: user.nome,
-        email: user.email,
-      },
-      {
+      const res = await axios.get(`${api}/pagamentos/cartao-salvo/`, {
         headers: {
-          "Authorization": `Bearer ${Cookies.get("token")}`,
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${Cookies.get("token")}`,
         },
-        withCredentials: true, // 👈 garante que cookies vão junto
-      }
-    );
+        withCredentials: true,
+      });
       setCartao(res.data);
     } catch (err) {
       console.error("Erro ao buscar cartão salvo:", err);
@@ -120,9 +99,7 @@ const CadastroCartaoModal = ({ onClose }) => {
   };
 
   useEffect(() => {
-    if (etapa === "ver" && tokenValido) {
-      buscarCartaoSalvo();
-    }
+    if (etapa === "ver" && tokenValido) buscarCartaoSalvo();
   }, [etapa, tokenValido]);
 
   const handleSubmit = async (e) => {
@@ -131,32 +108,47 @@ const CadastroCartaoModal = ({ onClose }) => {
 
     try {
       const api = process.env.REACT_APP_API_URL;
-      const res = await axios.post(`${api}/pagamentos/cadastrar-cartao/`, {
-        nome: user.nome,
-        email: user.email,
-      });
+      const decoded = jwtDecode(token);
+      const nome = decoded.nome || "";
+      const email = decoded.sub || "";
+
+      const res = await axios.post(
+        `${api}/pagamentos/cadastrar-cartao/`,
+        { nome, email },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
 
       const { client_secret, customer_id } = res.data;
       const result = await stripe.confirmCardSetup(client_secret, {
         payment_method: {
           card: elements.getElement(CardElement),
-          billing_details: { name: user?.nome },
+          billing_details: { name: nome },
         },
       });
 
       if (result.error) {
         setToast({ show: true, message: result.error.message, type: "error" });
       } else {
-        await axios.post(`${api}/pagamentos/definir-cartao-padrao/`, {
-          customer_id,
-          payment_method_id: result.setupIntent.payment_method,
-        });
-
-        setToast({
-          show: true,
-          message: "Cartão cadastrado com sucesso!",
-          type: "success",
-        });
+        await axios.post(
+          `${api}/pagamentos/definir-cartao-padrao/`,
+          {
+            customer_id,
+            payment_method_id: result.setupIntent.payment_method,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            withCredentials: true,
+          }
+        );
+        setToast({ show: true, message: "Cartão cadastrado com sucesso!", type: "success" });
         setTimeout(() => onClose(), 2500);
       }
     } catch (err) {
@@ -170,11 +162,7 @@ const CadastroCartaoModal = ({ onClose }) => {
   if (!tokenValido) return null;
 
   return (
-    <ModalContent
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 40 }}
-    >
+    <ModalContent initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}>
       {etapa === "inicio" && (
         <>
           <h2>Gerenciar Cartão</h2>
@@ -236,5 +224,17 @@ const CadastroCartaoModal = ({ onClose }) => {
     </ModalContent>
   );
 };
+
+const CadastroCartaoModal = ({ show, onClose }) => (
+  <AnimatePresence>
+    {show && (
+      <Overlay as={motion.div} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <Elements stripe={stripePromise}>
+          <CadastroCartaoForm onClose={onClose} />
+        </Elements>
+      </Overlay>
+    )}
+  </AnimatePresence>
+);
 
 export default CadastroCartaoModal;
