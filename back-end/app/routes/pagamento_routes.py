@@ -38,7 +38,10 @@ def cartao_salvo(usuario: dict = Depends(get_current_user)):
         if usuario["tipo_usuario"] != "cliente":
             raise HTTPException(status_code=403, detail="Acesso restrito a clientes.")
 
-        email = usuario["sub"]
+        email = usuario.get("sub")
+
+        if not email:
+            raise HTTPException(status_code=400, detail="Email não encontrado no token")
 
         clientes = stripe.Customer.list(email=email).data
         if not clientes:

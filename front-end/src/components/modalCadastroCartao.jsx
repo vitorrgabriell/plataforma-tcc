@@ -81,7 +81,12 @@ const CadastroCartaoForm = ({ onClose }) => {
 
   const buscarCartaoSalvo = async () => {
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/pagamentos/cartao-salvo/${user.email}`);
+      const api = process.env.REACT_APP_API_URL;
+      const res = await axios.get(`${api}/pagamentos/cartao-salvo/`, {
+        headers: {
+            Authorization: `Bearer ${Cookies.get("token")}`
+        }
+        })
       setCartao(res.data);
     } catch (err) {
       console.error("Erro ao buscar cartão salvo:", err);
@@ -98,7 +103,8 @@ const CadastroCartaoForm = ({ onClose }) => {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_URL}/pagamentos/cadastrar-cartao/`, {
+      const api = process.env.REACT_APP_API_URL;  
+      const res = await axios.post(`${api}/pagamentos/cadastrar-cartao/`, {
         nome: user.nome,
         email: user.email,
       });
