@@ -10,4 +10,4 @@ class Cliente(Base):
     stripe_customer_id = Column(String, nullable=True)
     default_payment_method_id = Column(String, nullable=True)
 
-    usuario = relationship("Usuario", back_populates="cliente")
+    usuario = relationship("User", back_populates="cliente")
