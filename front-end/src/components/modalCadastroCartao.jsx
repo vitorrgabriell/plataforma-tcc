@@ -119,7 +119,6 @@ const CadastroCartaoForm = ({ onClose }) => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          withCredentials: true,
         }
       );
 
@@ -144,7 +143,6 @@ const CadastroCartaoForm = ({ onClose }) => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-            withCredentials: true,
           }
         );
         setToast({ show: true, message: "Cartão cadastrado com sucesso!", type: "success" });

@@ -17,16 +17,6 @@ router = APIRouter()
 @router.post("/cadastrar-cartao/")
 def cadastrar_cartao(dados: CartaoRequest, usuario: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     try:
-        stripe_cliente = stripe.Customer.create(
-            email=dados.email,
-            name=dados.nome
-        )
-
-        setup_intent = stripe.SetupIntent.create(
-            customer=stripe_cliente.id,
-            payment_method_types=["card"]
-        )
-
         cliente = db.query(Cliente).filter(Cliente.usuario_id == usuario["id"]).first()
         if not cliente:
             cliente = Cliente(usuario_id=usuario["id"])
@@ -34,17 +24,29 @@ def cadastrar_cartao(dados: CartaoRequest, usuario: dict = Depends(get_current_u
             db.commit()
             db.refresh(cliente)
 
-        cliente.stripe_customer_id = stripe_cliente.id
-        db.commit()
+        if cliente.stripe_customer_id:
+            customer_id = cliente.stripe_customer_id
+        else:
+            stripe_cliente = stripe.Customer.create(
+                email=dados.email,
+                name=dados.nome
+            )
+            customer_id = stripe_cliente.id
+            cliente.stripe_customer_id = customer_id
+            db.commit()
+
+        setup_intent = stripe.SetupIntent.create(
+            customer=customer_id,
+            payment_method_types=["card"]
+        )
 
         return {
             "client_secret": setup_intent.client_secret,
-            "customer_id": stripe_cliente.id
+            "customer_id": customer_id
         }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao iniciar cadastro do cartão: {str(e)}")
-
     
 @router.post("/definir-cartao-padrao/")
 def definir_cartao_padrao(data: DefinirCartaoPadraoRequest, usuario: dict = Depends(get_current_user), db: Session = Depends(get_db)):
