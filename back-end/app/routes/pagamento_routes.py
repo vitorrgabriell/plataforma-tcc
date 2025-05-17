@@ -32,35 +32,27 @@ def cadastrar_cartao(dados: CartaoRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao iniciar cadastro do cartão: {str(e)}")
     
+
 @router.get("/cartao-salvo/")
 def cartao_salvo(usuario: dict = Depends(get_current_user)):
     try:
-        if usuario["tipo_usuario"] != "cliente":
-            raise HTTPException(status_code=403, detail="Acesso restrito a clientes.")
-
         email = usuario.get("sub")
-
         if not email:
-            raise HTTPException(status_code=400, detail="Email não encontrado no token")
+            raise HTTPException(status_code=400, detail="Email do cliente não encontrado no token")
 
         clientes = stripe.Customer.list(email=email).data
         if not clientes:
-            raise HTTPException(status_code=404, detail="Cliente não encontrado.")
+            return {"cartao": None}
 
-        cliente = clientes[0]
+        customer = clientes[0]
+        if not customer.invoice_settings.default_payment_method:
+            return {"cartao": None}
 
-        if not cliente.invoice_settings.default_payment_method:
-            return {"mensagem": "Nenhum cartão cadastrado para este cliente."}
-
-        payment_method = stripe.PaymentMethod.retrieve(
-            cliente.invoice_settings.default_payment_method
-        )
-
+        payment_method = stripe.PaymentMethod.retrieve(customer.invoice_settings.default_payment_method)
         return {
-            "brand": payment_method.card.brand,
-            "last4": payment_method.card.last4,
-            "exp_month": payment_method.card.exp_month,
-            "exp_year": payment_method.card.exp_year
+            "bandeira": payment_method.card.brand,
+            "ultimos4": payment_method.card.last4,
+            "exp": f"{payment_method.card.exp_month}/{payment_method.card.exp_year}"
         }
 
     except Exception as e:
