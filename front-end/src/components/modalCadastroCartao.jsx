@@ -89,7 +89,6 @@ const CadastroCartaoForm = ({ onClose }) => {
         headers: {
           Authorization: `Bearer ${Cookies.get("token")}`,
         },
-        withCredentials: true,
       });
       setCartao(res.data);
     } catch (err) {
