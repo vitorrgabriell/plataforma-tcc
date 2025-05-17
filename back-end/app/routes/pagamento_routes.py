@@ -36,7 +36,7 @@ def cadastrar_cartao(dados: CartaoRequest):
 @router.get("/cartao-salvo/")
 def get_cartao_salvo(usuario: dict = Depends(get_current_user)):
     try:
-        email = usuario.get("sub")
+        email = usuario.get("email")
         print("recebeu o email: ", email)
         if not email:
             raise HTTPException(status_code=400, detail="Email não encontrado no token.")
