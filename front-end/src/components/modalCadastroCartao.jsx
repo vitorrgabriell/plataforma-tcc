@@ -65,6 +65,8 @@ const CadastroCartaoForm = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [etapa, setEtapa] = useState("inicio");
   const [cartao, setCartao] = useState(null);
+  const [ client_secret, customer_id ] = res.data;
+
 
   const token = Cookies.get("token");
   let user = { nome: "", email: "" };
@@ -103,19 +105,29 @@ const CadastroCartaoForm = ({ onClose }) => {
 
     try {
       const api = process.env.REACT_APP_API_URL;  
-      const res = await axios.post(`${api}/pagamentos/cadastrar-cartao/`, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/pagamentos/cadastrar-cartao/`, {
         nome: user.nome,
         email: user.email,
-      });
+        });
 
-      const { client_secret } = res.data;
-
-      const result = await stripe.confirmCardSetup(client_secret, {
+        const result = await stripe.confirmCardSetup(client_secret, {
         payment_method: {
-          card: elements.getElement(CardElement),
-          billing_details: { name: user?.nome },
+            card: elements.getElement(CardElement),
+            billing_details: { name: user?.nome },
         },
-      });
+        });
+
+        if (result.error) {
+        setToast({ show: true, message: result.error.message, type: "error" });
+        } else {
+        await axios.post(`${process.env.REACT_APP_API_URL}/pagamentos/definir-cartao-padrao/`, {
+            customer_id,
+            payment_method_id: result.setupIntent.payment_method
+        });
+
+        setToast({ show: true, message: "Cartão cadastrado com sucesso!", type: "success" });
+        setTimeout(() => onClose(), 2500);
+        }
 
       if (result.error) {
         setToast({ show: true, message: result.error.message, type: "error" });

@@ -32,6 +32,17 @@ def cadastrar_cartao(dados: CartaoRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao iniciar cadastro do cartão: {str(e)}")
     
+@router.post("/definir-cartao-padrao/")
+def definir_cartao_padrao(data: ConfirmarCobrancaRequest):  # reutilizando o schema com os dois campos
+    try:
+        stripe.Customer.modify(
+            data.customer_id,
+            invoice_settings={"default_payment_method": data.payment_method_id}
+        )
+        return {"message": "Cartão definido como padrão com sucesso"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao definir cartão padrão: {str(e)}")
+    
 
 @router.get("/cartao-salvo/")
 def get_cartao_salvo(usuario: dict = Depends(get_current_user)):
