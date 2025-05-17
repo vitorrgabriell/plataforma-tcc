@@ -11,6 +11,7 @@ from app.routes.servico_routes import router as servico_router
 from app.routes.configuracao_agenda_routes import router as configuracao_agenda_router
 from app.routes.metricas_routes import router as metricas_router
 from app.routes.fidelidade_routes import router as fidelidade_router
+from app.routes.pagamento_routes import router as pagamento_router
 
 
 app = FastAPI()
@@ -34,3 +35,4 @@ app.include_router(servico_router, prefix="/servicos", tags=["servicos"])
 app.include_router(configuracao_agenda_router, prefix="/agenda/configuracao", tags=["configuracao"])
 app.include_router(metricas_router, prefix="/metricas", tags=["metricas"])
 app.include_router(fidelidade_router, prefix="/fidelidade", tags=["fidelidade"])
+app.include_router(pagamento_router, prefix="/pagamentos", tags=["pagamentos"])

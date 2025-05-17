@@ -2,13 +2,14 @@ from fastapi import APIRouter, HTTPException, Depends, Request, Response
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
+import secrets
 from app.utils.security import create_access_token, verify_password
-from datetime import timedelta
+from datetime import timedelta, datetime
 from app.utils.dependencies import get_current_user
+from app.utils.recuperar_senha import enviar_email_recuperacao
 from app.db.database import get_db
-from app.schemas import Login
-from app.models.blacklist import BlacklistToken
-from app.models.funcionarios import Funcionario
+from app.schemas import Login, RecuperarSenhaRequest, ResetarSenhaRequest
+from app.models.user import User
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login/")
@@ -77,3 +78,57 @@ def logout(
     db.commit()
 
     return {"message": "Logout realizado com sucesso"}
+
+@router.post("/recuperar-senha/")
+def recuperar_senha(request_data: RecuperarSenhaRequest, db: Session = Depends(get_db)):
+    user = db.execute(
+        "SELECT id, email FROM usuarios WHERE email = :email",
+        {"email": request_data.email}
+    ).fetchone()
+
+    if not user:
+        return {"message": "Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha."}
+
+    token = secrets.token_urlsafe(48)
+    validade = datetime.utcnow() + timedelta(hours=1)
+
+    db.execute("""
+        INSERT INTO tokens_recuperacao (usuario_id, token, validade)
+        VALUES (:usuario_id, :token, :validade)
+    """, {"usuario_id": user.id, "token": token, "validade": validade})
+    db.commit()
+
+    enviar_email_recuperacao(user.email, token)
+
+    return {"message": "Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha."}
+
+@router.post("/resetar-senha/")
+def resetar_senha(data: ResetarSenhaRequest, db: Session = Depends(get_db)):
+    token_info = db.execute("""
+        SELECT tr.usuario_id, tr.validade
+        FROM tokens_recuperacao tr
+        WHERE tr.token = :token
+    """, {"token": data.token}).fetchone()
+
+    if not token_info:
+        raise HTTPException(status_code=400, detail="Token inválido.")
+
+    if token_info.validade < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Token expirado.")
+
+    nova_senha_hash = pwd_context.hash(data.nova_senha)
+
+    db.execute("""
+        UPDATE usuarios
+        SET senha = :nova_senha
+        WHERE id = :usuario_id
+    """, {
+        "nova_senha": nova_senha_hash,
+        "usuario_id": token_info.usuario_id
+    })
+
+    db.execute("DELETE FROM tokens_recuperacao WHERE token = :token", {"token": data.token})
+
+    db.commit()
+
+    return {"message": "Senha redefinida com sucesso."}

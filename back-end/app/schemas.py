@@ -45,6 +45,13 @@ class UpdateUser(BaseModel):
     tipo_usuario: str
     senha: Optional[str] = None
 
+class RecuperarSenhaRequest(BaseModel):
+    email: EmailStr
+
+class ResetarSenhaRequest(BaseModel):
+    token: str
+    nova_senha: str
+
 
 class RegisterUser(BaseModel):
     nome: str
@@ -273,4 +280,16 @@ class ResgateFidelidadeResponse(ResgateFidelidadeBase):
     class Config:
         orm_mode = True
 
-        
+class CartaoRequest(BaseModel):
+    email: EmailStr
+    nome: str
+
+class ConfirmarCobrancaRequest(BaseModel):
+    customer_id: str
+    payment_method_id: str
+    valor_em_centavos: int
+    payment_intent_id: str
+
+class AgendamentoPagamento(BaseModel):
+    valor_em_centavos: int
+    email_cliente: EmailStr

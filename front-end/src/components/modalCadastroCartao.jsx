@@ -48,6 +48,23 @@ const Button = styled.button`
   margin-top: 20px;
 `;
 
+const BackButton = styled.button`
+  margin-top: 12px;
+  background-color: #374151; // cinza escuro
+  color: #f1f5f9;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #4b5563;
+  }
+`;
+
 const CadastroCartaoForm = ({ onClose }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -116,6 +133,7 @@ const CadastroCartaoForm = ({ onClose }) => {
         <Button type="submit" disabled={!stripe || loading}>
           {loading ? "Salvando..." : "Cadastrar Cartão"}
         </Button>
+        <BackButton type="button"onClick={onClose}>Voltar</BackButton>
       </form>
       <ToastNotification
         show={toast.show}

@@ -51,3 +51,4 @@ uvicorn==0.22.0
 watchfiles==1.0.4
 websockets==14.2
 boto3==1.38.16
+stripe==12.1.0
