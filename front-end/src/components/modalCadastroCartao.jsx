@@ -65,7 +65,6 @@ const CadastroCartaoForm = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [etapa, setEtapa] = useState("inicio");
   const [cartao, setCartao] = useState(null);
-  const [ client_secret, customer_id ] = res.data;
 
 
   const token = Cookies.get("token");
@@ -105,11 +104,12 @@ const CadastroCartaoForm = ({ onClose }) => {
 
     try {
       const api = process.env.REACT_APP_API_URL;  
-      const res = await axios.post(`${process.env.REACT_APP_API_URL}/pagamentos/cadastrar-cartao/`, {
+      const res = await axios.post(`${api}/pagamentos/cadastrar-cartao/`, {
         nome: user.nome,
         email: user.email,
         });
 
+        const { client_secret, customer_id } = res.data;
         const result = await stripe.confirmCardSetup(client_secret, {
         payment_method: {
             card: elements.getElement(CardElement),
