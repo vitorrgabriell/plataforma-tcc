@@ -1,4 +1,5 @@
-import { useState } from "react";
+// modalCadastroCartao.jsx
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { loadStripe } from "@stripe/stripe-js";
 import { jwtDecode } from "jwt-decode";
@@ -50,18 +51,8 @@ const Button = styled.button`
   margin-top: 20px;
 `;
 
-const BackButton = styled.button`
-  margin-top: 12px;
-  background-color: #374151; // cinza escuro
-  color: #f1f5f9;
-  border: none;
-  padding: 10px;
-  width: 100%;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
+const BackButton = styled(Button)`
+  background-color: #374151;
   &:hover {
     background-color: #4b5563;
   }
@@ -73,19 +64,34 @@ const CadastroCartaoForm = ({ onClose }) => {
 
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [loading, setLoading] = useState(false);
+  const [etapa, setEtapa] = useState("inicio");
+  const [cartao, setCartao] = useState(null);
 
-    const token = Cookies.get("token");
-    let user = { nome: "", email: "" };
-    if (token) {
+  const token = Cookies.get("token");
+  let user = { nome: "", email: "" };
+  if (token) {
     try {
-        const decoded = jwtDecode(token);
-        console.log("Decoded JWT:", decoded);
-        user.nome = decoded.nome || "";
-        user.email = decoded.sub || "";
+      const decoded = jwtDecode(token);
+      user.nome = decoded.nome || "";
+      user.email = decoded.sub || "";
     } catch (e) {
-        console.error("Erro ao decodificar o token:", e);
+      console.error("Erro ao decodificar o token:", e);
     }
+  }
+
+  const buscarCartaoSalvo = async () => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/pagamentos/cartao-salvo/${user.email}`);
+      setCartao(res.data);
+    } catch (err) {
+      console.error("Erro ao buscar cartão salvo:", err);
+      setCartao(null);
     }
+  };
+
+  useEffect(() => {
+    if (etapa === "ver") buscarCartaoSalvo();
+  }, [etapa]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -97,14 +103,12 @@ const CadastroCartaoForm = ({ onClose }) => {
         email: user.email,
       });
 
-      const { client_secret, customer_id } = res.data;
+      const { client_secret } = res.data;
 
       const result = await stripe.confirmCardSetup(client_secret, {
         payment_method: {
           card: elements.getElement(CardElement),
-          billing_details: {
-            name: user?.nome,
-          },
+          billing_details: { name: user?.nome },
         },
       });
 
@@ -112,8 +116,7 @@ const CadastroCartaoForm = ({ onClose }) => {
         setToast({ show: true, message: result.error.message, type: "error" });
       } else {
         setToast({ show: true, message: "Cartão cadastrado com sucesso!", type: "success" });
-        console.log("payment_method_id:", result.setupIntent.payment_method);
-        onClose();
+        setTimeout(() => onClose(), 2500);
       }
     } catch (err) {
       console.error(err);
@@ -129,25 +132,58 @@ const CadastroCartaoForm = ({ onClose }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 40 }}
     >
-      <h2>Cadastro de Cartão</h2>
-      <form onSubmit={handleSubmit}>
-        <CardElement
-          options={{
-            style: {
-              base: {
-                fontSize: "16px",
-                color: "#f1f5f9",
-                "::placeholder": { color: "#94a3b8" },
-              },
-              invalid: { color: "#ef4444" },
-            },
-          }}
-        />
-        <Button type="submit" disabled={!stripe || loading}>
-          {loading ? "Salvando..." : "Cadastrar Cartão"}
-        </Button>
-        <BackButton type="button" onClick={onClose}>Voltar</BackButton>
-      </form>
+      {etapa === "inicio" && (
+        <>
+          <h2>Gerenciar Cartão</h2>
+          <Button onClick={() => setEtapa("ver")}>🔍 Ver Cartão Cadastrado</Button>
+          <Button onClick={() => setEtapa("novo")}>💳 Cadastrar Novo Cartão</Button>
+          <BackButton onClick={onClose}>Voltar</BackButton>
+        </>
+      )}
+
+      {etapa === "ver" && cartao && (
+        <>
+          <h2>Cartão Atual</h2>
+          <p><strong>Bandeira:</strong> {cartao.brand}</p>
+          <p><strong>Final:</strong> **** **** **** {cartao.last4}</p>
+          <p><strong>Expira:</strong> {cartao.exp_month}/{cartao.exp_year}</p>
+          <Button onClick={() => setEtapa("novo")}>Cadastrar Novo Cartão</Button>
+          <BackButton onClick={() => setEtapa("inicio")}>Voltar</BackButton>
+        </>
+      )}
+
+      {etapa === "ver" && !cartao && (
+        <>
+          <p>Nenhum cartão encontrado.</p>
+          <Button onClick={() => setEtapa("novo")}>Cadastrar Cartão</Button>
+          <BackButton onClick={() => setEtapa("inicio")}>Voltar</BackButton>
+        </>
+      )}
+
+      {etapa === "novo" && (
+        <>
+          <h2>Cadastro de Cartão</h2>
+          <form onSubmit={handleSubmit}>
+            <CardElement
+              options={{
+                style: {
+                  base: {
+                    fontSize: "16px",
+                    color: "#f1f5f9",
+                    "::placeholder": { color: "#94a3b8" },
+                  },
+                  invalid: { color: "#ef4444" },
+                },
+              }}
+            />
+            <Button type="submit" disabled={!stripe || loading}>
+              {loading ? "Salvando..." : "Cadastrar Cartão"}
+            </Button>
+            <BackButton type="button" onClick={() => setEtapa("inicio")}>Voltar</BackButton>
+          </form>
+        </>
+      )}
+
       <ToastNotification
         show={toast.show}
         message={toast.message}
@@ -158,18 +194,16 @@ const CadastroCartaoForm = ({ onClose }) => {
   );
 };
 
-const CadastroCartaoModal = ({ show, onClose }) => {
-  return (
-    <AnimatePresence>
-      {show && (
-        <Overlay as={motion.div} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <Elements stripe={stripePromise}>
-            <CadastroCartaoForm onClose={onClose} />
-          </Elements>
-        </Overlay>
-      )}
-    </AnimatePresence>
-  );
-};
+const CadastroCartaoModal = ({ show, onClose }) => (
+  <AnimatePresence>
+    {show && (
+      <Overlay as={motion.div} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <Elements stripe={stripePromise}>
+          <CadastroCartaoForm onClose={onClose} />
+        </Elements>
+      </Overlay>
+    )}
+  </AnimatePresence>
+);
 
 export default CadastroCartaoModal;

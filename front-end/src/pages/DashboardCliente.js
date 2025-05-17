@@ -549,7 +549,7 @@ const DashboardCliente = () => {
           <AtalhoWrapper>
             <AtalhoButton onClick={() => navigate("/recompensa-fidelidade")}>🎉 Aproveitar pontos</AtalhoButton>
             <AtalhoButton onClick={() => navigate("/historico")}>🕓 Histórico e avaliações</AtalhoButton>
-            <AtalhoButton onClick={() => setShowModalCartao(true)}>💳 Cadastrar Cartão</AtalhoButton>
+            <AtalhoButton onClick={() => setShowModalCartao(true)}>💳 Gerenciar Cartões</AtalhoButton>
           </AtalhoWrapper>
       </SectionWrapper>
       <Footer>
