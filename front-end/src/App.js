@@ -9,6 +9,7 @@ import RegisterEstabelecimento from "./pages/RegisterEstabelecimento";
 import Logout from "./pages/Logout";
 import EstabelecimentoCliente from "./pages/EstabelecimentoCliente";
 import RecompensaFidelidadePage from "./pages/ResgateFidelidade";
+import ResetarSenha from "./pages/ResetarSenha";
 
 function App() {
   return (
@@ -16,25 +17,14 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/resetar-senha/:token" element={<ResetarSenha />} />
         <Route path="/dashboard-cliente" element={<DashboardCliente />} />
-        <Route
-          path="/estabelecimento-cliente/:id"
-          element={<EstabelecimentoCliente />}
-        />
-        <Route
-          path="/dashboard-profissional"
-          element={<DashboardProfissional />}
-        />
+        <Route path="/estabelecimento-cliente/:id" element={<EstabelecimentoCliente />} />
+        <Route path="/dashboard-profissional" element={<DashboardProfissional />} />
         <Route path="/dashboard-admin" element={<AdminDashboard />} />
         <Route path="/register" element={<Register />} />
-        <Route
-          path="/register-estabelecimento"
-          element={<RegisterEstabelecimento />}
-        />  
-        <Route
-          path="/recompensa-fidelidade"
-          element={<RecompensaFidelidadePage />}
-        />
+        <Route path="/register-estabelecimento" element={<RegisterEstabelecimento />} />  
+        <Route path="/recompensa-fidelidade" element={<RecompensaFidelidadePage />} />
         <Route path="/logout" element={<Logout />} />
       </Routes>
     </Router>

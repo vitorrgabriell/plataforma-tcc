@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { jwtDecode } from "jwt-decode";
 import {motion, AnimatePresence } from "framer-motion"
 import CadastrarEstabelecimentoModal from "../components/modalCadastrarEstabelecimento";
+import CadastroCartaoModal from "../components/modalCadastroCartao";
 
 const Container = styled.div`
   display: flex;
@@ -277,6 +278,7 @@ const DashboardCliente = () => {
   const [pontosFidelidade, setPontosFidelidade] = useState([]);
   const [loadingPontos, setLoadingPontos] = useState(true);
   const [pontosFidelidadeEstabelecimento, setPontosFidelidadeEstabelecimento] = useState([]);
+  const [showModalCartao, setShowModalCartao] = useState(false);
   const [loadingPontosEstabelecimento, setLoadingPontosEstabelecimento] = useState(true);
   const estabelecimentoMaisPontos = pontosFidelidadeEstabelecimento.reduce((maisPontos, atual) => {
     return (atual.pontos_acumulados > (maisPontos?.pontos_acumulados || 0)) ? atual : maisPontos;
@@ -546,8 +548,8 @@ const DashboardCliente = () => {
           <SectionTitle style={{ marginTop: "32px" }}>⚡ Atalhos Rápidos</SectionTitle>
           <AtalhoWrapper>
             <AtalhoButton onClick={() => navigate("/recompensa-fidelidade")}>🎉 Aproveitar pontos</AtalhoButton>
-            <AtalhoButton onClick={() => navigate("/meus-agendamentos")}>📅 Ver meus agendamentos</AtalhoButton>
-            <AtalhoButton onClick={() => navigate("/historico")}>🕓 Histórico completo</AtalhoButton>
+            <AtalhoButton onClick={() => navigate("/historico")}>🕓 Histórico e avaliações</AtalhoButton>
+            <AtalhoButton onClick={() => setShowModalCartao(true)}>💳 Cadastrar Cartão</AtalhoButton>
           </AtalhoWrapper>
       </SectionWrapper>
       <Footer>
@@ -565,8 +567,10 @@ const DashboardCliente = () => {
           setMostrarModalCadastroEstabelecimento(false);
         }}
       />
-
-
+      <CadastroCartaoModal
+        show={showModalCartao}
+        onClose={() => setShowModalCartao(false)}
+      />
     </Container>
   );
 };
