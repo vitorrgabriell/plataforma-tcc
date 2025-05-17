@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import { loadStripe } from "@stripe/stripe-js";
+import { jwtDecode } from "jwt-decode";
+import Cookies from "js-cookie";
 import {
   Elements,
   CardElement,
@@ -72,7 +74,18 @@ const CadastroCartaoForm = ({ onClose }) => {
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [loading, setLoading] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("user"));
+    const token = Cookies.get("token");
+    let user = { nome: "", email: "" };
+    if (token) {
+    try {
+        const decoded = jwtDecode(token);
+        console.log("Decoded JWT:", decoded);
+        user.nome = decoded.nome || "";
+        user.email = decoded.sub || "";
+    } catch (e) {
+        console.error("Erro ao decodificar o token:", e);
+    }
+    }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -80,8 +93,8 @@ const CadastroCartaoForm = ({ onClose }) => {
 
     try {
       const res = await axios.post(`${process.env.REACT_APP_API_URL}/pagamentos/cadastrar-cartao/`, {
-        nome: user?.nome,
-        email: user?.email,
+        nome: user.nome,
+        email: user.email,
       });
 
       const { client_secret, customer_id } = res.data;
@@ -133,7 +146,7 @@ const CadastroCartaoForm = ({ onClose }) => {
         <Button type="submit" disabled={!stripe || loading}>
           {loading ? "Salvando..." : "Cadastrar Cartão"}
         </Button>
-        <BackButton type="button"onClick={onClose}>Voltar</BackButton>
+        <BackButton type="button" onClick={onClose}>Voltar</BackButton>
       </form>
       <ToastNotification
         show={toast.show}

@@ -13,38 +13,24 @@ router = APIRouter()
 @router.post("/cadastrar-cartao/")
 def cadastrar_cartao(dados: CartaoRequest):
     try:
-        payment_method = stripe.PaymentMethod.create(
-        type="card",
-        card={
-            "number": "4242424242424242",
-            "exp_month": 12,
-            "exp_year": 2025,
-            "cvc": "123"
-        }
-        )
         cliente = stripe.Customer.create(
             email=dados.email,
             name=dados.nome
         )
 
-        stripe.PaymentMethod.attach(
-            payment_method.id,
+        setup_intent = stripe.SetupIntent.create(
             customer=cliente.id,
-        )
-
-        stripe.Customer.modify(
-            cliente.id,
-            invoice_settings={"default_payment_method": payment_method.id},
+            payment_method_types=["card"]
         )
 
         return {
-            "customer_id": cliente.id,
-            "payment_method_id": payment_method.id
+            "client_secret": setup_intent.client_secret,
+            "customer_id": cliente.id
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro: {str(e)}")
-    
+        raise HTTPException(status_code=500, detail=f"Erro ao iniciar cadastro do cartão: {str(e)}")
+
 @router.post("/cobrar-agendamento/")
 def cobrar_agendamento(data: AgendamentoPagamento):
     try:
