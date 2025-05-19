@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
 import ToastNotification from "../components/ToastNotification"; // ajuste o caminho se necessário
@@ -10,7 +9,6 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
   background-color: #0f172a;
-  overflow: hidden;
 `;
 
 const FormWrapper = styled.div`
@@ -68,12 +66,8 @@ const Button = styled.button`
   }
 `;
 
-const ResetarSenha = () => {
-  const { token } = useParams();
-  const navigate = useNavigate();
-
-  const [novaSenha, setNovaSenha] = useState("");
-  const [confirmarSenha, setConfirmarSenha] = useState("");
+const EsqueciSenha = () => {
+  const [email, setEmail] = useState("");
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
   const showToast = (message, type = "success") => {
@@ -83,60 +77,50 @@ const ResetarSenha = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (novaSenha !== confirmarSenha) {
-      showToast("As senhas não coincidem.", "error");
-      return;
-    }
-
     try {
       const api = process.env.REACT_APP_API_URL;
-      const res = await axios.post(
-        `${api}/auth/resetar-senha/`,
-        {
-          token,
-          nova_senha: novaSenha,
-        }
-      );
-
-      showToast(res.data.message || "Senha redefinida com sucesso!", "success");
-      setTimeout(() => navigate("/login"), 3000);
+      const res = await axios.post(`${api}/auth/recuperar-senha/`, {
+        email,
+      });
+      showToast(res.data.message || "E-mail enviado com instruções para redefinir a senha.", "success");
     } catch (err) {
-      showToast(err.response?.data?.detail || "Erro ao redefinir a senha.", "error");
-    }
+        const errorData = err.response?.data?.detail;
+
+        if (Array.isArray(errorData)) {
+            // pega a primeira mensagem, se vier como array de erros
+            showToast(errorData[0]?.msg || "Erro ao redefinir a senha.", "error");
+        } else if (typeof errorData === "string") {
+            showToast(errorData, "error");
+        } else {
+            showToast("Erro ao redefinir a senha.", "error");
+        }
+        }
   };
 
   return (
     <Container>
       <FormWrapper>
-        <Title>AgendaVip - Redefinir Senha</Title>
+        <Title>Recuperar Senha</Title>
         <form onSubmit={handleSubmit}>
           <Input
-            type="password"
-            placeholder="Nova senha"
-            value={novaSenha}
-            onChange={(e) => setNovaSenha(e.target.value)}
+            type="email"
+            placeholder="Digite seu e-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <Input
-            type="password"
-            placeholder="Confirmar nova senha"
-            value={confirmarSenha}
-            onChange={(e) => setConfirmarSenha(e.target.value)}
-            required
-          />
-          <Button type="submit">Confirmar</Button>
+          <Button type="submit">Enviar</Button>
         </form>
-      </FormWrapper>
 
-      <ToastNotification
-        show={toast.show}
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast({ ...toast, show: false })}
-      />
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
+      </FormWrapper>
     </Container>
   );
 };
 
-export default ResetarSenha;
+export default EsqueciSenha;

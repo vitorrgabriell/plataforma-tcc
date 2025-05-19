@@ -153,7 +153,7 @@ const Login = () => {
           <Button type="submit">Entrar</Button>
         </form>
         <RegisterLink>
-          Esqueceu sua senha? <a href="/reset-password">Clique aqui</a>
+          Esqueceu sua senha? <a href="/solicitar-senha">Clique aqui</a>
         </RegisterLink>
         <RegisterLink>
           Não tem uma conta? <a href="/register">Registre-se</a>

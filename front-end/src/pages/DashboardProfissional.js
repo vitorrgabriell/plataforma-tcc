@@ -445,5 +445,5 @@ const finalizarAgendamento = async (agendamento) => {
   );
 };
 
-  export default DashboardProfissional;
+export default DashboardProfissional;
   
