@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { jwtDecode } from "jwt-decode";
 import ModalGerarAgendaProfissional from "../components/modalGerarAgendaProfissional";
 import ToastNotification from "../components/ToastNotification";
-import ModalHistoricoProfissional from "../components/modalHistoricoFuncionario";
+import ModalHistoricoProfissional from "../components/modalHistoricoProfissional";
 
 const Container = styled.div`
   display: flex;
@@ -406,7 +406,7 @@ const finalizarAgendamento = async (agendamento) => {
           )}
         </Card>
         <Card style={{ flex: 1, gridColumn: "span 8" }}>
-          <h2>Histórico de Atendimentos</h2>
+          <h2>Agendamentos Recentes</h2>
           {historicoFinalizados.length === 0 ? (
             <p style={{ marginTop: "12px" }}>Nenhum atendimento finalizado nos últimos 2 dias.</p>
           ) : (

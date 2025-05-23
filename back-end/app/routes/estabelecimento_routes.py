@@ -48,7 +48,7 @@ def cadastrar_estabelecimento(
 
 @router.get("/", response_model=list[EstabelecimentoResponse])
 def listar_estabelecimentos(db: Session = Depends(get_db), user=Depends(get_current_user)):
-    return db.query(Estabelecimento).all()
+    return db.query(Estabelecimento).order_by(Estabelecimento.id.asc()).all()
 
 @router.get("/{id}", response_model=EstabelecimentoResponse)
 def get_estabelecimento(id: int, db: Session = Depends(get_db)):

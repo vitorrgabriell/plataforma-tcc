@@ -396,7 +396,7 @@ const handleConfirmarExclusao = async () => {
     }
   };
   const agendamentosFuturos = agendamentos.filter((a) => {
-    return new Date(a.horario) > new Date();
+    return new Date(a.horario + "Z") > new Date()
   });
   
   const canceladosFuturos = cancelados.filter((c) => {
@@ -409,10 +409,13 @@ const handleConfirmarExclusao = async () => {
         <Title>AgendaVip</Title>
         {userName && <UserInfo>Bem-vindo de volta, {userName}!</UserInfo>}
         <ButtonGroup>
+        <Button /* onClick={() => setMostrarModalHistorico(true)} */ style={{ fontSize: "12px", padding: "8px 12px" }}>
+          Histórico Completo
+        </Button>
         <Button onClick={() => setMostrarModalEditarEstabelecimento(true)}>
           Editar Estabelecimento
         </Button>
-          <Button bgColor="#ef4444" hoverColor="#dc2626" onClick={handleLogout}>
+          <Button $bgColor="#ef4444" $hoverColor="#dc2626" onClick={handleLogout}>
             Sair
           </Button>
         </ButtonGroup>
@@ -529,7 +532,6 @@ const handleConfirmarExclusao = async () => {
                   <CustomCard>
                     <p>Programa: <strong>{fidelidade.ativo ? "Ativo ✅" : "Inativo ❌"}</strong></p>
                     <p>Regra: {fidelidade.regra}</p>
-                    <p>Participantes: {fidelidade.participantes}</p>
                     <p>Gratuitos concedidos: {fidelidade.servicosGratuitos}</p>
                   </CustomCard>
                 </>

@@ -68,8 +68,11 @@ def listar_agendamentos_admin(
         JOIN usuarios u ON u.id = a.cliente_id
         JOIN funcionarios f ON f.id = a.profissional_id
         JOIN servicos s ON s.id = a.servico_id
-        WHERE f.estabelecimento_id = :estabelecimento_id
-        AND a.status = 'confirmado'
+        WHERE 
+            f.estabelecimento_id = :estabelecimento_id
+            AND a.status = 'confirmado'
+            AND a.horario > NOW()
+        ORDER BY a.horario ASC
     """, {"estabelecimento_id": estabelecimento_id}).fetchall()
 
     return [dict(r) for r in resultados]
@@ -102,6 +105,7 @@ def listar_agendamentos_profissional(
         ORDER BY a.horario ASC
     """, {"profissional_id": user["funcionario_id"]}).fetchall()
 
+    print(f"resultados: {resultados}")
     return [dict(r) for r in resultados]
 
 @router.get("/profissional/pendentes")
@@ -324,7 +328,8 @@ def confirmar_agendamento(
 
     if horario:
         horario.ocupado = True
-        db.commit()
+    
+    db.commit()
 
     return {"message": "Agendamento confirmado com sucesso!"}
 
