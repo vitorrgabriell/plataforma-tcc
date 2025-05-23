@@ -518,7 +518,7 @@ const DashboardCliente = () => {
           </div>
 
           <div>
-            <SectionTitle>🏆 Estabelecimento com mais pontos</SectionTitle>
+            <SectionTitle>Estabelecimento com mais pontos</SectionTitle>
             {loadingPontosEstabelecimento ? (
               <p style={{ color: "#cbd5e1" }}>Carregando pontos...</p>
             ) : estabelecimentoMaisPontos ? (
