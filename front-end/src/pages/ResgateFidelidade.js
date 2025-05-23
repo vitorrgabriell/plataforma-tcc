@@ -254,8 +254,8 @@ const handleLogout = async () => {
       </Header>
       <Content>
         <SectionWrapper>
-          <SectionTitle style={{ marginBottom: "8px" }}>🎁 Resgate dos pontos de fidelidade</SectionTitle>
-          <SectionTitle>🏆 Estabelecimentos com pontos acumulados</SectionTitle>
+          <SectionTitle style={{ marginBottom: "8px" }}>Resgate dos pontos de fidelidade</SectionTitle>
+          <SectionTitle>Estabelecimentos com pontos acumulados</SectionTitle>
           {pontos.length === 0 || pontos.every(p => p.pontos_acumulados === 0) ? (
             <CardInfo style={{ marginTop: "20px", color: "#cbd5e1", fontStyle: "italic" }}>
                 Você ainda não acumulou pontos em nenhum estabelecimento para resgatar prêmios.
@@ -273,12 +273,12 @@ const handleLogout = async () => {
                     <CardTitle>{p.estabelecimento_nome}</CardTitle>
                     <CardInfo>Pontos acumulados: {p.pontos_acumulados}</CardInfo>
                     <CardInfo style={{ color: "#facc15", fontWeight: "bold" }}>
-                    🏅 Prêmio: {p.premio}
+                    Prêmio: {p.premio}
                     </CardInfo>
                     <CardInfo>
                     {p.pontos_acumulados >= 10
-                        ? "🎉 Você pode resgatar um prêmio!"
-                        : "❌ Você ainda não tem pontos suficientes."}
+                        ? "Você pode resgatar um prêmio!"
+                        : "Você ainda não tem pontos suficientes."}
                     </CardInfo>
                     <ResgatarButton
                     disabled={p.pontos_acumulados < 10}

@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { jwtDecode } from "jwt-decode";
 import ModalGerarAgendaProfissional from "../components/modalGerarAgendaProfissional";
 import ToastNotification from "../components/ToastNotification";
+import ModalHistoricoProfissional from "../components/modalHistoricoFuncionario";
 
 const Container = styled.div`
   display: flex;
@@ -143,6 +144,7 @@ const DashboardProfissional = () => {
   const [agendamentosConfirmados, setAgendamentosConfirmados] = useState([]);
   const [historicoFinalizados, setHistoricoFinalizados] = useState([]);
   const [mostrarModalGerarAgenda, setMostrarModalGerarAgenda] = useState(false);
+  const [mostrarModalHistorico, setMostrarModalHistorico] = useState(false)
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const agora = new Date();
 
@@ -310,6 +312,9 @@ const finalizarAgendamento = async (agendamento) => {
         <Title>AgendaVip</Title>
         {userName && <UserInfo>Bem-vindo de volta, {userName}!</UserInfo>}
         <ButtonGroup>
+          <Button onClick={() => setMostrarModalHistorico(true)} style={{ fontSize: "12px", padding: "8px 12px" }}>
+            Histórico Completo
+          </Button>
           <Button onClick={() => setMostrarModalGerarAgenda(true)} style={{ fontSize: "12px", padding: "8px 12px" }}>
             Gerar Agenda
           </Button>
@@ -425,6 +430,9 @@ const finalizarAgendamento = async (agendamento) => {
           <FooterLink href="/contato">Contato</FooterLink>
         </p>
       </Footer>
+      {mostrarModalHistorico && (
+        <ModalHistoricoProfissional onClose={() => setMostrarModalHistorico(false)} />
+      )}
       {mostrarModalGerarAgenda && (
         <ModalGerarAgendaProfissional
           onClose={() => setMostrarModalGerarAgenda(false)}

@@ -295,6 +295,9 @@ const LandingPage = () => {
             <CheckCircle size={20} /> Sistema próprio de notificações
           </Card>
           <Card>
+            <CheckCircle size={20} /> Programa de fidelidade customizado
+          </Card>
+          <Card>
             <CheckCircle size={20} /> Sistema de pagamento após o serviço
           </Card>
           <Card>

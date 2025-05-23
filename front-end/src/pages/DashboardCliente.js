@@ -458,7 +458,7 @@ const DashboardCliente = () => {
         </ButtonGroup>
       </Header>
       <TitleSection>
-        <h2>🔎 Explore os Estabelecimentos!</h2>
+        <h2>Explore os Estabelecimentos!</h2>
         <p>Escolha um local para agendar seus serviços favoritos com facilidade.</p>
       </TitleSection>
       <Content>
@@ -500,7 +500,7 @@ const DashboardCliente = () => {
       <SectionWrapper>
         <SectionGrid>
           <div>
-            <SectionTitle>🎯 Último serviço realizado</SectionTitle>
+            <SectionTitle>Último serviço realizado</SectionTitle>
             {loadingPontos ? (
               <p style={{ color: "#cbd5e1" }}>Carregando serviço...</p>
             ) : pontosFidelidade && pontosFidelidade.estabelecimento_nome ? (
@@ -531,7 +531,7 @@ const DashboardCliente = () => {
             )}
           </div>
           <div>
-            <SectionTitle>📢 Avaliações Recentes</SectionTitle>
+            <SectionTitle>Avaliações Recentes</SectionTitle>
             <CardList>
             {avaliacoesRecentes.map((a, index) => {
               return (
@@ -545,11 +545,11 @@ const DashboardCliente = () => {
             </CardList>
           </div>
         </SectionGrid>
-          <SectionTitle style={{ marginTop: "32px" }}>⚡ Atalhos Rápidos</SectionTitle>
+          <SectionTitle style={{ marginTop: "32px" }}>Atalhos Rápidos</SectionTitle>
           <AtalhoWrapper>
-            <AtalhoButton onClick={() => navigate("/recompensa-fidelidade")}>🎉 Aproveitar pontos</AtalhoButton>
-            <AtalhoButton onClick={() => navigate("/historico")}>🕓 Histórico e avaliações</AtalhoButton>
-            <AtalhoButton onClick={() => setShowModalCartao(true)}>💳 Gerenciar Cartões</AtalhoButton>
+            <AtalhoButton onClick={() => navigate("/recompensa-fidelidade")}>Aproveitar pontos</AtalhoButton>
+            <AtalhoButton onClick={() => navigate("/meus-agendamentos")}>Histórico e avaliações</AtalhoButton>
+            <AtalhoButton onClick={() => setShowModalCartao(true)}>Gerenciar Cartões</AtalhoButton>
           </AtalhoWrapper>
       </SectionWrapper>
       <Footer>

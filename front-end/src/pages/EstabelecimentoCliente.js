@@ -618,7 +618,7 @@ const EstabelecimentoCliente = () => {
             )}
           </SchedulingForm>
           <AppointmentsList>
-            <h2>Meus Agendamentos</h2>
+            <h2>Agendamentos Programados</h2>
             {appointments.map((app) => (
               <AppointmentCard key={app.id}>
                 <div>

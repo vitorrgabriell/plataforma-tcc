@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 import stripe
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -160,6 +160,62 @@ def listar_agendamentos_finalizados(
         "data_limite": dois_dias_atras
     }).fetchall()
 
+    return [dict(r) for r in resultados]
+
+@router.get("/profissional/historico")
+def listar_historico_filtrado(
+    periodo: str = Query(None),
+    mes: str = Query(None),
+    servico_id: int = Query(None),
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    if user["tipo_usuario"] != "profissional":
+        raise HTTPException(status_code=403, detail="Apenas profissionais podem acessar")
+
+    query_base = """
+        SELECT 
+            a.id,
+            u.nome AS cliente,
+            s.nome AS servico,
+            s.preco,
+            s.tempo,
+            a.horario
+        FROM agendamentos a
+        JOIN usuarios u ON u.id = a.cliente_id
+        JOIN servicos s ON s.id = a.servico_id
+        WHERE a.profissional_id = :prof_id
+        AND a.status = 'finalizado'
+    """
+    params = {"prof_id": user["funcionario_id"]}
+
+    if periodo:
+        dias = int(periodo.replace("dias", ""))
+        data_limite = datetime.now() - timedelta(days=dias)
+        query_base += " AND a.horario >= :data_limite"
+        params["data_limite"] = data_limite
+
+    elif mes:
+        try:
+            ano, mes_num = map(int, mes.split("-"))
+            data_inicio = datetime(ano, mes_num, 1)
+            if mes_num == 12:
+                data_fim = datetime(ano + 1, 1, 1)
+            else:
+                data_fim = datetime(ano, mes_num + 1, 1)
+            query_base += " AND a.horario >= :data_inicio AND a.horario < :data_fim"
+            params["data_inicio"] = data_inicio
+            params["data_fim"] = data_fim
+        except:
+            raise HTTPException(status_code=400, detail="Formato de mês inválido. Use YYYY-MM.")
+
+    if servico_id:
+        query_base += " AND a.servico_id = :servico_id"
+        params["servico_id"] = servico_id
+
+    query_base += " ORDER BY a.horario DESC"
+
+    resultados = db.execute(query_base, params).fetchall()
     return [dict(r) for r in resultados]
 
 @router.get("/cancelados")

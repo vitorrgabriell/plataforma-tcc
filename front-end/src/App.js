@@ -11,6 +11,7 @@ import EstabelecimentoCliente from "./pages/EstabelecimentoCliente";
 import RecompensaFidelidadePage from "./pages/ResgateFidelidade";
 import ResetarSenha from "./pages/ResetarSenha";
 import SolicitarSenha from "./pages/SolicitarSenha";
+import MeusAgendamentos from "./pages/MeusAgendamentos";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/solicitar-senha" element={<SolicitarSenha />} />
         <Route path="/resetar-senha/:token" element={<ResetarSenha />} />
         <Route path="/dashboard-cliente" element={<DashboardCliente />} />
+        <Route path="/meus-agendamentos" element={<MeusAgendamentos />} />
         <Route path="/estabelecimento-cliente/:id" element={<EstabelecimentoCliente />} />
         <Route path="/dashboard-profissional" element={<DashboardProfissional />} />
         <Route path="/dashboard-admin" element={<AdminDashboard />} />

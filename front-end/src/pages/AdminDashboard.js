@@ -472,8 +472,8 @@ const handleConfirmarExclusao = async () => {
             {canceladosFuturos.map((c, index) => (
               <CustomCard key={index}>
                 {c.cliente} cancelou {c.servico} com {c.profissional} <br />
-                ❌ Cancelado em: {new Date(c.cancelado_em).toLocaleDateString("pt-BR")} <br />
-                🕓 Horario do agendamento: {new Date(c.horario).toLocaleString("pt-BR")}
+                Cancelado em: {new Date(c.cancelado_em).toLocaleDateString("pt-BR")} <br />
+                Horario do agendamento: {new Date(c.horario).toLocaleString("pt-BR")}
               </CustomCard>
             ))}
           </Div2>
@@ -527,10 +527,10 @@ const handleConfirmarExclusao = async () => {
                     </div>
                   </div>
                   <CustomCard>
-                    <p>🎁 Programa: <strong>{fidelidade.ativo ? "Ativo ✅" : "Inativo ❌"}</strong></p>
-                    <p>📋 Regra: {fidelidade.regra}</p>
-                    <p>👥 Participantes: {fidelidade.participantes}</p>
-                    <p>✅ Gratuitos concedidos: {fidelidade.servicosGratuitos}</p>
+                    <p>Programa: <strong>{fidelidade.ativo ? "Ativo ✅" : "Inativo ❌"}</strong></p>
+                    <p>Regra: {fidelidade.regra}</p>
+                    <p>Participantes: {fidelidade.participantes}</p>
+                    <p>Gratuitos concedidos: {fidelidade.servicosGratuitos}</p>
                   </CustomCard>
                 </>
               )}

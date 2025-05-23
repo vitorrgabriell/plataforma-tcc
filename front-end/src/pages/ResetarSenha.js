@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
-import ToastNotification from "../components/ToastNotification"; // ajuste o caminho se necessário
+import ToastNotification from "../components/ToastNotification";
 
 const Container = styled.div`
   display: flex;

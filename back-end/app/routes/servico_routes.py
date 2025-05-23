@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.servico import Servico
+from app.models.agendamento import Agendamento
 from app.schemas import ServicoCreate, ServicoResponse, ServicoUpdate
 from app.utils.dependencies import get_current_user
 from datetime import datetime
@@ -32,6 +33,25 @@ def listar_servicos(
     db: Session = Depends(get_db)
 ):
     return db.query(Servico).filter(Servico.estabelecimento_id == estabelecimento_id).all()
+
+@router.get("/profissional")
+def listar_servicos_utilizados_profissional(
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    if user["tipo_usuario"] != "profissional":
+        raise HTTPException(status_code=403, detail="Apenas profissionais podem acessar.")
+
+    resultados = db.execute("""
+        SELECT DISTINCT s.id, s.nome
+        FROM agendamentos a
+        JOIN servicos s ON s.id = a.servico_id
+        WHERE a.profissional_id = :prof_id
+        AND a.status = 'finalizado'
+        ORDER BY s.nome ASC
+    """, {"prof_id": user["funcionario_id"]}).fetchall()
+
+    return [dict(r) for r in resultados]
 
 @router.get("/{servico_id}", response_model=ServicoResponse)
 def buscar_servico(servico_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
