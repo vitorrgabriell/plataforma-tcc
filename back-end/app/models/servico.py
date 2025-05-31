@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.db.database import Base
 from datetime import datetime
 
+
 class Servico(Base):
     __tablename__ = "servicos"
 
@@ -12,7 +13,9 @@ class Servico(Base):
     preco = Column(Float, nullable=False)
     tempo = Column(Integer, nullable=False)
     criado_em = Column(DateTime, default=datetime.utcnow)
-    estabelecimento_id = Column(Integer, ForeignKey("estabelecimentos.id"), nullable=False)
+    estabelecimento_id = Column(
+        Integer, ForeignKey("estabelecimentos.id"), nullable=False
+    )
 
     estabelecimento = relationship("Estabelecimento", back_populates="servicos")
     agendamentos = relationship("Agendamento", back_populates="servico")

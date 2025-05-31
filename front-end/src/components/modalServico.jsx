@@ -56,7 +56,8 @@ const FormGroup = styled.div`
     margin-bottom: 0.5rem;
   }
 
-  input, textarea {
+  input,
+  textarea {
     width: 94%;
     padding: 12px;
     background-color: #0f172a;
@@ -153,20 +154,11 @@ const ModalServico = ({ estabelecimento_id, onClose, onSuccess, showToast }) => 
         <form onSubmit={handleSubmit}>
           <FormGroup>
             <label>Nome</label>
-            <input
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              required
-            />
+            <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} required />
           </FormGroup>
           <FormGroup>
             <label>Descrição</label>
-            <textarea
-              rows="3"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-            />
+            <textarea rows="3" value={descricao} onChange={(e) => setDescricao(e.target.value)} />
           </FormGroup>
           <FormGroup>
             <label>Preço (R$)</label>

@@ -135,28 +135,28 @@ const ModalFuncionario = ({ onClose, estabelecimento_id, onSuccess, showToast })
     };
 
     try {
-        await axios.post(`${api}/funcionarios/`, payload, {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("token")}`,
-          },
-        });
-      
-        showToast("Funcionário cadastrado com sucesso!", "success");
-      
-        onSuccess(); 
-      } catch (err) {
-        let msgBackend = err?.response?.data?.detail || "Erro ao cadastrar funcionário.";
-      
-        if (msgBackend.includes("duplicate key") && msgBackend.includes("usuarios_email_key")) {
-          msgBackend = "Este e-mail já está em uso. Tente outro.";
-        }
-      
-        setToast({
-          mostrar: true,
-          tipo: "erro",
-          mensagem: msgBackend,
-        });
+      await axios.post(`${api}/funcionarios/`, payload, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("token")}`,
+        },
+      });
+
+      showToast("Funcionário cadastrado com sucesso!", "success");
+
+      onSuccess();
+    } catch (err) {
+      let msgBackend = err?.response?.data?.detail || "Erro ao cadastrar funcionário.";
+
+      if (msgBackend.includes("duplicate key") && msgBackend.includes("usuarios_email_key")) {
+        msgBackend = "Este e-mail já está em uso. Tente outro.";
       }
+
+      setToast({
+        mostrar: true,
+        tipo: "erro",
+        mensagem: msgBackend,
+      });
+    }
   };
 
   useEffect(() => {
@@ -179,32 +179,22 @@ const ModalFuncionario = ({ onClose, estabelecimento_id, onSuccess, showToast })
             message={toast.mensagem}
             show={toast.mostrar}
             onClose={() => setToast({ ...toast, mostrar: false })}
-            />
+          />
         </div>
       )}
-  
+
       <ModalContainer>
         <CloseButton onClick={onClose}>&times;</CloseButton>
         <Title>Novo Funcionário</Title>
-  
+
         <form onSubmit={handleSubmit}>
           <FormGroup>
             <label>Nome</label>
-            <input
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              required
-            />
+            <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} required />
           </FormGroup>
           <FormGroup>
             <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </FormGroup>
           <FormGroup>
             <label>Senha</label>
@@ -224,7 +214,7 @@ const ModalFuncionario = ({ onClose, estabelecimento_id, onSuccess, showToast })
         </form>
       </ModalContainer>
     </Overlay>
-  );  
+  );
 };
 
 export default ModalFuncionario;

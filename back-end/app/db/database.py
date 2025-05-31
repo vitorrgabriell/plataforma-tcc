@@ -14,11 +14,14 @@ if DATABASE_URL:
     print("Conexão com o banco bem sucedida")
 
 if DATABASE_URL is None:
-    raise ValueError("A variável DATABASE_URL não foi encontrada. Verifique o arquivo .env!")
+    raise ValueError(
+        "A variável DATABASE_URL não foi encontrada. Verifique o arquivo .env!"
+    )
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
 
 def get_db():
     db = SessionLocal()

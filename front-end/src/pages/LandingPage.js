@@ -230,9 +230,7 @@ const LandingPage = () => {
           <h1>Agende Procedimentos com Facilidade</h1>
           <p>Uma plataforma moderna para barbearias e clientes conectados</p>
           <CTA>
-            <button onClick={() => navigate("/login")}>
-              Quero me cadastrar
-            </button>
+            <button onClick={() => navigate("/login")}>Quero me cadastrar</button>
           </CTA>
         </div>
       </Header>
@@ -259,32 +257,28 @@ const LandingPage = () => {
 
       <Section id="">
         <h2>O que dizem os usuários</h2>
-        <Testimonial>
-          “Achei meu barbeiro ideal aqui. Prático demais!”
-        </Testimonial>
-        <Testimonial>
-          “Consigo organizar todos os meus horários com facilidade.”
-        </Testimonial>
+        <Testimonial>“Achei meu barbeiro ideal aqui. Prático demais!”</Testimonial>
+        <Testimonial>“Consigo organizar todos os meus horários com facilidade.”</Testimonial>
       </Section>
 
       <FormSection id="faq" ref={faqRef}>
         <h2>Perguntas Frequentes</h2>
         <FAQ>
-          <strong>É gratuito?</strong> Sim, para clientes o uso é totalmente
-          gratuito.
+          <strong>É gratuito?</strong> Sim, para clientes o uso é totalmente gratuito.
         </FAQ>
         <FAQ>
-          <strong>Como cancelar um agendamento?</strong> Basta acessar seu
-          perfil e clicar em cancelar.
+          <strong>Como cancelar um agendamento?</strong> Basta acessar seu perfil e clicar em
+          cancelar.
         </FAQ>
         <FAQ>
-          <strong>Como faço para colocar meu estabelecimento nessa plataforma?</strong> Você só precisa
-          criar a sua conta, logar e clicar no botão "Cadastrar meu estabelecimento", insira as informações necessarias 
-          e pronto! Você estará na pagina de gerenciamento do seu estabelecimento.
+          <strong>Como faço para colocar meu estabelecimento nessa plataforma?</strong> Você só
+          precisa criar a sua conta, logar e clicar no botão "Cadastrar meu estabelecimento", insira
+          as informações necessarias e pronto! Você estará na pagina de gerenciamento do seu
+          estabelecimento.
         </FAQ>
         <FAQ>
-          <strong>Sou barbeiro, como me cadastro?</strong> É preciso se
-          cadastrar com o usuário que o dono do estabelecimento criou para você
+          <strong>Sou barbeiro, como me cadastro?</strong> É preciso se cadastrar com o usuário que
+          o dono do estabelecimento criou para você
         </FAQ>
       </FormSection>
 

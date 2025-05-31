@@ -5,29 +5,34 @@ from collections import defaultdict
 import os
 from dotenv import load_dotenv
 
-load_dotenv() 
+load_dotenv()
+
 
 def obter_faturamento_mensal(estabelecimento_id: int):
     dynamodb = boto3.resource(
-    'dynamodb',
-    region_name=os.getenv('AWS_REGION'),
-    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+        'dynamodb',
+        region_name=os.getenv('AWS_REGION'),
+        aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
     )
     tabela = dynamodb.Table('servicos_finalizados_plataforma_tcc')
 
     response = tabela.scan()
     items = response.get('Items', [])
-    items.append({
-    "estabelecimento_id": "1", 
-    "data_inicio": "2025-02-15T10:00:00",
-    "valor": 150.0
-    })
-    items.append({
-        "estabelecimento_id": "1",
-        "data_inicio": "2025-03-10T11:00:00",
-        "valor": 200.0
-    })
+    items.append(
+        {
+            "estabelecimento_id": "1",
+            "data_inicio": "2025-02-15T10:00:00",
+            "valor": 150.0,
+        }
+    )
+    items.append(
+        {
+            "estabelecimento_id": "1",
+            "data_inicio": "2025-03-10T11:00:00",
+            "valor": 200.0,
+        }
+    )
 
     faturamento_por_mes = defaultdict(float)
 
@@ -43,16 +48,19 @@ def obter_faturamento_mensal(estabelecimento_id: int):
 
         faturamento_por_mes[chave] += valor
 
-    resultado = [{"mes": k, "faturamento": v} for k, v in sorted(faturamento_por_mes.items())]
+    resultado = [
+        {"mes": k, "faturamento": v} for k, v in sorted(faturamento_por_mes.items())
+    ]
 
     return resultado
+
 
 def obter_agendamentos_por_dia(estabelecimento_id: int):
     dynamodb = boto3.resource(
         'dynamodb',
         region_name=os.getenv('AWS_REGION'),
         aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
     )
     tabela = dynamodb.Table('servicos_finalizados_plataforma_tcc')
 
@@ -76,14 +84,15 @@ def obter_agendamentos_por_dia(estabelecimento_id: int):
     resultado = [{"dia": k, "agendamentos": v} for k, v in agendamentos_por_dia.items()]
     return resultado
 
+
 def obter_agendamentos_por_servico(estabelecimento_id: int):
     dynamodb = boto3.resource(
         'dynamodb',
         region_name=os.getenv('AWS_REGION'),
         aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
     )
-    tabela = dynamodb.Table('servicos_finalizados_plataforma_tcc') 
+    tabela = dynamodb.Table('servicos_finalizados_plataforma_tcc')
 
     response = tabela.scan()
     items = response.get('Items', [])
@@ -98,6 +107,7 @@ def obter_agendamentos_por_servico(estabelecimento_id: int):
         if nome_servico:
             agendamentos_por_servico[nome_servico] += 1
 
-    resultado = [{"servico": k, "agendamentos": v} for k, v in agendamentos_por_servico.items()]
+    resultado = [
+        {"servico": k, "agendamentos": v} for k, v in agendamentos_por_servico.items()
+    ]
     return resultado
-

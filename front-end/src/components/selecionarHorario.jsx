@@ -36,15 +36,12 @@ const SelecionarHorario = ({ profissionalId }) => {
       if (dataSelecionada && profissionalId) {
         const dataFormatada = dataSelecionada.toISOString().split("T")[0];
         try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_API_URL}/agenda/disponivel`,
-            {
-              params: {
-                profissional_id: profissionalId,
-                data: dataFormatada,
-              },
-            }
-          );
+          const response = await axios.get(`${process.env.REACT_APP_API_URL}/agenda/disponivel`, {
+            params: {
+              profissional_id: profissionalId,
+              data: dataFormatada,
+            },
+          });
           setHorariosDisponiveis(response.data);
         } catch (error) {
           console.error("Erro ao buscar horários:", error);

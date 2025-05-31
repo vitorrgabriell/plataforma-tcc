@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
 import ToastNotification from "../components/ToastNotification"; // ajuste o caminho se necessário
@@ -69,6 +70,7 @@ const Button = styled.button`
 const EsqueciSenha = () => {
   const [email, setEmail] = useState("");
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const navigate = useNavigate();
 
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
@@ -82,19 +84,24 @@ const EsqueciSenha = () => {
       const res = await axios.post(`${api}/auth/recuperar-senha/`, {
         email,
       });
-      showToast(res.data.message || "E-mail enviado com instruções para redefinir a senha.", "success");
+      showToast(
+        res.data.message || "E-mail enviado com instruções para redefinir a senha.",
+        "success"
+      );
+      setTimeout(() => {
+        navigate("/login");
+      }, 4000);
     } catch (err) {
-        const errorData = err.response?.data?.detail;
+      const errorData = err.response?.data?.detail;
 
-        if (Array.isArray(errorData)) {
-            // pega a primeira mensagem, se vier como array de erros
-            showToast(errorData[0]?.msg || "Erro ao redefinir a senha.", "error");
-        } else if (typeof errorData === "string") {
-            showToast(errorData, "error");
-        } else {
-            showToast("Erro ao redefinir a senha.", "error");
-        }
-        }
+      if (Array.isArray(errorData)) {
+        showToast(errorData[0]?.msg || "Erro ao redefinir a senha.", "error");
+      } else if (typeof errorData === "string") {
+        showToast(errorData, "error");
+      } else {
+        showToast("Erro ao redefinir a senha.", "error");
+      }
+    }
   };
 
   return (

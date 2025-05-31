@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.sql import func
 from app.db.database import Base
 
+
 class ProgramaFidelidade(Base):
     __tablename__ = "programa_fidelidade"
 

@@ -56,7 +56,8 @@ const FormGroup = styled.div`
     margin-bottom: 0.5rem;
   }
 
-  input, textarea {
+  input,
+  textarea {
     width: 100%;
     padding: 12px;
     background-color: #0f172a;
@@ -148,11 +149,7 @@ const ModalEditarServico = ({ servicoId, onClose, onSuccess, showToast }) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ nome, 
-          descricao, 
-          preco: parseFloat(preco),
-          tempo: tempo,
-         })
+        body: JSON.stringify({ nome, descricao, preco: parseFloat(preco), tempo: tempo }),
       });
 
       if (res.ok) {
@@ -175,20 +172,11 @@ const ModalEditarServico = ({ servicoId, onClose, onSuccess, showToast }) => {
         <form onSubmit={handleSubmit}>
           <FormGroup>
             <label>Nome</label>
-            <input
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              required
-            />
+            <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} required />
           </FormGroup>
           <FormGroup>
             <label>Descrição</label>
-            <textarea
-              rows="3"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-            />
+            <textarea rows="3" value={descricao} onChange={(e) => setDescricao(e.target.value)} />
           </FormGroup>
           <FormGroup>
             <label>Preço (R$)</label>
@@ -219,7 +207,6 @@ const ModalEditarServico = ({ servicoId, onClose, onSuccess, showToast }) => {
         </form>
       </ModalContainer>
     </Overlay>
-    
   );
 };
 

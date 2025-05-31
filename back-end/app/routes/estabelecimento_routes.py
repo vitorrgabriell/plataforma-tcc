@@ -2,15 +2,20 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.utils.dependencies import get_current_user
-from app.schemas import EstabelecimentoCreate, EstabelecimentoResponse, EstabelecimentoUpdate
+from app.schemas import (
+    EstabelecimentoCreate,
+    EstabelecimentoResponse,
+    EstabelecimentoUpdate,
+)
 from app.models.estabelecimento import Estabelecimento
 
 router = APIRouter()
 
+
 @router.post("/")
 def cadastrar_estabelecimento(
-    estabelecimento: EstabelecimentoCreate, 
-    user=Depends(get_current_user), 
+    estabelecimento: EstabelecimentoCreate,
+    user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     db.execute(
@@ -46,9 +51,13 @@ def cadastrar_estabelecimento(
 
     return {"message": "Estabelecimento cadastrado e usuário atualizado!"}
 
+
 @router.get("/", response_model=list[EstabelecimentoResponse])
-def listar_estabelecimentos(db: Session = Depends(get_db), user=Depends(get_current_user)):
+def listar_estabelecimentos(
+    db: Session = Depends(get_db), user=Depends(get_current_user)
+):
     return db.query(Estabelecimento).order_by(Estabelecimento.id.asc()).all()
+
 
 @router.get("/{id}", response_model=EstabelecimentoResponse)
 def get_estabelecimento(id: int, db: Session = Depends(get_db)):
@@ -59,15 +68,19 @@ def get_estabelecimento(id: int, db: Session = Depends(get_db)):
 
     return estabelecimento
 
+
 @router.put("/{id}")
 def update_estabelecimento(
     id: int,
     est: EstabelecimentoUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     if current_user["estabelecimento_id"] != id:
-        raise HTTPException(status_code=403, detail="Você não tem permissão para editar este estabelecimento")
+        raise HTTPException(
+            status_code=403,
+            detail="Você não tem permissão para editar este estabelecimento",
+        )
 
     estabelecimento = db.query(Estabelecimento).filter(Estabelecimento.id == id).first()
 

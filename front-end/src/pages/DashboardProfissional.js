@@ -6,6 +6,8 @@ import { jwtDecode } from "jwt-decode";
 import ModalGerarAgendaProfissional from "../components/modalGerarAgendaProfissional";
 import ToastNotification from "../components/ToastNotification";
 import ModalHistoricoProfissional from "../components/modalHistoricoProfissional";
+import ModalRemarcarHorarioProfissional from "../components/modalRemarcarHorarioProfissional";
+import ModalEditarAgendamentoProfissional from "../components/modalEditarAgendamentoProfissional";
 
 const Container = styled.div`
   display: flex;
@@ -144,7 +146,9 @@ const DashboardProfissional = () => {
   const [agendamentosConfirmados, setAgendamentosConfirmados] = useState([]);
   const [historicoFinalizados, setHistoricoFinalizados] = useState([]);
   const [mostrarModalGerarAgenda, setMostrarModalGerarAgenda] = useState(false);
-  const [mostrarModalHistorico, setMostrarModalHistorico] = useState(false)
+  const [mostrarModalHistorico, setMostrarModalHistorico] = useState(false);
+  const [mostrarModalRemarcar, setMostrarModalRemarcar] = useState(false);
+  const [agendamentoSelecionado, setAgendamentoSelecionado] = useState(null);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const agora = new Date();
 
@@ -172,10 +176,10 @@ const DashboardProfissional = () => {
   const fetchDashboardData = async () => {
     const token = Cookies.get("token");
     if (!token) return;
-  
+
     try {
       const api = process.env.REACT_APP_API_URL;
-  
+
       const [resPendentes, resConfirmados, resFinalizados] = await Promise.all([
         fetch(`${api}/agendamentos/profissional/pendentes`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -187,11 +191,11 @@ const DashboardProfissional = () => {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
-  
+
       const pendentes = await resPendentes.json();
       const confirmados = await resConfirmados.json();
       const finalizados = await resFinalizados.json();
-  
+
       if (Array.isArray(pendentes)) setAgendamentosPendentes(pendentes);
       if (Array.isArray(confirmados)) setAgendamentosConfirmados(confirmados);
       if (Array.isArray(finalizados)) setHistoricoFinalizados(finalizados);
@@ -204,12 +208,12 @@ const DashboardProfissional = () => {
     try {
       const token = Cookies.get("token");
       const api = process.env.REACT_APP_API_URL;
-  
+
       await fetch(`${api}/agendamentos/confirmar/${id}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       showToast("Agendamento confirmado com sucesso!");
       fetchDashboardData();
     } catch (err) {
@@ -217,17 +221,17 @@ const DashboardProfissional = () => {
       showToast("Erro ao confirmar agendamento.", "error");
     }
   };
-  
+
   const recusarAgendamento = async (id) => {
     try {
       const token = Cookies.get("token");
       const api = process.env.REACT_APP_API_URL;
-  
+
       await fetch(`${api}/agendamentos/recusar/${id}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       showToast("Agendamento cancelado com sucesso!");
       fetchDashboardData();
     } catch (err) {
@@ -236,69 +240,94 @@ const DashboardProfissional = () => {
     }
   };
 
-const finalizarAgendamento = async (agendamento) => {
-  try {
-    const token = Cookies.get("token");
-    const api = process.env.REACT_APP_API_URL;
+  const finalizarAgendamento = async (agendamento) => {
+    try {
+      const token = Cookies.get("token");
+      const api = process.env.REACT_APP_API_URL;
 
-    await fetch(`${api}/agendamentos/finalizar/${agendamento.id}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      await fetch(`${api}/agendamentos/finalizar/${agendamento.id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    const pagamentoRes = await fetch(`${api}/pagamentos/cobrar-agendamento/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
+      const pagamentoRes = await fetch(`${api}/pagamentos/cobrar-agendamento/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          valor_em_centavos: Math.round(agendamento.valor * 100),
+          cliente_id: agendamento.cliente_id,
+          email_cliente: agendamento.email_cliente,
+        }),
+      });
+      console.log("Enviando payload:", {
         valor_em_centavos: Math.round(agendamento.valor * 100),
-        cliente_id: agendamento.cliente_id,
         email_cliente: agendamento.email_cliente,
-      }),
-    });
-    console.log("Enviando payload:", {
-      valor_em_centavos: Math.round(agendamento.valor * 100),
-      email_cliente: agendamento.email_cliente,
-      cliente_id: agendamento.cliente_id
-    });
+        cliente_id: agendamento.cliente_id,
+      });
 
+      const result = await pagamentoRes.json();
 
-    const result = await pagamentoRes.json();
+      if (pagamentoRes.ok) {
+        showToast("Pagamento realizado com sucesso!");
+      } else {
+        showToast(`Erro no pagamento: ${result.detail}`, "error");
+      }
 
-    if (pagamentoRes.ok) {
-      showToast("Pagamento realizado com sucesso!");
-    } else {
-      showToast(`Erro no pagamento: ${result.detail}`, "error");
+      fetchDashboardData();
+    } catch (err) {
+      console.error("Erro ao finalizar ou cobrar:", err);
+      showToast("Erro ao processar finalização e pagamento.", "error");
     }
-
-    fetchDashboardData();
-  } catch (err) {
-    console.error("Erro ao finalizar ou cobrar:", err);
-    showToast("Erro ao processar finalização e pagamento.", "error");
-  }
-};
-  
-  const editarAgendamento = (id) => {
-    showToast("Funcionalidade de edição em breve!", "info");
   };
 
+  const editarAgendamento = (agendamento) => {
+    setAgendamentoSelecionado(agendamento);
+    setMostrarModalRemarcar(true);
+  };
+
+  const handleEditarAgendamento = async (agendamentoId, payload) => {
+    try {
+      const token = Cookies.get("token");
+      const api = process.env.REACT_APP_API_URL;
+
+      const res = await fetch(`${api}/agendamentos/editar/${agendamentoId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        showToast("Agendamento atualizado com sucesso!");
+        fetchDashboardData();
+      } else {
+        showToast("Erro ao atualizar agendamento.", "error");
+      }
+    } catch (err) {
+      console.error("Erro ao editar agendamento:", err);
+      showToast("Erro inesperado ao atualizar agendamento.", "error");
+    }
+  };
 
   const handleLogout = async () => {
     try {
       const token = Cookies.get("token");
       const api = process.env.REACT_APP_API_URL;
-  
+
       await fetch(`${api}/auth/logout`, {
         method: "POST", // importante!
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       Cookies.remove("token");
       navigate("/logout");
     } catch (error) {
@@ -312,10 +341,16 @@ const finalizarAgendamento = async (agendamento) => {
         <Title>AgendaVip</Title>
         {userName && <UserInfo>Bem-vindo de volta, {userName}!</UserInfo>}
         <ButtonGroup>
-          <Button onClick={() => setMostrarModalHistorico(true)} style={{ fontSize: "12px", padding: "8px 12px" }}>
+          <Button
+            onClick={() => setMostrarModalHistorico(true)}
+            style={{ fontSize: "12px", padding: "8px 12px" }}
+          >
             Histórico Completo
           </Button>
-          <Button onClick={() => setMostrarModalGerarAgenda(true)} style={{ fontSize: "12px", padding: "8px 12px" }}>
+          <Button
+            onClick={() => setMostrarModalGerarAgenda(true)}
+            style={{ fontSize: "12px", padding: "8px 12px" }}
+          >
             Gerar Agenda
           </Button>
           <Button bgColor="#ef4444" hoverColor="#dc2626" onClick={handleLogout}>
@@ -324,47 +359,13 @@ const finalizarAgendamento = async (agendamento) => {
         </ButtonGroup>
       </Header>
       <Content>
-      <Grid>
-        <Card style={{ flex: 1, gridColumn: "span 4" }}>
-          <h2>Agendamentos Pendentes</h2>
-          {agendamentosPendentesFuturos.length === 0 ? (
-            <p style={{ marginTop: "12px" }}>Nenhum agendamento pendente.</p>
-          ) : (
-            agendamentosPendentesFuturos.map((a) => (
-              <div key={a.id} style={{ marginTop: "12px", background: "#334155", padding: "12px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <p><strong>Cliente:</strong> {a.cliente}</p>
-                  <p><strong>Serviço:</strong> {a.servico}</p>
-                  <p><strong>Horário:</strong> {new Date(a.horario).toLocaleString("pt-BR")}</p>
-                  <p><strong>Status:</strong> Pendente</p>
-                </div>
-                <ActionButtons>
-                  <SmallButton bgColor="#006400" onClick={() => confirmarAgendamento(a.id)}>
-                    Confirmar
-                  </SmallButton>
-                  <SmallButton bgColor="#ff9900" onClick={() => editarAgendamento(a.id)}>
-                    Editar
-                  </SmallButton> 
-                  <SmallButton bgColor="#ef4444" onClick={() => recusarAgendamento(a.id)}>
-                    Recusar
-                  </SmallButton>
-                </ActionButtons>
-              </div>
-            ))
-          )}
-        </Card>
-        <Card style={{ flex: 1, gridColumn: "span 4" }}>
-          <h2>Agendamentos Futuros</h2>
-          {agendamentosConfirmados.length === 0 ? (
-            <p style={{ marginTop: "12px" }}>Nenhum agendamento confirmado.</p>
-          ) : (
-            agendamentosConfirmados.map((a) => {
-              const horaAgendada = new Date(a.horario);
-              const horaFinalPrevista = new Date(horaAgendada.getTime() + a.tempo * 60000);
-              const agora = new Date();
-              const podeFinalizar = agora > horaFinalPrevista;
-
-              return (
+        <Grid>
+          <Card style={{ flex: 1, gridColumn: "span 4" }}>
+            <h2>Agendamentos Pendentes</h2>
+            {agendamentosPendentesFuturos.length === 0 ? (
+              <p style={{ marginTop: "12px" }}>Nenhum agendamento pendente.</p>
+            ) : (
+              agendamentosPendentesFuturos.map((a) => (
                 <div
                   key={a.id}
                   style={{
@@ -378,49 +379,126 @@ const finalizarAgendamento = async (agendamento) => {
                   }}
                 >
                   <div>
-                    <p><strong>Cliente:</strong> {a.cliente}</p>
-                    <p><strong>Serviço:</strong> {a.servico}</p>
-                    <p><strong>Horário:</strong> {new Date(a.horario).toLocaleString("pt-BR")}</p>
-                    <p><strong>Status:</strong> Confirmado</p>
+                    <p>
+                      <strong>Cliente:</strong> {a.cliente}
+                    </p>
+                    <p>
+                      <strong>Serviço:</strong> {a.servico}
+                    </p>
+                    <p>
+                      <strong>Horário:</strong> {new Date(a.horario).toLocaleString("pt-BR")}
+                    </p>
+                    <p>
+                      <strong>Status:</strong> Pendente
+                    </p>
                   </div>
-                  {podeFinalizar && (
-                    <ActionButtons>
-                      <SmallButton
-                        bgColor="#10b981"
-                        onClick={() =>
-                          finalizarAgendamento({
-                            id: a.id,
-                            valor: a.preco,
-                            cliente_id: a.cliente_id,  // <-- aqui estava "cliente_id"
-                            email_cliente: a.email,
-                          })
-                        }
-                      >
-                        Finalizar
-                      </SmallButton>
-                    </ActionButtons>
-                  )}
+                  <ActionButtons>
+                    <SmallButton bgColor="#006400" onClick={() => confirmarAgendamento(a.id)}>
+                      Confirmar
+                    </SmallButton>
+                    <SmallButton bgColor="#ff9900" onClick={() => editarAgendamento(a)}>
+                      Editar
+                    </SmallButton>
+                    <SmallButton bgColor="#ef4444" onClick={() => recusarAgendamento(a.id)}>
+                      Recusar
+                    </SmallButton>
+                  </ActionButtons>
                 </div>
-              );
-            })
-          )}
-        </Card>
-        <Card style={{ flex: 1, gridColumn: "span 8" }}>
-          <h2>Agendamentos Recentes</h2>
-          {historicoFinalizados.length === 0 ? (
-            <p style={{ marginTop: "12px" }}>Nenhum atendimento finalizado nos últimos 2 dias.</p>
-          ) : (
-            historicoFinalizados.map((a) => (
-              <div key={a.id} style={{ marginTop: "12px", background: "#334155", padding: "12px", borderRadius: "8px" }}>
-                <p><strong>Cliente:</strong> {a.cliente}</p>
-                <p><strong>Serviço:</strong> {a.servico}</p>
-                <p><strong>Horário:</strong> {new Date(a.horario).toLocaleString("pt-BR")}</p>
-                <p><strong>Status:</strong> Finalizado</p>
-              </div>
-            ))
-          )}
-        </Card>
-      </Grid>
+              ))
+            )}
+          </Card>
+          <Card style={{ flex: 1, gridColumn: "span 4" }}>
+            <h2>Agendamentos Futuros</h2>
+            {agendamentosConfirmados.length === 0 ? (
+              <p style={{ marginTop: "12px" }}>Nenhum agendamento confirmado.</p>
+            ) : (
+              agendamentosConfirmados.map((a) => {
+                const horaAgendada = new Date(a.horario);
+                const horaFinalPrevista = new Date(horaAgendada.getTime() + a.tempo * 60000);
+                const agora = new Date();
+                const podeFinalizar = agora > horaFinalPrevista;
+
+                return (
+                  <div
+                    key={a.id}
+                    style={{
+                      marginTop: "12px",
+                      background: "#334155",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div>
+                      <p>
+                        <strong>Cliente:</strong> {a.cliente}
+                      </p>
+                      <p>
+                        <strong>Serviço:</strong> {a.servico}
+                      </p>
+                      <p>
+                        <strong>Horário:</strong> {new Date(a.horario).toLocaleString("pt-BR")}
+                      </p>
+                      <p>
+                        <strong>Status:</strong> Confirmado
+                      </p>
+                    </div>
+                    {podeFinalizar && (
+                      <ActionButtons>
+                        <SmallButton
+                          bgColor="#10b981"
+                          onClick={() =>
+                            finalizarAgendamento({
+                              id: a.id,
+                              valor: a.preco,
+                              cliente_id: a.cliente_id, // <-- aqui estava "cliente_id"
+                              email_cliente: a.email,
+                            })
+                          }
+                        >
+                          Finalizar
+                        </SmallButton>
+                      </ActionButtons>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </Card>
+          <Card style={{ flex: 1, gridColumn: "span 8" }}>
+            <h2>Agendamentos Recentes</h2>
+            {historicoFinalizados.length === 0 ? (
+              <p style={{ marginTop: "12px" }}>Nenhum atendimento finalizado nos últimos 2 dias.</p>
+            ) : (
+              historicoFinalizados.map((a) => (
+                <div
+                  key={a.id}
+                  style={{
+                    marginTop: "12px",
+                    background: "#334155",
+                    padding: "12px",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <p>
+                    <strong>Cliente:</strong> {a.cliente}
+                  </p>
+                  <p>
+                    <strong>Serviço:</strong> {a.servico}
+                  </p>
+                  <p>
+                    <strong>Horário:</strong> {new Date(a.horario).toLocaleString("pt-BR")}
+                  </p>
+                  <p>
+                    <strong>Status:</strong> Finalizado
+                  </p>
+                </div>
+              ))
+            )}
+          </Card>
+        </Grid>
       </Content>
       <Footer>
         <p>
@@ -430,6 +508,13 @@ const finalizarAgendamento = async (agendamento) => {
           <FooterLink href="/contato">Contato</FooterLink>
         </p>
       </Footer>
+      {mostrarModalRemarcar && agendamentoSelecionado && (
+        <ModalRemarcarHorarioProfissional
+          agendamento={agendamentoSelecionado}
+          onClose={() => setMostrarModalRemarcar(false)}
+          onConfirm={handleEditarAgendamento} // <-- Adicione isso
+        />
+      )}
       {mostrarModalHistorico && (
         <ModalHistoricoProfissional onClose={() => setMostrarModalHistorico(false)} />
       )}
@@ -454,4 +539,3 @@ const finalizarAgendamento = async (agendamento) => {
 };
 
 export default DashboardProfissional;
-  

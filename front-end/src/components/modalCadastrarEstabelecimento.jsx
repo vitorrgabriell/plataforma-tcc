@@ -125,18 +125,25 @@ const CadastrarEstabelecimentoModal = ({ isOpen, onClose, onSuccess }) => {
       });
 
       onSuccess?.(); // trigger sucesso externo
-      onClose();     // fecha o modal
+      onClose(); // fecha o modal
     } catch (err) {
       console.error("Erro recebido:", err.response?.data);
       const detail = err.response?.data?.detail;
-      setError(Array.isArray(detail) ? detail.map((d) => d.msg).join(", ") : detail || "Erro ao cadastrar.");
+      setError(
+        Array.isArray(detail) ? detail.map((d) => d.msg).join(", ") : detail || "Erro ao cadastrar."
+      );
     }
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <Overlay as={motion.div} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <Overlay
+          as={motion.div}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
           <ModalContent
             initial={{ y: -40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -147,19 +154,23 @@ const CadastrarEstabelecimentoModal = ({ isOpen, onClose, onSuccess }) => {
             <Title>Cadastro do Estabelecimento</Title>
             {error && <ErrorMessage>{error}</ErrorMessage>}
             <Form onSubmit={handleRegister}>
-                <FieldGroup>
-                    <Label>Nome do Estabelecimento</Label>
-                    <Input value={nome} onChange={(e) => setNome(e.target.value)} required />
-                </FieldGroup>
-                <FieldGroup>
-                    <Label>CNPJ</Label>
-                    <Input value={cnpj} onChange={(e) => setCnpj(e.target.value)} required />
-                </FieldGroup>
-                <FieldGroup>
-                    <Label>Tipo de Serviço</Label>
-                    <Input value={tipoServico} onChange={(e) => setTipoServico(e.target.value)} required />
-                </FieldGroup>
-                <Button type="submit">Cadastrar</Button>
+              <FieldGroup>
+                <Label>Nome do Estabelecimento</Label>
+                <Input value={nome} onChange={(e) => setNome(e.target.value)} required />
+              </FieldGroup>
+              <FieldGroup>
+                <Label>CNPJ</Label>
+                <Input value={cnpj} onChange={(e) => setCnpj(e.target.value)} required />
+              </FieldGroup>
+              <FieldGroup>
+                <Label>Tipo de Serviço</Label>
+                <Input
+                  value={tipoServico}
+                  onChange={(e) => setTipoServico(e.target.value)}
+                  required
+                />
+              </FieldGroup>
+              <Button type="submit">Cadastrar</Button>
             </Form>
           </ModalContent>
         </Overlay>

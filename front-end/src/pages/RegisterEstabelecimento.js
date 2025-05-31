@@ -97,31 +97,27 @@ const RegisterEstabelecimento = () => {
   const handleRegisterEstablishment = async (e) => {
     e.preventDefault();
     setError("");
-  
+
     try {
       const payload = {
         nome,
         cnpj,
         tipo_servico: tipoServico,
       };
-  
+
       const token = Cookies.get("token");
-  
+
       const api = process.env.REACT_APP_API_URL;
-      const response = await axios.post(
-        `${api}/estabelecimentos/`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.post(`${api}/estabelecimentos/`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
       navigate("/dashboard-admin");
     } catch (err) {
       console.error("Erro recebido:", err.response?.data);
-  
+
       const errorDetails = err.response?.data?.detail;
       if (Array.isArray(errorDetails)) {
         const errorMessages = errorDetails.map((detail) => detail.msg).join(", ");

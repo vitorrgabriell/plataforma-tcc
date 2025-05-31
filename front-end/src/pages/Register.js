@@ -88,17 +88,17 @@ const Register = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [tipoUsuario] = useState("cliente"); 
+  const [tipoUsuario] = useState("cliente");
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    setLoading(true); 
+    setLoading(true);
 
     try {
       const api = process.env.REACT_APP_API_URL;
@@ -114,7 +114,7 @@ const Register = () => {
         "Erro ao registrar. Tente novamente.";
       setError(errorMsg);
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 

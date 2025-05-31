@@ -136,56 +136,64 @@ const ModalHistoricoProfissional = ({ onClose }) => {
   const fetchHistorico = async () => {
     setLoading(true);
     try {
-        const token = Cookies.get("token");
-        const api = process.env.REACT_APP_API_URL;
-        const params = new URLSearchParams();
-
-        if (periodoRelativo) {
-        params.append("periodo", periodoRelativo);
-        } else {
-        if (mesReferencia) params.append("mes", mesReferencia);
-        if (servicoSelecionado) params.append("servico_id", servicoSelecionado);
-        }
-
-        const response = await fetch(`${api}/agendamentos/profissional/historico?${params.toString()}`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-        });
-
-        const data = await response.json();
-        setAgendamentos(data);
-    } catch (error) {
-        console.error("Erro ao buscar histórico:", error);
-    } finally {
-        setLoading(false);
-    }
-    };
-    useEffect(() => {
-    fetchHistorico();
-    }, []);
-
-  useEffect(() => {
-  const fetchServicos = async () => {
-    try {
       const token = Cookies.get("token");
       const api = process.env.REACT_APP_API_URL;
-      const res = await fetch(`${api}/servicos/profissional`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setServicos(data);
-    } catch (err) {
-      console.error("Erro ao buscar serviços:", err);
+      const params = new URLSearchParams();
+
+      if (periodoRelativo) {
+        params.append("periodo", periodoRelativo);
+      } else {
+        if (mesReferencia) params.append("mes", mesReferencia);
+        if (servicoSelecionado) params.append("servico_id", servicoSelecionado);
+      }
+
+      const response = await fetch(
+        `${api}/agendamentos/profissional/historico?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      setAgendamentos(data);
+    } catch (error) {
+      console.error("Erro ao buscar histórico:", error);
+    } finally {
+      setLoading(false);
     }
   };
+  useEffect(() => {
+    fetchHistorico();
+  }, []);
 
-  fetchServicos();
-}, []);
+  useEffect(() => {
+    const fetchServicos = async () => {
+      try {
+        const token = Cookies.get("token");
+        const api = process.env.REACT_APP_API_URL;
+        const res = await fetch(`${api}/servicos/profissional`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setServicos(data);
+      } catch (err) {
+        console.error("Erro ao buscar serviços:", err);
+      }
+    };
+
+    fetchServicos();
+  }, []);
 
   return (
     <AnimatePresence>
-      <Overlay as={motion.div} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <Overlay
+        as={motion.div}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
         <ModalContent
           initial={{ y: -40, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -197,40 +205,45 @@ const ModalHistoricoProfissional = ({ onClose }) => {
           <Title>Histórico de Atendimentos</Title>
           <FiltroContainer>
             <FiltrosLinha>
-                <div>
+              <div>
                 <Label>Período</Label>
-                <Select value={periodoRelativo} onChange={(e) => setPeriodoRelativo(e.target.value)}>
-                    <option value="">Todos</option>
-                    <option value="7dias">Últimos 7 dias</option>
-                    <option value="15dias">Últimos 15 dias</option>
-                    <option value="30dias">Últimos 30 dias</option>
-                    <option value="90dias">Últimos 90 dias</option>
+                <Select
+                  value={periodoRelativo}
+                  onChange={(e) => setPeriodoRelativo(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  <option value="7dias">Últimos 7 dias</option>
+                  <option value="15dias">Últimos 15 dias</option>
+                  <option value="30dias">Últimos 30 dias</option>
+                  <option value="90dias">Últimos 90 dias</option>
                 </Select>
-                </div>
-                <div>
+              </div>
+              <div>
                 <Label>Mês de Referência</Label>
                 <Input
-                    type="month"
-                    value={mesReferencia}
-                    onChange={(e) => setMesReferencia(e.target.value)}
+                  type="month"
+                  value={mesReferencia}
+                  onChange={(e) => setMesReferencia(e.target.value)}
                 />
-                </div>
-                <div>
+              </div>
+              <div>
                 <Label>Serviço</Label>
-                <Select value={servicoSelecionado} onChange={(e) => setServicoSelecionado(e.target.value)}>
-                    <option value="">Todos</option>
-                    {servicos.map((s) => (
+                <Select
+                  value={servicoSelecionado}
+                  onChange={(e) => setServicoSelecionado(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  {servicos.map((s) => (
                     <option key={s.id} value={s.id}>
-                        {s.nome}
+                      {s.nome}
                     </option>
-                    ))}
+                  ))}
                 </Select>
-                </div>
-                <div style={{justifyContent: "center"}}>
-                    <Button onClick={fetchHistorico}>Buscar</Button>
-                </div>
+              </div>
+              <div style={{ justifyContent: "center" }}>
+                <Button onClick={fetchHistorico}>Buscar</Button>
+              </div>
             </FiltrosLinha>
-
           </FiltroContainer>
           {loading ? (
             <p style={{ textAlign: "center" }}>Carregando...</p>
@@ -239,10 +252,18 @@ const ModalHistoricoProfissional = ({ onClose }) => {
           ) : (
             agendamentos.map((a) => (
               <AgendamentoCard key={a.id}>
-                <InfoText><span>Cliente:</span> {a.cliente}</InfoText>
-                <InfoText><span>Serviço:</span> {a.servico}</InfoText>
-                <InfoText><span>Preço:</span> R$ {a.preco.toFixed(2)}</InfoText>
-                <InfoText><span>Duração:</span> {a.tempo} min</InfoText>
+                <InfoText>
+                  <span>Cliente:</span> {a.cliente}
+                </InfoText>
+                <InfoText>
+                  <span>Serviço:</span> {a.servico}
+                </InfoText>
+                <InfoText>
+                  <span>Preço:</span> R$ {a.preco.toFixed(2)}
+                </InfoText>
+                <InfoText>
+                  <span>Duração:</span> {a.tempo} min
+                </InfoText>
                 <InfoText>
                   <span>Data/Hora:</span>{" "}
                   {new Date(a.horario).toLocaleString("pt-BR", {

@@ -4,7 +4,12 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 import os
 from dotenv import load_dotenv
-from app.schemas import CartaoRequest, ConfirmarCobrancaRequest, AgendamentoPagamento, DefinirCartaoPadraoRequest
+from app.schemas import (
+    CartaoRequest,
+    ConfirmarCobrancaRequest,
+    AgendamentoPagamento,
+    DefinirCartaoPadraoRequest,
+)
 from app.utils.dependencies import get_current_user
 from app.db.database import get_db
 from app.models.clientes import Cliente
@@ -15,8 +20,13 @@ load_dotenv()
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 router = APIRouter()
 
+
 @router.post("/cadastrar-cartao/")
-def cadastrar_cartao(data: CartaoRequest, usuario: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+def cadastrar_cartao(
+    data: CartaoRequest,
+    usuario: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     try:
         cliente = db.query(Cliente).filter(Cliente.id == data.cliente_id).first()
         if not cliente:
@@ -28,33 +38,33 @@ def cadastrar_cartao(data: CartaoRequest, usuario: dict = Depends(get_current_us
         if cliente.stripe_customer_id:
             customer_id = cliente.stripe_customer_id
         else:
-            stripe_cliente = stripe.Customer.create(
-                email=data.email,
-                name=data.nome
-            )
+            stripe_cliente = stripe.Customer.create(email=data.email, name=data.nome)
             customer_id = stripe_cliente.id
             cliente.stripe_customer_id = customer_id
             db.commit()
 
         setup_intent = stripe.SetupIntent.create(
-            customer=customer_id,
-            payment_method_types=["card"]
+            customer=customer_id, payment_method_types=["card"]
         )
 
-        return {
-            "client_secret": setup_intent.client_secret,
-            "customer_id": customer_id
-        }
+        return {"client_secret": setup_intent.client_secret, "customer_id": customer_id}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao iniciar cadastro do cartão: {str(e)}")
-    
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao iniciar cadastro do cartão: {str(e)}"
+        )
+
+
 @router.post("/definir-cartao-padrao/")
-def definir_cartao_padrao(data: DefinirCartaoPadraoRequest, usuario: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+def definir_cartao_padrao(
+    data: DefinirCartaoPadraoRequest,
+    usuario: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     try:
         stripe.Customer.modify(
             data.customer_id,
-            invoice_settings={"default_payment_method": data.payment_method_id}
+            invoice_settings={"default_payment_method": data.payment_method_id},
         )
 
         cliente = db.query(Cliente).filter(Cliente.usuario_id == usuario["id"]).first()
@@ -65,18 +75,27 @@ def definir_cartao_padrao(data: DefinirCartaoPadraoRequest, usuario: dict = Depe
         return {"message": "Cartão definido como padrão com sucesso"}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao definir cartão padrão: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao definir cartão padrão: {str(e)}"
+        )
+
 
 @router.get("/cartao-salvo/")
-def get_cartao_salvo(usuario: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_cartao_salvo(
+    usuario: dict = Depends(get_current_user), db: Session = Depends(get_db)
+):
     try:
         email = usuario.get("email")
         print("recebeu o email: ", email)
-        
-        if not email:
-            raise HTTPException(status_code=400, detail="Email não encontrado no token.")
 
-        db_cliente = db.query(Cliente).filter(Cliente.usuario_id == usuario["id"]).first()
+        if not email:
+            raise HTTPException(
+                status_code=400, detail="Email não encontrado no token."
+            )
+
+        db_cliente = (
+            db.query(Cliente).filter(Cliente.usuario_id == usuario["id"]).first()
+        )
 
         if not db_cliente or not db_cliente.stripe_customer_id:
             return {}
@@ -95,11 +114,14 @@ def get_cartao_salvo(usuario: dict = Depends(get_current_user), db: Session = De
             "brand": metodo.card.brand,
             "last4": metodo.card.last4,
             "exp_month": metodo.card.exp_month,
-            "exp_year": metodo.card.exp_year
+            "exp_year": metodo.card.exp_year,
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar cartão salvo: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao buscar cartão salvo: {str(e)}"
+        )
+
 
 @router.post("/cobrar-agendamento/")
 def cobrar_agendamento(data: AgendamentoPagamento, db: Session = Depends(get_db)):
@@ -107,17 +129,20 @@ def cobrar_agendamento(data: AgendamentoPagamento, db: Session = Depends(get_db)
     try:
         cliente = db.query(Cliente).filter(Cliente.id == data.cliente_id).first()
         if not cliente or not cliente.stripe_customer_id:
-            raise HTTPException(status_code=404, detail="Cliente ou Stripe ID não encontrado.")
+            raise HTTPException(
+                status_code=404, detail="Cliente ou Stripe ID não encontrado."
+            )
 
         print("Stripe customer ID:", cliente.stripe_customer_id)
 
         payment_methods = stripe.PaymentMethod.list(
-            customer=cliente.stripe_customer_id,
-            type="card"
+            customer=cliente.stripe_customer_id, type="card"
         )
 
         if not payment_methods.data:
-            raise HTTPException(status_code=400, detail="Nenhum cartão salvo encontrado.")
+            raise HTTPException(
+                status_code=400, detail="Nenhum cartão salvo encontrado."
+            )
 
         payment_method_id = payment_methods.data[0].id
         print("Usando payment method:", payment_method_id)
@@ -129,7 +154,7 @@ def cobrar_agendamento(data: AgendamentoPagamento, db: Session = Depends(get_db)
             payment_method=payment_method_id,
             off_session=True,
             confirm=True,
-            metadata={"descricao": "Pagamento de agendamento AgendaVip"}
+            metadata={"descricao": "Pagamento de agendamento AgendaVip"},
         )
 
         print("Intent criada:", intent)
@@ -155,10 +180,12 @@ def confirmar_cobranca(data: ConfirmarCobrancaRequest):
             payment_method=data.payment_method_id,
             off_session=True,
             confirm=True,
-            metadata={"descricao": "Cobranca automatica apos atendimento"}
+            metadata={"descricao": "Cobranca automatica apos atendimento"},
         )
         return {"status": intent.status, "payment_intent_id": intent.id}
     except stripe.error.CardError as e:
         raise HTTPException(status_code=402, detail=e.user_message)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao confirmar cobranca: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao confirmar cobranca: {str(e)}"
+        )

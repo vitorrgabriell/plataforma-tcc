@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import styled from "styled-components";
 import { jwtDecode } from "jwt-decode";
-import {motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion";
 import CadastrarEstabelecimentoModal from "../components/modalCadastrarEstabelecimento";
 import CadastroCartaoModal from "../components/modalCadastroCartao";
 
@@ -44,7 +44,7 @@ const ButtonGroup = styled.div`
 `;
 
 const Button = styled.button.withConfig({
-  shouldForwardProp: (prop) => !['bgColor', 'hoverColor'].includes(prop),
+  shouldForwardProp: (prop) => !["bgColor", "hoverColor"].includes(prop),
 })`
   background-color: ${(props) => props.bgColor || "#3b82f6"};
   color: white;
@@ -76,7 +76,9 @@ const EstablishmentCard = styled.div`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   color: #f1f5f9;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -124,14 +126,16 @@ const CardDescription = styled.p`
   color: #cbd5e1;
 `;
 
-const ArrowButton = styled.button.withConfig({
-  shouldForwardProp: (prop) => prop !== 'right',
-}).attrs(({ right }) => ({
-  style: {
-    right: right ? '10px' : undefined,
-    left: !right ? '10px' : undefined,
-  },
-}))`
+const ArrowButton = styled.button
+  .withConfig({
+    shouldForwardProp: (prop) => prop !== "right",
+  })
+  .attrs(({ right }) => ({
+    style: {
+      right: right ? "10px" : undefined,
+      left: !right ? "10px" : undefined,
+    },
+  }))`
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -177,9 +181,9 @@ const SectionTitle = styled.h3`
 const FlexWrapper = styled(motion.div)`
   display: flex;
   justify-content: ${({ count }) => {
-    if (count === 1) return 'center';
-    if (count === 2) return 'space-evenly';
-    return 'space-between';
+    if (count === 1) return "center";
+    if (count === 2) return "space-evenly";
+    return "space-between";
   }};
   flex-wrap: wrap;
   gap: 20px;
@@ -211,11 +215,13 @@ const AvaliacaoCard = styled.div`
   max-width: 300px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   color: #f1f5f9;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
   }
 `;
 
@@ -272,7 +278,8 @@ const DashboardCliente = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
   const [estabelecimentos, setEstabelecimentos] = useState([]);
-  const [mostrarModalCadastroEstabelecimento, setMostrarModalCadastroEstabelecimento] = useState(false);
+  const [mostrarModalCadastroEstabelecimento, setMostrarModalCadastroEstabelecimento] =
+    useState(false);
   const [avaliacoesRecentes, setAvaliacoesRecentes] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [pontosFidelidade, setPontosFidelidade] = useState([]);
@@ -281,8 +288,8 @@ const DashboardCliente = () => {
   const [showModalCartao, setShowModalCartao] = useState(false);
   const [loadingPontosEstabelecimento, setLoadingPontosEstabelecimento] = useState(true);
   const estabelecimentoMaisPontos = pontosFidelidadeEstabelecimento.reduce((maisPontos, atual) => {
-    return (atual.pontos_acumulados > (maisPontos?.pontos_acumulados || 0)) ? atual : maisPontos;
-  }, null);  
+    return atual.pontos_acumulados > (maisPontos?.pontos_acumulados || 0) ? atual : maisPontos;
+  }, null);
   const itemsPerPage = 3;
 
   const totalPages = Math.ceil(estabelecimentos.length / itemsPerPage);
@@ -305,7 +312,7 @@ const DashboardCliente = () => {
     const fetchEstabelecimentos = async () => {
       const token = Cookies.get("token");
       const api = process.env.REACT_APP_API_URL;
-    
+
       try {
         const res = await fetch(`${api}/estabelecimentos`, {
           headers: {
@@ -328,7 +335,7 @@ const DashboardCliente = () => {
     try {
       const res = await fetch(`${api}/avaliacoes/publicas`);
       const data = await res.json();
-  
+
       if (Array.isArray(data)) {
         setAvaliacoesRecentes(data);
       } else {
@@ -344,7 +351,7 @@ const DashboardCliente = () => {
     const fetchPontos = async () => {
       const token = Cookies.get("token");
       const api = process.env.REACT_APP_API_URL;
-  
+
       try {
         const res = await fetch(`${api}/fidelidade/ultimo-servico`, {
           headers: {
@@ -364,15 +371,15 @@ const DashboardCliente = () => {
         setLoadingPontos(false);
       }
     };
-  
+
     fetchPontos();
   }, []);
 
   useEffect(() => {
-    const fetchPontosEstabelecimento = async() => {
+    const fetchPontosEstabelecimento = async () => {
       const token = Cookies.get("token");
       const api = process.env.REACT_APP_API_URL;
-  
+
       try {
         const res = await fetch(`${api}/fidelidade/meus-pontos/estabelecimentos`, {
           headers: {
@@ -392,13 +399,16 @@ const DashboardCliente = () => {
         setLoadingPontosEstabelecimento(false);
       }
     };
-    const estabelecimentoMaisPontos = pontosFidelidadeEstabelecimento.reduce((maisPontos, atual) => {
-      return (atual.pontos_acumulados > (maisPontos?.pontos_acumulados || 0)) ? atual : maisPontos;
-    }, null);
-      
+    const estabelecimentoMaisPontos = pontosFidelidadeEstabelecimento.reduce(
+      (maisPontos, atual) => {
+        return atual.pontos_acumulados > (maisPontos?.pontos_acumulados || 0) ? atual : maisPontos;
+      },
+      null
+    );
+
     fetchPontosEstabelecimento();
   }, []);
-  
+
   useEffect(() => {
     fetchAvaliacoes();
   }, []);
@@ -407,14 +417,14 @@ const DashboardCliente = () => {
     try {
       const token = Cookies.get("token");
       const api = process.env.REACT_APP_API_URL;
-  
+
       await fetch(`${api}/auth/logout`, {
-        method: "POST", 
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       Cookies.remove("token");
       navigate("/logout");
     } catch (error) {
@@ -432,7 +442,8 @@ const DashboardCliente = () => {
     const estrelasVazias = "☆".repeat(5 - notaNumerica);
     return (
       <div style={{ color: "#facc15", fontSize: "16px" }}>
-        {estrelasCheias}{estrelasVazias}
+        {estrelasCheias}
+        {estrelasVazias}
       </div>
     );
   };
@@ -447,11 +458,7 @@ const DashboardCliente = () => {
             <Button onClick={() => setMostrarModalCadastroEstabelecimento(true)}>
               Cadastrar meu estabelecimento
             </Button>
-            <Button
-              bgColor="#ef4444"
-              hoverColor="#dc2626"
-              onClick={handleLogout}
-            >
+            <Button bgColor="#ef4444" hoverColor="#dc2626" onClick={handleLogout}>
               Sair
             </Button>
           </ButtonGroup>
@@ -462,40 +469,41 @@ const DashboardCliente = () => {
         <p>Escolha um local para agendar seus serviços favoritos com facilidade.</p>
       </TitleSection>
       <Content>
-        <div style={{ position: 'relative', width: '100%' }}>
-        {currentPage > 0 && (
-          <ArrowButton onClick={() => setCurrentPage((prev) => prev - 1)}>
-            &lt;
-          </ArrowButton>
-        )}
-        {currentPage < totalPages - 1 && (
-          <ArrowButton right onClick={() => setCurrentPage((prev) => prev + 1)}>
-            &gt;
-          </ArrowButton>
-        )}
-        <FlexWrapper count={currentEstabelecimentos.length}>
-        <AnimatePresence mode="wait">
-          <MotionWrapper
-            key={currentPage}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.4 }}
-          >
-            <FlexWrapper count={currentEstabelecimentos.length}>
-              {currentEstabelecimentos.map((est) => (
-                <EstablishmentCard key={est.id} onClick={() => handleSelectEstabelecimento(est.id)}>
-                  <CardTitle>{est.nome}</CardTitle>
-                  <CardDescription>
-                    <strong>Tipo:</strong> {est.tipo_servico}
-                  </CardDescription>
-                </EstablishmentCard>
-              ))}
-            </FlexWrapper>
-          </MotionWrapper>
-        </AnimatePresence>
-        </FlexWrapper>
-      </div>
+        <div style={{ position: "relative", width: "100%" }}>
+          {currentPage > 0 && (
+            <ArrowButton onClick={() => setCurrentPage((prev) => prev - 1)}>&lt;</ArrowButton>
+          )}
+          {currentPage < totalPages - 1 && (
+            <ArrowButton right onClick={() => setCurrentPage((prev) => prev + 1)}>
+              &gt;
+            </ArrowButton>
+          )}
+          <FlexWrapper count={currentEstabelecimentos.length}>
+            <AnimatePresence mode="wait">
+              <MotionWrapper
+                key={currentPage}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.4 }}
+              >
+                <FlexWrapper count={currentEstabelecimentos.length}>
+                  {currentEstabelecimentos.map((est) => (
+                    <EstablishmentCard
+                      key={est.id}
+                      onClick={() => handleSelectEstabelecimento(est.id)}
+                    >
+                      <CardTitle>{est.nome}</CardTitle>
+                      <CardDescription>
+                        <strong>Tipo:</strong> {est.tipo_servico}
+                      </CardDescription>
+                    </EstablishmentCard>
+                  ))}
+                </FlexWrapper>
+              </MotionWrapper>
+            </AnimatePresence>
+          </FlexWrapper>
+        </div>
       </Content>
       <SectionWrapper>
         <SectionGrid>
@@ -506,10 +514,18 @@ const DashboardCliente = () => {
             ) : pontosFidelidade && pontosFidelidade.estabelecimento_nome ? (
               <CardList>
                 <AvaliacaoCard>
-                  <strong>Estabelecimento:</strong> {pontosFidelidade.estabelecimento_nome}<br />
-                  <strong>Serviço:</strong> {pontosFidelidade.servico_nome || '---'}<br />
-                  <strong>Valor:</strong> R${pontosFidelidade.valor ? Number(pontosFidelidade.valor).toFixed(2) : '---'}<br />
-                  <strong>Data:</strong> {pontosFidelidade.data_inicio ? new Date(pontosFidelidade.data_inicio).toLocaleDateString('pt-BR') : '---'}<br />
+                  <strong>Estabelecimento:</strong> {pontosFidelidade.estabelecimento_nome}
+                  <br />
+                  <strong>Serviço:</strong> {pontosFidelidade.servico_nome || "---"}
+                  <br />
+                  <strong>Valor:</strong> R$
+                  {pontosFidelidade.valor ? Number(pontosFidelidade.valor).toFixed(2) : "---"}
+                  <br />
+                  <strong>Data:</strong>{" "}
+                  {pontosFidelidade.data_inicio
+                    ? new Date(pontosFidelidade.data_inicio).toLocaleDateString("pt-BR")
+                    : "---"}
+                  <br />
                 </AvaliacaoCard>
               </CardList>
             ) : (
@@ -523,34 +539,43 @@ const DashboardCliente = () => {
               <p style={{ color: "#cbd5e1" }}>Carregando pontos...</p>
             ) : estabelecimentoMaisPontos ? (
               <AvaliacaoCard>
-                <strong>Estabelecimento:</strong> {estabelecimentoMaisPontos.estabelecimento_nome}<br/>
+                <strong>Estabelecimento:</strong> {estabelecimentoMaisPontos.estabelecimento_nome}
+                <br />
                 <strong>Pontos acumulados:</strong> {estabelecimentoMaisPontos.pontos_acumulados}
               </AvaliacaoCard>
             ) : (
-              <p style={{ color: "#cbd5e1" }}>Você ainda não acumulou pontos em estabelecimentos.</p>
+              <p style={{ color: "#cbd5e1" }}>
+                Você ainda não acumulou pontos em estabelecimentos.
+              </p>
             )}
           </div>
           <div>
             <SectionTitle>Avaliações Recentes</SectionTitle>
             <CardList>
-            {avaliacoesRecentes.map((a, index) => {
-              return (
-                <AvaliacaoCard key={index}>
-                  <strong>{a.cliente} para {a.estabelecimento}</strong>
-                  <p>{a.comentario}</p>
-                  {renderEstrelas(a.nota)}
-                </AvaliacaoCard>
-              );
-            })}
+              {avaliacoesRecentes.map((a, index) => {
+                return (
+                  <AvaliacaoCard key={index}>
+                    <strong>
+                      {a.cliente} para {a.estabelecimento}
+                    </strong>
+                    <p>{a.comentario}</p>
+                    {renderEstrelas(a.nota)}
+                  </AvaliacaoCard>
+                );
+              })}
             </CardList>
           </div>
         </SectionGrid>
-          <SectionTitle style={{ marginTop: "32px" }}>Atalhos Rápidos</SectionTitle>
-          <AtalhoWrapper>
-            <AtalhoButton onClick={() => navigate("/recompensa-fidelidade")}>Aproveitar pontos</AtalhoButton>
-            <AtalhoButton onClick={() => navigate("/meus-agendamentos")}>Histórico e avaliações</AtalhoButton>
-            <AtalhoButton onClick={() => setShowModalCartao(true)}>Gerenciar Cartões</AtalhoButton>
-          </AtalhoWrapper>
+        <SectionTitle style={{ marginTop: "32px" }}>Atalhos Rápidos</SectionTitle>
+        <AtalhoWrapper>
+          <AtalhoButton onClick={() => navigate("/recompensa-fidelidade")}>
+            Aproveitar pontos
+          </AtalhoButton>
+          <AtalhoButton onClick={() => navigate("/meus-agendamentos")}>
+            Histórico e avaliações
+          </AtalhoButton>
+          <AtalhoButton onClick={() => setShowModalCartao(true)}>Gerenciar Cartões</AtalhoButton>
+        </AtalhoWrapper>
       </SectionWrapper>
       <Footer>
         <p>
@@ -567,10 +592,7 @@ const DashboardCliente = () => {
           setMostrarModalCadastroEstabelecimento(false);
         }}
       />
-      <CadastroCartaoModal
-        show={showModalCartao}
-        onClose={() => setShowModalCartao(false)}
-      />
+      <CadastroCartaoModal show={showModalCartao} onClose={() => setShowModalCartao(false)} />
     </Container>
   );
 };

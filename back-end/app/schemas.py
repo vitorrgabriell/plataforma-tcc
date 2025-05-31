@@ -3,18 +3,22 @@ from sqlalchemy import Column, Integer, String, DateTime, func
 from typing import Optional, List
 from datetime import datetime, date, time
 
+
 class EstabelecimentoBase(BaseModel):
     nome: str
     cnpj: str
-    tipo_servico: str 
+    tipo_servico: str
+
 
 class EstabelecimentoCreate(EstabelecimentoBase):
     pass
+
 
 class EstabelecimentoUpdate(BaseModel):
     nome: str
     cnpj: str
     tipo_servico: str
+
 
 class EstabelecimentoResponse(BaseModel):
     id: int
@@ -25,12 +29,14 @@ class EstabelecimentoResponse(BaseModel):
     class Config:
         orm_mode = True
 
+
 class UserCreate(BaseModel):
     nome: str
     email: EmailStr
     senha: str
     tipo_usuario: str
     estabelecimento_id: int
+
 
 class UserResponse(BaseModel):
     id: int
@@ -39,14 +45,17 @@ class UserResponse(BaseModel):
     tipo_usuario: str
     pontos_acumulados: int
 
+
 class UpdateUser(BaseModel):
     nome: str
     email: EmailStr
     tipo_usuario: str
     senha: Optional[str] = None
 
+
 class RecuperarSenhaRequest(BaseModel):
     email: EmailStr
+
 
 class ResetarSenhaRequest(BaseModel):
     token: str
@@ -60,9 +69,11 @@ class RegisterUser(BaseModel):
     tipo_usuario: str
     estabelecimento_id: Optional[int] = None
 
+
 class Login(BaseModel):
     email: EmailStr
     senha: str
+
 
 class BlacklistTokenSchema(BaseModel):
     token: str
@@ -71,20 +82,24 @@ class BlacklistTokenSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
 class FuncionarioBase(BaseModel):
     nome: str
     email: EmailStr
     cargo: str
+
 
 class FuncionarioCreate(BaseModel):
     nome: str
     email: str
     senha: str
 
+
 class FuncionarioUpdate(BaseModel):
     nome: str
     email: str
     senha: Optional[str] = None
+
 
 class FuncionarioResponse(BaseModel):
     id: int
@@ -96,6 +111,7 @@ class FuncionarioResponse(BaseModel):
     class Config:
         orm_mode = True
 
+
 class AvaliacaoBase(BaseModel):
     cliente_id: int
     profissional_id: int
@@ -103,18 +119,22 @@ class AvaliacaoBase(BaseModel):
     nota: int
     comentario: Optional[str] = None
 
+
 class AvaliacaoCreate(AvaliacaoBase):
     pass
+
 
 class AvaliacaoUpdate(BaseModel):
     nota: Optional[int] = None
     comentario: Optional[str] = None
+
 
 class AvaliacaoPublicaResponse(BaseModel):
     cliente: str
     estabelecimento: str
     comentario: str
     nota: int
+
 
 class AvaliacaoResponse(BaseModel):
     id: int
@@ -128,16 +148,20 @@ class AvaliacaoResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class AgendamentoBase(BaseModel):
     profissional_id: int
     servico_id: int
     horario: datetime
 
+
 class AgendamentoCreate(AgendamentoBase):
     pass
 
+
 class AgendamentoUpdate(BaseModel):
     horario_id: int
+
 
 class AgendamentoResponse(AgendamentoBase):
     id: int
@@ -147,6 +171,7 @@ class AgendamentoResponse(AgendamentoBase):
 
     class Config:
         from_attributes = True
+
 
 class AgendamentoCanceladoResponse(BaseModel):
     id: int
@@ -161,9 +186,11 @@ class AgendamentoCanceladoResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class AgendaBase(BaseModel):
     profissional_id: int
     data_hora: datetime
+
 
 class AgendaCreate(BaseModel):
     profissional_id: int
@@ -174,6 +201,7 @@ class AgendaCreate(BaseModel):
     horario_inicio: time
     horario_fim: time
 
+
 class AgendaResponse(AgendaBase):
     id: int
     ocupado: bool
@@ -181,6 +209,7 @@ class AgendaResponse(AgendaBase):
 
     class Config:
         from_attributes = True
+
 
 class GerarAgendaRequest(BaseModel):
     profissional_id: int
@@ -190,6 +219,7 @@ class GerarAgendaRequest(BaseModel):
     horarios_personalizados: list[str]
     duracao_minutos: int
 
+
 class GerarAgendaAdminRequest(BaseModel):
     data_inicio: str
     data_fim: str
@@ -198,6 +228,7 @@ class GerarAgendaAdminRequest(BaseModel):
     horario_fim: str
     duracao_minutos: int
 
+
 class ConfiguracaoAgendaCreate(BaseModel):
     profissional_id: int
     dia_semana: str
@@ -205,10 +236,12 @@ class ConfiguracaoAgendaCreate(BaseModel):
     hora_fim: str
     duracao_slot: int = 30
 
+
 class ConfiguracaoAgendaUpdate(BaseModel):
     hora_inicio: str
     hora_fim: str
     duracao_slot: int = 30
+
 
 class ConfiguracaoAgendaResponse(BaseModel):
     id: int
@@ -221,17 +254,21 @@ class ConfiguracaoAgendaResponse(BaseModel):
     class Config:
         orm_mode = True
 
+
 class ServicoBase(BaseModel):
     nome: str
     descricao: str
     preco: float
     tempo: int  # novo campo (em minutos)
 
+
 class ServicoCreate(ServicoBase):
     pass
 
+
 class ServicoUpdate(ServicoBase):
     pass
+
 
 class ServicoResponse(ServicoBase):
     id: int
@@ -240,10 +277,12 @@ class ServicoResponse(ServicoBase):
 
     class Config:
         orm_mode = True
-    
+
+
 class ProgramaFidelidadeBase(BaseModel):
     descricao_premio: str
     pontos_necessarios: int
+
 
 class ProgramaFidelidadeCreate(BaseModel):
     estabelecimento_id: int
@@ -251,10 +290,12 @@ class ProgramaFidelidadeCreate(BaseModel):
     pontos_necessarios: int
     ativo: bool = True
 
+
 class ProgramaFidelidadeUpdate(BaseModel):
     descricao_premio: str
     pontos_necessarios: int
     ativo: bool
+
 
 class ProgramaFidelidadeResponse(ProgramaFidelidadeBase):
     id: int
@@ -265,13 +306,16 @@ class ProgramaFidelidadeResponse(ProgramaFidelidadeBase):
     class Config:
         orm_mode = True
 
+
 class ResgateFidelidadeBase(BaseModel):
     cliente_id: int
     programa_fidelidade_id: int
 
+
 class ResgateFidelidadeCreate(BaseModel):
     cliente_id: int
     programa_fidelidade_id: int
+
 
 class ResgateFidelidadeResponse(ResgateFidelidadeBase):
     id: int
@@ -280,9 +324,11 @@ class ResgateFidelidadeResponse(ResgateFidelidadeBase):
     class Config:
         orm_mode = True
 
+
 class CartaoRequest(BaseModel):
     email: EmailStr
     nome: str
+
 
 class ConfirmarCobrancaRequest(BaseModel):
     customer_id: str
@@ -290,10 +336,12 @@ class ConfirmarCobrancaRequest(BaseModel):
     valor_em_centavos: int
     payment_intent_id: str
 
+
 class AgendamentoPagamento(BaseModel):
     valor_em_centavos: int
     email_cliente: EmailStr
     cliente_id: int
+
 
 class DefinirCartaoPadraoRequest(BaseModel):
     customer_id: str

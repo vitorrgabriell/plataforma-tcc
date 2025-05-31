@@ -14,8 +14,9 @@ ses = boto3.client(
     'ses',
     region_name=AWS_REGION,
     aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
 )
+
 
 def enviar_email_recuperacao(destinatario_email, token):
     link = f"{FRONTEND_RESET_URL}/{token}"
@@ -27,13 +28,16 @@ def enviar_email_recuperacao(destinatario_email, token):
                 'Subject': {'Data': 'Redefinição de Senha - AgendaVip'},
                 'Body': {
                     'Html': {'Data': montar_email_html(link)},
-                    'Text': {'Data': f"Olá,\n\nClique aqui para redefinir sua senha:\n{link}"}
-                }
-            }
+                    'Text': {
+                        'Data': f"Olá,\n\nClique aqui para redefinir sua senha:\n{link}"
+                    },
+                },
+            },
         )
     except Exception as e:
         print(f"[ERRO AO ENVIAR E-MAIL SES] {e}")
         raise HTTPException(status_code=500, detail="Erro ao enviar e-mail.")
+
 
 def montar_email_html(link):
     return f"""
@@ -112,4 +116,3 @@ def montar_email_html(link):
       </body>
     </html>
     """
-

@@ -157,9 +157,12 @@ const ModalFidelidade = ({ onClose, onSuccess, showToast }) => {
   useEffect(() => {
     const fetchProgramaExistente = async () => {
       try {
-        const res = await axios.get(`${api}/fidelidade/programa?estabelecimento_id=${estabelecimento_id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await axios.get(
+          `${api}/fidelidade/programa?estabelecimento_id=${estabelecimento_id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const data = res.data;
         if (data && data.length > 0) {
           const programa = data[0];
@@ -172,49 +175,57 @@ const ModalFidelidade = ({ onClose, onSuccess, showToast }) => {
         console.error(err);
       }
     };
-  
+
     if (modo === "editar") {
       fetchProgramaExistente();
     }
-  }, [modo]);  
+  }, [modo]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const payload = {
       estabelecimento_id,
       descricao_premio: descricao,
       pontos_necessarios: parseInt(pontos),
-      ativo
+      ativo,
     };
-  
+
     try {
       if (modo === "editar") {
-        const res = await axios.get(`${api}/fidelidade/programa?estabelecimento_id=${estabelecimento_id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-  
+        const res = await axios.get(
+          `${api}/fidelidade/programa?estabelecimento_id=${estabelecimento_id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
         const programaExistente = res.data[0];
         if (!programaExistente) throw new Error("Programa não encontrado para edição");
-  
+
         await axios.patch(`${api}/fidelidade/programa/${programaExistente.id}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
-  
+
         showToast("Programa de fidelidade atualizado com sucesso!");
       } else {
         const headers = { Authorization: `Bearer ${token}` };
         if (modo === "editar") {
-          const res = await axios.get(`${api}/fidelidade/programa?estabelecimento_id=${estabelecimento_id}`, { headers });
+          const res = await axios.get(
+            `${api}/fidelidade/programa?estabelecimento_id=${estabelecimento_id}`,
+            { headers }
+          );
           const programaExistente = res.data[0];
-          await axios.patch(`${api}/fidelidade/programa/${programaExistente.id}`, payload, { headers });
+          await axios.patch(`${api}/fidelidade/programa/${programaExistente.id}`, payload, {
+            headers,
+          });
         } else {
           await axios.post(`${api}/fidelidade/programa`, payload, { headers });
         }
-  
+
         showToast("Programa de fidelidade criado com sucesso!");
       }
-  
+
       onSuccess();
     } catch (err) {
       console.error("Erro ao salvar programa:", err);
@@ -229,9 +240,13 @@ const ModalFidelidade = ({ onClose, onSuccess, showToast }) => {
         <Title>Configurar Fidelidade</Title>
 
         {!modo && (
-          <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginTop: "24px" }}>
+          <div
+            style={{ display: "flex", gap: "16px", justifyContent: "center", marginTop: "24px" }}
+          >
             <Button onClick={() => setModo("adicionar")}>Adicionar Novo</Button>
-            <Button onClick={() => setModo("editar")} bgColor="#64748b" hoverColor="#475569">Editar Existente</Button>
+            <Button onClick={() => setModo("editar")} bgColor="#64748b" hoverColor="#475569">
+              Editar Existente
+            </Button>
           </div>
         )}
 
@@ -256,14 +271,10 @@ const ModalFidelidade = ({ onClose, onSuccess, showToast }) => {
                 min="1"
               />
             </FormGroup>
-            <FormGroup style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <FormGroup style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <label>Programa Ativo</label>
               <ToggleSwitch>
-                <input
-                  type="checkbox"
-                  checked={ativo}
-                  onChange={() => setAtivo(!ativo)}
-                />
+                <input type="checkbox" checked={ativo} onChange={() => setAtivo(!ativo)} />
                 <Slider />
               </ToggleSwitch>
             </FormGroup>

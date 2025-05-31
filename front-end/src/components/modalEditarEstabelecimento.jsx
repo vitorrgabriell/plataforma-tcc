@@ -140,7 +140,9 @@ const ModalEditarEstabelecimento = ({ onClose, onSuccess, showToast }) => {
           </FormGroup>
           <ButtonGroup>
             <Button type="submit">Salvar</Button>
-            <Button type="button" bgColor="#64748b" hoverColor="#475569" onClick={onClose}>Voltar</Button>
+            <Button type="button" bgColor="#64748b" hoverColor="#475569" onClick={onClose}>
+              Voltar
+            </Button>
           </ButtonGroup>
         </form>
       </ModalBox>

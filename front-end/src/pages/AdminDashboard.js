@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import styled from "styled-components";
-import GraficoFaturamento from "../components/graficoFaturamento"
+import GraficoFaturamento from "../components/graficoFaturamento";
 import GraficoServicosAgendamentos from "../components/graficoServicosAgendamentos";
 import ModalEditarEstabelecimento from "../components/modalEditarEstabelecimento";
-import ModalFuncionario from "../components/modalFuncionario"; 
+import ModalFuncionario from "../components/modalFuncionario";
 import ModalEditarFuncionario from "../components/modalEditFuncionario";
 import ModalServico from "../components/modalServico";
 import ModalEditarServico from "../components/modalEditServico";
-import ModalGerarAgenda from "../components/modalGerarAgenda"
+import ModalGerarAgenda from "../components/modalGerarAgenda";
 import ModalConfirmacao from "../components/modalConfirmacao";
 import ModalFidelidade from "../components/modalFidelidade";
 import ToastNotification from "../components/ToastNotification";
@@ -259,42 +259,46 @@ const AdminDashboard = () => {
     }
   }, []);
 
-const handleConfirmarExclusao = async () => {
-  const token = Cookies.get("token");
-  const api = process.env.REACT_APP_API_URL;
+  const handleConfirmarExclusao = async () => {
+    const token = Cookies.get("token");
+    const api = process.env.REACT_APP_API_URL;
 
-  let rota = "";
-  if (tipoExclusao === "funcionario") rota = "funcionarios";
-  else if (tipoExclusao === "servicos") rota = "servicos";
+    let rota = "";
+    if (tipoExclusao === "funcionario") rota = "funcionarios";
+    else if (tipoExclusao === "servicos") rota = "servicos";
 
-  try {
-    const response = await fetch(`${api}/${rota}/${idParaExcluir}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  
-    let data = {};
     try {
-      data = await response.json(); 
+      const response = await fetch(`${api}/${rota}/${idParaExcluir}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (err) {
+        console.warn("Resposta sem JSON (provável 204):", err);
+      }
+
+      if (response.ok) {
+        showToast(
+          data.message ||
+            `${tipoExclusao === "funcionario" ? "Funcionário" : "Serviço"} excluído com sucesso!`,
+          "success"
+        );
+        fetchDashboardData();
+      } else {
+        showToast(data.message || `Erro ao excluir ${tipoExclusao}.`, "error");
+      }
     } catch (err) {
-      console.warn("Resposta sem JSON (provável 204):", err);
+      console.error(`Erro ao excluir ${tipoExclusao}:`, err);
+      showToast(`Erro inesperado ao excluir ${tipoExclusao}.`, "error");
+    } finally {
+      setMostrarConfirmacao(false);
     }
-  
-    if (response.ok) {
-      showToast(data.message || `${tipoExclusao === "funcionario" ? "Funcionário" : "Serviço"} excluído com sucesso!`, "success");
-      fetchDashboardData();
-    } else {
-      showToast(data.message || `Erro ao excluir ${tipoExclusao}.`, "error");
-    }
-  } catch (err) {
-    console.error(`Erro ao excluir ${tipoExclusao}:`, err);
-    showToast(`Erro inesperado ao excluir ${tipoExclusao}.`, "error");
-  } finally{
-    setMostrarConfirmacao(false);
-  }
-};
+  };
 
   const fetchDashboardData = async () => {
     const token = Cookies.get("token");
@@ -305,43 +309,55 @@ const handleConfirmarExclusao = async () => {
       const estabelecimento_id = decoded.estabelecimento_id;
 
       try {
-        const resProfissionais = await fetch(`${api}/funcionarios/?estabelecimento_id=${estabelecimento_id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }); 
+        const resProfissionais = await fetch(
+          `${api}/funcionarios/?estabelecimento_id=${estabelecimento_id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         const profissionaisData = await resProfissionais.json();
         setProfissionais(Array.isArray(profissionaisData) ? profissionaisData : []);
 
-        const resAgendamentos = await fetch(`${api}/agendamentos/?estabelecimento_id=${estabelecimento_id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });          
+        const resAgendamentos = await fetch(
+          `${api}/agendamentos/?estabelecimento_id=${estabelecimento_id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         const agendamentosData = await resAgendamentos.json();
         setAgendamentos(Array.isArray(agendamentosData) ? agendamentosData : []);
 
-        const resCancelados = await fetch(`${api}/agendamentos/cancelados?estabelecimento_id=${estabelecimento_id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const resCancelados = await fetch(
+          `${api}/agendamentos/cancelados?estabelecimento_id=${estabelecimento_id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         const canceladosData = await resCancelados.json();
         setCancelados(Array.isArray(canceladosData) ? canceladosData : []);
-        
 
-        const resServicos = await fetch(`${api}/servicos/?estabelecimento_id=${estabelecimento_id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const resServicos = await fetch(
+          `${api}/servicos/?estabelecimento_id=${estabelecimento_id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         const servicosData = await resServicos.json();
         setServicos(Array.isArray(servicosData) ? servicosData : []);
 
-        const resAvaliacoes = await fetch(`${api}/avaliacoes/?estabelecimento_id=${estabelecimento_id}`);
+        const resAvaliacoes = await fetch(
+          `${api}/avaliacoes/?estabelecimento_id=${estabelecimento_id}`
+        );
         const avaliacoesData = await resAvaliacoes.json();
         setAvaliacoes(Array.isArray(avaliacoesData) ? avaliacoesData : []);
-
       } catch (error) {
         console.error("Erro ao buscar dados do dashboard:", error);
         setProfissionais([]);
@@ -350,11 +366,14 @@ const handleConfirmarExclusao = async () => {
         setServicos([]);
         setAvaliacoes([]);
       }
-      const resFidelidade = await fetch(`${api}/fidelidade/resumo?estabelecimento_id=${estabelecimento_id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const resFidelidade = await fetch(
+        `${api}/fidelidade/resumo?estabelecimento_id=${estabelecimento_id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const fidelidadeData = await resFidelidade.json();
-      setFidelidade(fidelidadeData);      
+      setFidelidade(fidelidadeData);
     }
   };
 
@@ -366,29 +385,32 @@ const handleConfirmarExclusao = async () => {
     const token = Cookies.get("token");
     const decoded = JSON.parse(atob(token.split(".")[1]));
     const estabelecimento_id = decoded.estabelecimento_id;
-  
-    fetch(`${process.env.REACT_APP_API_URL}/fidelidade/resumo?estabelecimento_id=${estabelecimento_id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+
+    fetch(
+      `${process.env.REACT_APP_API_URL}/fidelidade/resumo?estabelecimento_id=${estabelecimento_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
       .then((res) => res.json())
       .then((data) => setResumoFidelidade(data))
       .catch((err) => console.error("Erro ao carregar fidelidade:", err));
   }, []);
-  
+
   const handleLogout = async () => {
     try {
       const token = Cookies.get("token");
       const api = process.env.REACT_APP_API_URL;
-  
+
       await fetch(`${api}/auth/logout`, {
-        method: "POST", 
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       Cookies.remove("token");
       navigate("/logout");
     } catch (error) {
@@ -396,9 +418,9 @@ const handleConfirmarExclusao = async () => {
     }
   };
   const agendamentosFuturos = agendamentos.filter((a) => {
-    return new Date(a.horario + "Z") > new Date()
+    return new Date(a.horario + "Z") > new Date();
   });
-  
+
   const canceladosFuturos = cancelados.filter((c) => {
     return new Date(c.horario) > new Date();
   });
@@ -409,12 +431,17 @@ const handleConfirmarExclusao = async () => {
         <Title>AgendaVip</Title>
         {userName && <UserInfo>Bem-vindo de volta, {userName}!</UserInfo>}
         <ButtonGroup>
-        <Button /* onClick={() => setMostrarModalHistorico(true)} */ style={{ fontSize: "12px", padding: "8px 12px" }}>
-          Histórico Completo
-        </Button>
-        <Button onClick={() => setMostrarModalEditarEstabelecimento(true)}>
-          Editar Estabelecimento
-        </Button>
+          <Button
+            /* onClick={() => setMostrarModalHistorico(true)} */ style={{
+              fontSize: "12px",
+              padding: "8px 12px",
+            }}
+          >
+            Histórico Completo
+          </Button>
+          <Button onClick={() => setMostrarModalEditarEstabelecimento(true)}>
+            Editar Estabelecimento
+          </Button>
           <Button $bgColor="#ef4444" $hoverColor="#dc2626" onClick={handleLogout}>
             Sair
           </Button>
@@ -424,34 +451,41 @@ const handleConfirmarExclusao = async () => {
       <Content>
         <GridWrapper>
           <Div1>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "12px",
+              }}
+            >
               <CardTitle>Funcionários</CardTitle>
-              <Button onClick={() => setMostrarModal(true)}>
-                Cadastrar Funcionário
-              </Button>
+              <Button onClick={() => setMostrarModal(true)}>Cadastrar Funcionário</Button>
             </div>
             {profissionais.map((p) => (
               <CustomCard key={p.id}>
                 <FuncionarioInfoWrapper>
                   <NomeFuncionario>{p.nome}</NomeFuncionario>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                  <ActionButton
-                    bgColor="#6366F1"
-                    onClick={() => {
-                      setFuncionarioSelecionado(p.id);
-                      setMostrarModalEditar(true);
-                    }}>
-                    Editar
-                  </ActionButton>
-                  <ActionButton
-                  bgColor="#EF4444"
-                  onClick={() => {
-                    setTipoExclusao("funcionario");
-                    setIdParaExcluir(p.id);
-                    setMostrarConfirmacao(true);
-                  }}>
-                  Excluir
-                </ActionButton>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <ActionButton
+                      bgColor="#6366F1"
+                      onClick={() => {
+                        setFuncionarioSelecionado(p.id);
+                        setMostrarModalEditar(true);
+                      }}
+                    >
+                      Editar
+                    </ActionButton>
+                    <ActionButton
+                      bgColor="#EF4444"
+                      onClick={() => {
+                        setTipoExclusao("funcionario");
+                        setIdParaExcluir(p.id);
+                        setMostrarConfirmacao(true);
+                      }}
+                    >
+                      Excluir
+                    </ActionButton>
                   </div>
                 </FuncionarioInfoWrapper>
               </CustomCard>
@@ -459,19 +493,27 @@ const handleConfirmarExclusao = async () => {
           </Div1>
 
           <Div2>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "12px",
+              }}
+            >
               <CardTitle>Agendamentos</CardTitle>
-              <Button onClick={() => setMostrarModalGerarAgenda(true)}>
-                Gerar Agenda
-              </Button>
+              <Button onClick={() => setMostrarModalGerarAgenda(true)}>Gerar Agenda</Button>
             </div>
             {agendamentosFuturos.map((a) => (
               <CustomCard key={a.id}>
-              {a.cliente} agendou {a.servico} com {a.profissional} <br />
-              💵 R$ {a.preco.toFixed(2)} em {new Date(a.horario).toLocaleString("pt-BR")}
-            </CustomCard>            
+                {a.cliente} agendou {a.servico} com {a.profissional} <br />
+                💵 R$ {a.preco.toFixed(2)} em {new Date(a.horario).toLocaleString("pt-BR")}
+              </CustomCard>
             ))}
-            <CardTitle>Cancelados Recentemente <span style={{ color: '#ef4444' }}>({cancelados.length})</span></CardTitle>
+            <CardTitle>
+              Cancelados Recentemente{" "}
+              <span style={{ color: "#ef4444" }}>({cancelados.length})</span>
+            </CardTitle>
             {canceladosFuturos.map((c, index) => (
               <CustomCard key={index}>
                 {c.cliente} cancelou {c.servico} com {c.profissional} <br />
@@ -483,11 +525,16 @@ const handleConfirmarExclusao = async () => {
 
           <Div3>
             <CardColumn>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "12px",
+                }}
+              >
                 <CardTitle>Serviços</CardTitle>
-                <Button onClick={() => setMostrarModalServico(true)}>
-                  Cadastrar Serviço
-                </Button>
+                <Button onClick={() => setMostrarModalServico(true)}>Cadastrar Serviço</Button>
               </div>
               {servicos.length === 0 ? (
                 <CustomCard>Nenhum serviço cadastrado.</CustomCard>
@@ -497,23 +544,25 @@ const handleConfirmarExclusao = async () => {
                     <FuncionarioInfoWrapper>
                       <NomeFuncionario>{servico.nome}</NomeFuncionario>
                       <div style={{ display: "flex", gap: "8px" }}>
-                      <ActionButton
-                        bgColor="#6366F1"
-                        onClick={() => {
-                          setServicoSelecionado(servico.id);
-                          setMostrarModalEditarServico(true);
-                        }}>
-                        Editar
-                      </ActionButton>
-                      <ActionButton
-                        bgColor="#EF4444"
-                        onClick={() => {
-                          setTipoExclusao("servicos");
-                          setIdParaExcluir(servico.id);
-                          setMostrarConfirmacao(true);
-                        }}>
-                        Excluir
-                      </ActionButton>
+                        <ActionButton
+                          bgColor="#6366F1"
+                          onClick={() => {
+                            setServicoSelecionado(servico.id);
+                            setMostrarModalEditarServico(true);
+                          }}
+                        >
+                          Editar
+                        </ActionButton>
+                        <ActionButton
+                          bgColor="#EF4444"
+                          onClick={() => {
+                            setTipoExclusao("servicos");
+                            setIdParaExcluir(servico.id);
+                            setMostrarConfirmacao(true);
+                          }}
+                        >
+                          Excluir
+                        </ActionButton>
                       </div>
                     </FuncionarioInfoWrapper>
                   </CustomCard>
@@ -522,15 +571,21 @@ const handleConfirmarExclusao = async () => {
               {fidelidade && (
                 <>
                   <div style={{ marginBottom: "12px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
                       <CardTitle>Fidelidade</CardTitle>
-                      <Button onClick={() => setMostrarModalFidelidade(true)}>
-                        Configurar
-                      </Button>
+                      <Button onClick={() => setMostrarModalFidelidade(true)}>Configurar</Button>
                     </div>
                   </div>
                   <CustomCard>
-                    <p>Programa: <strong>{fidelidade.ativo ? "Ativo ✅" : "Inativo ❌"}</strong></p>
+                    <p>
+                      Programa: <strong>{fidelidade.ativo ? "Ativo ✅" : "Inativo ❌"}</strong>
+                    </p>
                     <p>Regra: {fidelidade.regra}</p>
                     <p>Gratuitos concedidos: {fidelidade.servicosGratuitos}</p>
                   </CustomCard>
@@ -554,8 +609,11 @@ const handleConfirmarExclusao = async () => {
               ) : (
                 avaliacoes.map((a, index) => (
                   <CustomCard key={index}>
-                    <span style={{ fontStyle: "italic" }}>“{a.comentario}”</span><br />
-                    <small>⭐ {a.nota ?? "Sem nota"} — {a.cliente ?? "Anônimo"}</small>
+                    <span style={{ fontStyle: "italic" }}>“{a.comentario}”</span>
+                    <br />
+                    <small>
+                      ⭐ {a.nota ?? "Sem nota"} — {a.cliente ?? "Anônimo"}
+                    </small>
                   </CustomCard>
                 ))
               )}
@@ -588,7 +646,7 @@ const handleConfirmarExclusao = async () => {
             fetchDashboardData();
             setMostrarModal(false);
           }}
-          showToast={showToast} 
+          showToast={showToast}
         />
       )}
       {mostrarModalEditar && funcionarioSelecionado && (
@@ -598,6 +656,7 @@ const handleConfirmarExclusao = async () => {
           onSuccess={() => {
             fetchDashboardData();
             setMostrarModalEditar(false);
+            showToast("Funcionário atualizado com sucesso!", "success");
           }}
         />
       )}
@@ -613,49 +672,48 @@ const handleConfirmarExclusao = async () => {
         />
       )}
       {mostrarModalEditarServico && servicoSelecionado && (
-      <ModalEditarServico
-        servicoId={servicoSelecionado}
-        onClose={() => setMostrarModalEditarServico(false)}
-        onSuccess={() => {
-          fetchDashboardData();
-          setMostrarModalEditarServico(false);
-        }}
-        showToast={showToast}
+        <ModalEditarServico
+          servicoId={servicoSelecionado}
+          onClose={() => setMostrarModalEditarServico(false)}
+          onSuccess={() => {
+            fetchDashboardData();
+            setMostrarModalEditarServico(false);
+          }}
+          showToast={showToast}
+        />
+      )}
+      {mostrarModalGerarAgenda && (
+        <ModalGerarAgenda
+          onClose={() => setMostrarModalGerarAgenda(false)}
+          onSuccess={() => {
+            fetchDashboardData();
+            setMostrarModalGerarAgenda(false);
+          }}
+        />
+      )}
+      {mostrarConfirmacao && (
+        <ModalConfirmacao
+          tipo={tipoExclusao}
+          onConfirmar={handleConfirmarExclusao}
+          onCancelar={() => setMostrarConfirmacao(false)}
+        />
+      )}
+      <ToastNotification
+        message={toast.message}
+        type={toast.type}
+        show={toast.show}
+        onClose={() => setToast({ ...toast, show: false })}
       />
-    )}
-    {mostrarModalGerarAgenda && (
-      <ModalGerarAgenda
-        onClose={() => setMostrarModalGerarAgenda(false)}
-        onSuccess={() => {
-          fetchDashboardData();
-          setMostrarModalGerarAgenda(false);
-        }}
-      />
-    )}
-    {mostrarConfirmacao && (
-      <ModalConfirmacao
-        tipo={tipoExclusao}
-        onConfirmar={handleConfirmarExclusao}
-        onCancelar={() => setMostrarConfirmacao(false)}
-      />
-    )}
-    <ToastNotification
-      message={toast.message}
-      type={toast.type}
-      show={toast.show}
-      onClose={() => setToast({ ...toast, show: false })}
-    />
-    {mostrarModalFidelidade && (
-      <ModalFidelidade
-        onClose={() => setMostrarModalFidelidade(false)}
-        onSuccess={() => {
-          fetchDashboardData();
-          setMostrarModalFidelidade(false);
-        }}
-        showToast={showToast} 
-      />
-    )}
-
+      {mostrarModalFidelidade && (
+        <ModalFidelidade
+          onClose={() => setMostrarModalFidelidade(false)}
+          onSuccess={() => {
+            fetchDashboardData();
+            setMostrarModalFidelidade(false);
+          }}
+          showToast={showToast}
+        />
+      )}
     </Container>
   );
 };

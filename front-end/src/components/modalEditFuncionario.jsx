@@ -176,21 +176,11 @@ const ModalEditarFuncionario = ({ funcionarioId, onClose, onSuccess }) => {
         <form onSubmit={handleSubmit}>
           <FormGroup>
             <label>Nome</label>
-            <input
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              required
-            />
+            <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} required />
           </FormGroup>
           <FormGroup>
             <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </FormGroup>
           <FormGroup>
             <label>Senha (opcional)</label>

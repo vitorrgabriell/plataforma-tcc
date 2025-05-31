@@ -27,7 +27,7 @@ function App() {
         <Route path="/dashboard-profissional" element={<DashboardProfissional />} />
         <Route path="/dashboard-admin" element={<AdminDashboard />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/register-estabelecimento" element={<RegisterEstabelecimento />} />  
+        <Route path="/register-estabelecimento" element={<RegisterEstabelecimento />} />
         <Route path="/recompensa-fidelidade" element={<RecompensaFidelidadePage />} />
         <Route path="/logout" element={<Logout />} />
       </Routes>
@@ -36,4 +36,3 @@ function App() {
 }
 
 export default App;
-

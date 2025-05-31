@@ -90,7 +90,6 @@ const RegisterLink = styled.p`
   }
 `;
 
-
 const Login = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -102,7 +101,7 @@ const Login = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
-  
+
     try {
       const api = process.env.REACT_APP_API_URL;
 
@@ -110,13 +109,13 @@ const Login = () => {
         email,
         senha,
       });
-  
+
       const { access_token, tipo_usuario } = response.data;
-  
+
       setSuccess("Login realizado");
-  
+
       Cookies.set("token", access_token, { expires: 1 });
-  
+
       if (tipo_usuario === "cliente") {
         navigate("/dashboard-cliente");
       } else if (tipo_usuario === "profissional") {
@@ -134,7 +133,11 @@ const Login = () => {
       <FormWrapper>
         <Title>Login - AgendaVip</Title>
         {error && <ErrorMessage>{error}</ErrorMessage>}
-        {success && <p style={{ color: "green", textAlign: "center", fontSize: "14px", marginTop: "10px" }}>{success}</p>}
+        {success && (
+          <p style={{ color: "green", textAlign: "center", fontSize: "14px", marginTop: "10px" }}>
+            {success}
+          </p>
+        )}
         <form onSubmit={handleLogin}>
           <Input
             type="email"

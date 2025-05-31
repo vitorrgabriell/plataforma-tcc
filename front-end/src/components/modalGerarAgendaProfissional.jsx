@@ -83,12 +83,18 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
   const [dataInicial, setDataInicial] = useState("");
   const [semanaToda, setSemanaToda] = useState(false);
   const [usarPadrao, setUsarPadrao] = useState(true);
-  const [horarios, setHorarios] = useState(["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]);
+  const [horarios, setHorarios] = useState([
+    "08:00",
+    "09:00",
+    "10:00",
+    "11:00",
+    "14:00",
+    "15:00",
+    "16:00",
+  ]);
 
   const handleToggleHorario = (hora) => {
-    setHorarios((prev) =>
-      prev.includes(hora) ? prev.filter((h) => h !== hora) : [...prev, hora]
-    );
+    setHorarios((prev) => (prev.includes(hora) ? prev.filter((h) => h !== hora) : [...prev, hora]));
   };
 
   const handleSubmit = async () => {
@@ -96,13 +102,13 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
       showToast("Escolha uma data inicial.", "error");
       return;
     }
-  
+
     try {
       const token = Cookies.get("token");
       const decoded = JSON.parse(atob(token.split(".")[1]));
       const api = process.env.REACT_APP_API_URL?.replace(/\/+$/, "");
       const url = `${api}/agenda/gerar-agenda/`;
-  
+
       console.log("API URL sendo usada:", api);
       console.log("Requisição POST para:", url);
       console.log("Payload:", {
@@ -113,12 +119,12 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
         profissional_id: decoded.funcionario_id,
         duracao_minutos: 30,
       });
-  
+
       if (!decoded.funcionario_id) {
         showToast("ID do profissional não encontrado no token.", "error");
         return;
       }
-  
+
       const response = await axios.post(
         url,
         {
@@ -133,7 +139,7 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
+
       if (response.status === 200 || response.status === 201) {
         showToast("Agenda gerada com sucesso!", "success");
         onSuccess();
@@ -142,17 +148,17 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
       }
     } catch (error) {
       console.error("Erro ao gerar agenda:", error);
-  
+
       if (error.response) {
         const err = error.response.data;
-  
+
         if (Array.isArray(err)) {
-          const msgs = err.map(e => e.msg).join(" | ");
+          const msgs = err.map((e) => e.msg).join(" | ");
           showToast(msgs, "error");
         } else if (typeof err.detail === "string") {
           showToast(err.detail, "error");
         } else if (Array.isArray(err.detail)) {
-          const msgs = err.detail.map(e => e.msg).join(" | ");
+          const msgs = err.detail.map((e) => e.msg).join(" | ");
           showToast(msgs, "error");
         } else {
           showToast("Erro ao gerar agenda. Detalhes desconhecidos.", "error");
@@ -208,7 +214,9 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
         )}
 
         <ButtonGroup>
-          <Button bgColor="#64748b" hoverColor="#475569" onClick={onClose}>Cancelar</Button>
+          <Button bgColor="#64748b" hoverColor="#475569" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button onClick={handleSubmit}>Gerar</Button>
         </ButtonGroup>
       </ModalContainer>

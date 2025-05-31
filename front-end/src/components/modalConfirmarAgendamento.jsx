@@ -48,19 +48,14 @@ const Button = styled.button`
   font-weight: bold;
   cursor: pointer;
   color: white;
-  background-color: ${props => props.cancel ? '#ef4444' : '#3b82f6'};
+  background-color: ${(props) => (props.cancel ? "#ef4444" : "#3b82f6")};
 
   &:hover {
-    background-color: ${props => props.cancel ? '#dc2626' : '#2563eb'};
+    background-color: ${(props) => (props.cancel ? "#dc2626" : "#2563eb")};
   }
 `;
 
-const ModalConfirmarAgendamento = ({
-  isOpen,
-  onClose,
-  onConfirm,
-  agendamentoData
-}) => {
+const ModalConfirmarAgendamento = ({ isOpen, onClose, onConfirm, agendamentoData }) => {
   return (
     <Overlay>
       <ModalBox
@@ -69,13 +64,23 @@ const ModalConfirmarAgendamento = ({
         exit={{ opacity: 0, scale: 0.8 }}
       >
         <Title>Confirmar Agendamento</Title>
-        <InfoLine><strong>Estabelecimento:</strong> {agendamentoData.estabelecimento}</InfoLine>
-        <InfoLine><strong>Serviço:</strong> {agendamentoData.servico}</InfoLine>
-        <InfoLine><strong>Valor:</strong> R${parseFloat(agendamentoData.valor).toFixed(2)}</InfoLine>
-        <InfoLine><strong>Horário:</strong> {new Date(agendamentoData.horario).toLocaleString()}</InfoLine>
+        <InfoLine>
+          <strong>Estabelecimento:</strong> {agendamentoData.estabelecimento}
+        </InfoLine>
+        <InfoLine>
+          <strong>Serviço:</strong> {agendamentoData.servico}
+        </InfoLine>
+        <InfoLine>
+          <strong>Valor:</strong> R${parseFloat(agendamentoData.valor).toFixed(2)}
+        </InfoLine>
+        <InfoLine>
+          <strong>Horário:</strong> {new Date(agendamentoData.horario).toLocaleString()}
+        </InfoLine>
 
         <ButtonGroup>
-          <Button cancel onClick={onClose}>Cancelar</Button>
+          <Button cancel onClick={onClose}>
+            Cancelar
+          </Button>
           <Button onClick={onConfirm}>Confirmar</Button>
         </ButtonGroup>
       </ModalBox>

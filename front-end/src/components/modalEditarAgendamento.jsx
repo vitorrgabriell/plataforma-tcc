@@ -111,7 +111,7 @@ const ModalEditarAgendamento = ({
   onConfirm,
   setToastMessage,
   setToastType,
-  setShowToast
+  setShowToast,
 }) => {
   const [servicos, setServicos] = useState([]);
   const [profissionais, setProfissionais] = useState([]);
@@ -121,8 +121,6 @@ const ModalEditarAgendamento = ({
   const [horarios, setHorarios] = useState([]);
   const [availableHorarios, setAvailableHorarios] = useState([]);
   const [novoHorarioId, setNovoHorarioId] = useState("");
-
-  
 
   const podeEditar = new Date(agendamento.horario).getTime() - Date.now() > 2 * 60 * 60 * 1000;
 
@@ -134,16 +132,16 @@ const ModalEditarAgendamento = ({
       try {
         const token = Cookies.get("token");
         const api = process.env.REACT_APP_API_URL;
-  
+
         // 1. Buscar o profissional pelo ID do agendamento
         const profissionalRes = await fetch(`${api}/funcionarios/${agendamento.profissional_id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-  
+
         const profissional = await profissionalRes.json();
-  
+
         const estabelecimentoId = profissional.estabelecimento_id;
-  
+
         // 2. Com o estabelecimento_id agora em mãos, buscar os dados:
         const [servicosRes, profissionaisRes] = await Promise.all([
           fetch(`${api}/servicos/?estabelecimento_id=${estabelecimentoId}`, {
@@ -153,20 +151,23 @@ const ModalEditarAgendamento = ({
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
-  
+
         const servicosData = await servicosRes.json();
         const profissionaisData = await profissionaisRes.json();
-  
+
         setServicos(servicosData);
         setProfissionais(profissionaisData);
-  
+
         // 3. Pega os horários do profissional atual
-        const horariosRes = await fetch(`${api}/agenda/?profissional_id=${agendamento.profissional_id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-  
+        const horariosRes = await fetch(
+          `${api}/agenda/?profissional_id=${agendamento.profissional_id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
         const horariosDisponiveis = await horariosRes.json();
-  
+
         const slots = Array.isArray(horariosDisponiveis)
           ? horariosDisponiveis
               .filter((h) => new Date(h.data_hora).getTime() >= Date.now())
@@ -181,26 +182,25 @@ const ModalEditarAgendamento = ({
                 originalDate: h.data_hora,
               }))
           : [];
-  
+
         setHorarios(slots);
-  
+
         const dataAgendada = new Date(agendamento.horario).toLocaleDateString("pt-BR");
         setSelectedDate(new Date(agendamento.horario));
-  
+
         const filtrados = slots.filter((slot) => slot.date === dataAgendada);
         setAvailableHorarios(filtrados);
-  
+
         const slotAtual = slots.find(
           (h) =>
-            new Date(h.originalDate).toISOString() ===
-            new Date(agendamento.horario).toISOString()
+            new Date(h.originalDate).toISOString() === new Date(agendamento.horario).toISOString()
         );
         setNovoHorarioId(slotAtual?.id || "");
       } catch (err) {
         console.error("Erro ao carregar dados do modal de edição:", err);
       }
     };
-  
+
     if (agendamento?.profissional_id && agendamento?.horario) {
       carregarServicosEProfissionais();
     }
@@ -242,9 +242,7 @@ const ModalEditarAgendamento = ({
     setAvailableHorarios(filtrados);
 
     const slotAtual = filtrados.find(
-      (h) =>
-        new Date(h.originalDate).toISOString() ===
-        new Date(agendamento.horario).toISOString()
+      (h) => new Date(h.originalDate).toISOString() === new Date(agendamento.horario).toISOString()
     );
     setNovoHorarioId(slotAtual?.id || "");
   }, [selectedDate, horarios, agendamento.horario]);
@@ -252,7 +250,10 @@ const ModalEditarAgendamento = ({
   const handleSubmit = async () => {
     if (novoHorarioId) {
       try {
-        await onConfirm(agendamento.id, novoHorarioId);
+        await onConfirm(agendamento.id, {
+          horario_id: novoHorarioId,
+          profissional_id: Number(selectedProfessional),
+        });
         setToastMessage("Agendamento atualizado com sucesso!");
         setToastType("success");
         setShowToast(true);

@@ -67,7 +67,11 @@ const CadastroCartaoForm = ({ onClose }) => {
 
   useEffect(() => {
     if (!token) {
-      setToast({ show: true, message: "Você precisa estar logado para ver o cartão.", type: "error" });
+      setToast({
+        show: true,
+        message: "Você precisa estar logado para ver o cartão.",
+        type: "error",
+      });
       setTokenValido(false);
     } else {
       try {
@@ -159,7 +163,11 @@ const CadastroCartaoForm = ({ onClose }) => {
   if (!tokenValido) return null;
 
   return (
-    <ModalContent initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}>
+    <ModalContent
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 40 }}
+    >
       {etapa === "inicio" && (
         <>
           <h2>Gerenciar Cartão</h2>
@@ -182,8 +190,13 @@ const CadastroCartaoForm = ({ onClose }) => {
             />
             <span style={{ textTransform: "capitalize" }}>{cartao.brand}</span>
           </p>
-          <p><strong>Final:</strong> **** **** **** {cartao.last4}</p>
-          <p><strong>Expira:</strong> {String(cartao.exp_month).padStart(2, "0")}/{String(cartao.exp_year).slice(-2)}</p>
+          <p>
+            <strong>Final:</strong> **** **** **** {cartao.last4}
+          </p>
+          <p>
+            <strong>Expira:</strong> {String(cartao.exp_month).padStart(2, "0")}/
+            {String(cartao.exp_year).slice(-2)}
+          </p>
           <Button onClick={() => setEtapa("novo")}>Cadastrar Novo Cartão</Button>
           <BackButton onClick={() => setEtapa("inicio")}>Voltar</BackButton>
         </>
@@ -216,7 +229,9 @@ const CadastroCartaoForm = ({ onClose }) => {
             <Button type="submit" disabled={!stripe || loading}>
               {loading ? "Salvando..." : "Cadastrar Cartão"}
             </Button>
-            <BackButton type="button" onClick={() => setEtapa("inicio")}>Voltar</BackButton>
+            <BackButton type="button" onClick={() => setEtapa("inicio")}>
+              Voltar
+            </BackButton>
           </form>
         </>
       )}
@@ -234,7 +249,12 @@ const CadastroCartaoForm = ({ onClose }) => {
 const CadastroCartaoModal = ({ show, onClose }) => (
   <AnimatePresence>
     {show && (
-      <Overlay as={motion.div} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <Overlay
+        as={motion.div}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
         <Elements stripe={stripePromise}>
           <CadastroCartaoForm onClose={onClose} />
         </Elements>

@@ -13,17 +13,27 @@ dynamodb = boto3.resource(
     "dynamodb",
     region_name=aws_region,
     aws_access_key_id=aws_access_key,
-    aws_secret_access_key=aws_secret_key
+    aws_secret_access_key=aws_secret_key,
 )
 
 table = dynamodb.Table("servicos_finalizados_plataforma_tcc")
 pontos_table = dynamodb.Table("pontos_fidelidade_plataforma_tcc")
 
-def salvar_servico_finalizado(agendamento, cliente_nome, profissional_nome, estabelecimento_nome, servico_nome, tempo, valor, estabelecimento_id):
+
+def salvar_servico_finalizado(
+    agendamento,
+    cliente_nome,
+    profissional_nome,
+    estabelecimento_nome,
+    servico_nome,
+    tempo,
+    valor,
+    estabelecimento_id,
+):
     response = table.put_item(
         Item={
-            "id_agendamento": str(agendamento.id), 
-            "id": str(uuid4()),                  
+            "id_agendamento": str(agendamento.id),
+            "id": str(uuid4()),
             "cliente_id": agendamento.cliente_id,
             "cliente_nome": cliente_nome,
             "profissional_id": agendamento.profissional_id,
@@ -36,12 +46,21 @@ def salvar_servico_finalizado(agendamento, cliente_nome, profissional_nome, esta
             "valor": Decimal(str(valor)),
             "data_inicio": agendamento.horario.isoformat(),
             "data_fim": (agendamento.horario + timedelta(minutes=tempo)).isoformat(),
-            "criado_em": datetime.utcnow().isoformat()
+            "criado_em": datetime.utcnow().isoformat(),
         }
     )
     return response
 
-def salvar_ponto_fidelidade(cliente_id, cliente_nome, estabelecimento_id, estabelecimento_nome, servico_nome, valor_servico, data_servico):
+
+def salvar_ponto_fidelidade(
+    cliente_id,
+    cliente_nome,
+    estabelecimento_id,
+    estabelecimento_nome,
+    servico_nome,
+    valor_servico,
+    data_servico,
+):
     response = pontos_table.put_item(
         Item={
             "pk": f"CLIENTE#{cliente_id}",
@@ -54,19 +73,19 @@ def salvar_ponto_fidelidade(cliente_id, cliente_nome, estabelecimento_id, estabe
             "valor_servico": Decimal(str(valor_servico)),
             "pontos_ganhos": 1,
             "data_servico": data_servico.isoformat(),
-            "criado_em": datetime.utcnow().isoformat()
+            "criado_em": datetime.utcnow().isoformat(),
         }
     )
     return response
 
+
 def listar_pontos_cliente(cliente_id: int):
     response = pontos_table.query(
         KeyConditionExpression="pk = :pk_val",
-        ExpressionAttributeValues={
-            ":pk_val": f"CLIENTE#{cliente_id}"
-        }
+        ExpressionAttributeValues={":pk_val": f"CLIENTE#{cliente_id}"},
     )
     return response.get("Items", [])
+
 
 def buscar_ultimo_servico_cliente(cliente_id: int):
     try:
@@ -74,7 +93,7 @@ def buscar_ultimo_servico_cliente(cliente_id: int):
             IndexName="cliente_id-data_fim-index",  # requer GSI com sort por data_fim
             KeyConditionExpression=Key("cliente_id").eq(cliente_id),
             ScanIndexForward=False,  # do mais recente para o mais antigo
-            Limit=1
+            Limit=1,
         )
         items = response.get("Items", [])
         return items[0] if items else None

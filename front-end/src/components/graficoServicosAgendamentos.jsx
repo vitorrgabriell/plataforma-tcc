@@ -48,7 +48,7 @@ const GraficoServicosAgendamentos = () => {
         <YAxis />
         <Tooltip
           contentStyle={{
-            backgroundColor: "#1e293b", 
+            backgroundColor: "#1e293b",
             border: "1px solid #334155",
             borderRadius: "8px",
             color: "#f1f5f9",
@@ -59,7 +59,7 @@ const GraficoServicosAgendamentos = () => {
             fontWeight: "bold",
           }}
           itemStyle={{
-            color: "#60a5fa", 
+            color: "#60a5fa",
           }}
         />
         <Legend />

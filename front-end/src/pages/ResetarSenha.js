@@ -91,13 +91,10 @@ const ResetarSenha = () => {
 
     try {
       const api = process.env.REACT_APP_API_URL;
-      const res = await axios.post(
-        `${api}/auth/resetar-senha/`,
-        {
-          token,
-          nova_senha: novaSenha,
-        }
-      );
+      const res = await axios.post(`${api}/auth/resetar-senha/`, {
+        token,
+        nova_senha: novaSenha,
+      });
 
       showToast(res.data.message || "Senha redefinida com sucesso!", "success");
       setTimeout(() => navigate("/login"), 3000);

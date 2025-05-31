@@ -165,7 +165,9 @@ const MeusAgendamentos = () => {
       return;
     }
 
-    alert(`Avaliação enviada para o agendamento ${id}!\nNota: ${avaliacao.nota}\nComentário: ${avaliacao.comentario}`);
+    alert(
+      `Avaliação enviada para o agendamento ${id}!\nNota: ${avaliacao.nota}\nComentário: ${avaliacao.comentario}`
+    );
   };
 
   const handleRepetir = async (id) => {

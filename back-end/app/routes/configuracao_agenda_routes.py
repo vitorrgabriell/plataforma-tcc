@@ -6,26 +6,30 @@ from app.models.configuracao_agenda import ConfiguracaoAgenda
 from app.schemas import (
     ConfiguracaoAgendaCreate,
     ConfiguracaoAgendaUpdate,
-    ConfiguracaoAgendaResponse
+    ConfiguracaoAgendaResponse,
 )
 
 router = APIRouter()
+
 
 @router.post("/", response_model=ConfiguracaoAgendaResponse)
 def criar_configuracao_agenda(
     config: ConfiguracaoAgendaCreate,
     db: Session = Depends(get_db),
-    user=Depends(get_current_user)
+    user=Depends(get_current_user),
 ):
     if user["tipo_usuario"] != "admin":
-        raise HTTPException(status_code=403, detail="Apenas administradores podem cadastrar configurações de agenda.")
+        raise HTTPException(
+            status_code=403,
+            detail="Apenas administradores podem cadastrar configurações de agenda.",
+        )
 
     nova_config = ConfiguracaoAgenda(
         profissional_id=config.profissional_id,
         dia_semana=config.dia_semana.lower(),
         hora_inicio=config.hora_inicio,
         hora_fim=config.hora_fim,
-        duracao_slot=config.duracao_slot
+        duracao_slot=config.duracao_slot,
     )
 
     db.add(nova_config)
@@ -36,13 +40,14 @@ def criar_configuracao_agenda(
 
 @router.get("/{profissional_id}", response_model=list[ConfiguracaoAgendaResponse])
 def listar_configuracoes(
-    profissional_id: int,
-    db: Session = Depends(get_db),
-    user=Depends(get_current_user)
+    profissional_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
-    return db.query(ConfiguracaoAgenda).filter(
-        ConfiguracaoAgenda.profissional_id == profissional_id
-    ).order_by(ConfiguracaoAgenda.dia_semana).all()
+    return (
+        db.query(ConfiguracaoAgenda)
+        .filter(ConfiguracaoAgenda.profissional_id == profissional_id)
+        .order_by(ConfiguracaoAgenda.dia_semana)
+        .all()
+    )
 
 
 @router.put("/{config_id}", response_model=ConfiguracaoAgendaResponse)
@@ -50,10 +55,12 @@ def atualizar_configuracao_agenda(
     config_id: int,
     dados: ConfiguracaoAgendaUpdate,
     db: Session = Depends(get_db),
-    user=Depends(get_current_user)
+    user=Depends(get_current_user),
 ):
     if user["tipo_usuario"] != "admin":
-        raise HTTPException(status_code=403, detail="Apenas administradores podem editar configurações.")
+        raise HTTPException(
+            status_code=403, detail="Apenas administradores podem editar configurações."
+        )
 
     config = db.query(ConfiguracaoAgenda).filter_by(id=config_id).first()
     if not config:
@@ -70,12 +77,13 @@ def atualizar_configuracao_agenda(
 
 @router.delete("/{config_id}", status_code=status.HTTP_204_NO_CONTENT)
 def deletar_configuracao_agenda(
-    config_id: int,
-    db: Session = Depends(get_db),
-    user=Depends(get_current_user)
+    config_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
     if user["tipo_usuario"] != "admin":
-        raise HTTPException(status_code=403, detail="Apenas administradores podem deletar configurações.")
+        raise HTTPException(
+            status_code=403,
+            detail="Apenas administradores podem deletar configurações.",
+        )
 
     config = db.query(ConfiguracaoAgenda).filter_by(id=config_id).first()
     if not config:

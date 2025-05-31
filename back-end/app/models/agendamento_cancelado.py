@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.database import Base
 
+
 class AgendamentoCancelado(Base):
     __tablename__ = "agendamentos_cancelados"
 
@@ -14,6 +15,7 @@ class AgendamentoCancelado(Base):
     status = Column(String, nullable=False)
     criado_em = Column(DateTime, nullable=False)
     cancelado_em = Column(DateTime, default=datetime.utcnow)
+    cancelado_por = Column(String, nullable=False)
 
     cliente = relationship("User", backref="cancelamentos_cliente")
     profissional = relationship("Funcionario", backref="cancelamentos_profissional")

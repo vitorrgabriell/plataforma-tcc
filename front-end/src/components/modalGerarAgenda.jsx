@@ -132,8 +132,8 @@ const ModalGerarAgenda = ({ onClose, onSuccess }) => {
       >
         <Title>Gerar agenda automática</Title>
         <p style={{ color: "#f1f5f9", fontSize: "14px" }}>
-          Isso irá criar automaticamente os horários para todos os profissionais
-          do estabelecimento com base nas configurações padrão.
+          Isso irá criar automaticamente os horários para todos os profissionais do estabelecimento
+          com base nas configurações padrão.
         </p>
         <ButtonGroup>
           <Button cancel onClick={onClose}>

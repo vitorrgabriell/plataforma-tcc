@@ -141,17 +141,17 @@ const RecompensaFidelidadePage = () => {
       const token = Cookies.get("token");
 
       if (token) {
-            try {
-              const decoded = jwtDecode(token);
-                console.log("Decoded JWT:", decoded);
-              setUserName(decoded.nome || decoded.email);
-            } catch (error) {
-              console.error("Erro ao decodificar o token", error);
-            }
-          }
+        try {
+          const decoded = jwtDecode(token);
+          console.log("Decoded JWT:", decoded);
+          setUserName(decoded.nome || decoded.email);
+        } catch (error) {
+          console.error("Erro ao decodificar o token", error);
+        }
+      }
 
       const api = process.env.REACT_APP_API_URL;
-  
+
       try {
         // 1. Buscar pontos acumulados
         const pontosRes = await fetch(`${api}/fidelidade/meus-pontos/estabelecimentos`, {
@@ -160,7 +160,7 @@ const RecompensaFidelidadePage = () => {
           },
         });
         const pontosData = await pontosRes.json();
-  
+
         // 2. Buscar programas de fidelidade
         const programasRes = await fetch(`${api}/fidelidade/programa`, {
           headers: {
@@ -168,7 +168,7 @@ const RecompensaFidelidadePage = () => {
           },
         });
         const programasData = await programasRes.json();
-  
+
         // 3. Juntar pontos com programa correspondente
         const pontosComPremio = pontosData.map((p) => {
           const programa = programasData.find(
@@ -179,13 +179,13 @@ const RecompensaFidelidadePage = () => {
             premio: programa?.descricao_premio || "Prêmio não definido",
           };
         });
-  
+
         setPontos(pontosComPremio);
       } catch (error) {
         console.error("Erro ao buscar pontos e prêmios:", error);
       }
     };
-  
+
     fetchPontosComPremio();
   }, []);
 
@@ -219,24 +219,24 @@ const RecompensaFidelidadePage = () => {
     }
   };
 
-const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
-    const token = Cookies.get("token");
-    const api = process.env.REACT_APP_API_URL;
+      const token = Cookies.get("token");
+      const api = process.env.REACT_APP_API_URL;
 
-    await fetch(`${api}/auth/logout`, {
+      await fetch(`${api}/auth/logout`, {
         method: "POST",
         headers: {
-        Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-    });
+      });
 
-    Cookies.remove("token");
-    navigate("/logout");
+      Cookies.remove("token");
+      navigate("/logout");
     } catch (error) {
-    console.error("Erro no logout", error);
+      console.error("Erro no logout", error);
     }
-};
+  };
 
   return (
     <Container>
@@ -244,9 +244,7 @@ const handleLogout = async () => {
         <Title>AgendaVip</Title>
         {userName && <UserInfo>Bem-vindo, {userName}!</UserInfo>}
         <ButtonGroup>
-          <Button onClick={() => navigate("/dashboard-cliente")}>
-            Dashboard
-          </Button>
+          <Button onClick={() => navigate("/dashboard-cliente")}>Dashboard</Button>
           <Button bgColor="#ef4444" hoverColor="#dc2626" onClick={handleLogout}>
             Sair
           </Button>
@@ -254,42 +252,44 @@ const handleLogout = async () => {
       </Header>
       <Content>
         <SectionWrapper>
-          <SectionTitle style={{ marginBottom: "8px" }}>Resgate dos pontos de fidelidade</SectionTitle>
+          <SectionTitle style={{ marginBottom: "8px" }}>
+            Resgate dos pontos de fidelidade
+          </SectionTitle>
           <SectionTitle>Estabelecimentos com pontos acumulados</SectionTitle>
-          {pontos.length === 0 || pontos.every(p => p.pontos_acumulados === 0) ? (
+          {pontos.length === 0 || pontos.every((p) => p.pontos_acumulados === 0) ? (
             <CardInfo style={{ marginTop: "20px", color: "#cbd5e1", fontStyle: "italic" }}>
-                Você ainda não acumulou pontos em nenhum estabelecimento para resgatar prêmios.
+              Você ainda não acumulou pontos em nenhum estabelecimento para resgatar prêmios.
             </CardInfo>
-            ) : (
+          ) : (
             <AnimatePresence>
-                {pontos.map((p) => (
+              {pontos.map((p) => (
                 <Card
-                    key={p.estabelecimento_id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
+                  key={p.estabelecimento_id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
                 >
-                    <CardTitle>{p.estabelecimento_nome}</CardTitle>
-                    <CardInfo>Pontos acumulados: {p.pontos_acumulados}</CardInfo>
-                    <CardInfo style={{ color: "#facc15", fontWeight: "bold" }}>
+                  <CardTitle>{p.estabelecimento_nome}</CardTitle>
+                  <CardInfo>Pontos acumulados: {p.pontos_acumulados}</CardInfo>
+                  <CardInfo style={{ color: "#facc15", fontWeight: "bold" }}>
                     Prêmio: {p.premio}
-                    </CardInfo>
-                    <CardInfo>
+                  </CardInfo>
+                  <CardInfo>
                     {p.pontos_acumulados >= 10
-                        ? "Você pode resgatar um prêmio!"
-                        : "Você ainda não tem pontos suficientes."}
-                    </CardInfo>
-                    <ResgatarButton
+                      ? "Você pode resgatar um prêmio!"
+                      : "Você ainda não tem pontos suficientes."}
+                  </CardInfo>
+                  <ResgatarButton
                     disabled={p.pontos_acumulados < 10}
                     onClick={() => handleResgatar(p.estabelecimento_id)}
-                    >
+                  >
                     Resgatar Prêmio
-                    </ResgatarButton>
+                  </ResgatarButton>
                 </Card>
-                ))}
+              ))}
             </AnimatePresence>
-            )}
+          )}
         </SectionWrapper>
       </Content>
       <Footer>

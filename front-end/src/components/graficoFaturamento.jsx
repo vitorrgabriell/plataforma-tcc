@@ -63,12 +63,7 @@ const GraficoFaturamento = () => {
           }}
         />
         <Legend />
-        <Line
-          type="monotone"
-          dataKey="faturamento"
-          stroke="#5ef43f"
-          name="Faturamento (R$)"
-        />
+        <Line type="monotone" dataKey="faturamento" stroke="#5ef43f" name="Faturamento (R$)" />
       </LineChart>
     </ResponsiveContainer>
   );
