@@ -8,13 +8,13 @@ const RegisterContainer = styled.div`
   min-height: 100vh;
   align-items: center;
   justify-content: center;
-  background-color: #0f172a; // fundo escuro
+  background-color: #0f172a;
 `;
 
 const FormWrapper = styled.div`
   width: 100%;
   max-width: 400px;
-  background: #1e293b; // card escuro
+  background: #1e293b;
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);

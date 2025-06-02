@@ -192,8 +192,8 @@ const NomeFuncionario = styled.strong`
 `;
 
 const Footer = styled.footer`
-  background-color: #1e293b; // um tom acima do fundo geral
-  color: #cbd5e1; // cinza claro
+  background-color: #1e293b;
+  color: #cbd5e1;
   padding: 24px 40px;
   text-align: center;
   font-size: 14px;

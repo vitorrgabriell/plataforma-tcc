@@ -260,7 +260,6 @@ const EstabelecimentoCliente = () => {
         setEstabelecimento(estabelecimento);
         setServices(servicos);
         setProfessionals(profissionais);
-        // setAppointments(agendamentos);
       } catch (err) {
         console.error("Erro ao buscar dados:", err);
       }
@@ -488,7 +487,7 @@ const EstabelecimentoCliente = () => {
       const api = process.env.REACT_APP_API_URL;
 
       await fetch(`${api}/auth/logout`, {
-        method: "POST", // importante!
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -153,7 +153,6 @@ const RecompensaFidelidadePage = () => {
       const api = process.env.REACT_APP_API_URL;
 
       try {
-        // 1. Buscar pontos acumulados
         const pontosRes = await fetch(`${api}/fidelidade/meus-pontos/estabelecimentos`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -161,7 +160,6 @@ const RecompensaFidelidadePage = () => {
         });
         const pontosData = await pontosRes.json();
 
-        // 2. Buscar programas de fidelidade
         const programasRes = await fetch(`${api}/fidelidade/programa`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -169,7 +167,6 @@ const RecompensaFidelidadePage = () => {
         });
         const programasData = await programasRes.json();
 
-        // 3. Juntar pontos com programa correspondente
         const pontosComPremio = pontosData.map((p) => {
           const programa = programasData.find(
             (pr) => pr.estabelecimento_id === p.estabelecimento_id

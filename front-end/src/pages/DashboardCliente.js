@@ -11,7 +11,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #0f172a; // fundo geral escuro
+  background-color: #0f172a;
 `;
 
 const Header = styled.div`
@@ -249,8 +249,8 @@ const AtalhoButton = styled.button`
 `;
 
 const Footer = styled.footer`
-  background-color: #1e293b; // um tom acima do fundo geral
-  color: #cbd5e1; // cinza claro
+  background-color: #1e293b;
+  color: #cbd5e1;
   padding: 24px 40px;
   text-align: center;
   font-size: 14px;

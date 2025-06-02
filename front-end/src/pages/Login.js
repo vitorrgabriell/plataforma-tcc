@@ -9,14 +9,14 @@ const Container = styled.div`
   min-height: 100vh;
   align-items: center;
   justify-content: center;
-  background-color: #0f172a; // fundo escuro
+  background-color: #0f172a;
 `;
 
 const FormWrapper = styled.div`
   width: 100%;
   max-width: 400px;
   padding: 24px;
-  background: #1e293b; // container escuro
+  background: #1e293b;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 `;
@@ -24,7 +24,7 @@ const FormWrapper = styled.div`
 const Title = styled.h2`
   font-size: 24px;
   font-weight: bold;
-  color: #f1f5f9; // texto claro
+  color: #f1f5f9;
   text-align: center;
   margin-bottom: 20px;
 `;

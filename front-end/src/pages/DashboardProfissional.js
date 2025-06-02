@@ -113,8 +113,8 @@ const Card = styled.div`
 `;
 
 const Footer = styled.footer`
-  background-color: #1e293b; // um tom acima do fundo geral
-  color: #cbd5e1; // cinza claro
+  background-color: #1e293b;
+  color: #cbd5e1;
   padding: 24px 40px;
   text-align: center;
   font-size: 14px;
@@ -322,7 +322,7 @@ const DashboardProfissional = () => {
       const api = process.env.REACT_APP_API_URL;
 
       await fetch(`${api}/auth/logout`, {
-        method: "POST", // importante!
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -453,7 +453,7 @@ const DashboardProfissional = () => {
                             finalizarAgendamento({
                               id: a.id,
                               valor: a.preco,
-                              cliente_id: a.cliente_id, // <-- aqui estava "cliente_id"
+                              cliente_id: a.cliente_id,
                               email_cliente: a.email,
                             })
                           }
@@ -512,7 +512,7 @@ const DashboardProfissional = () => {
         <ModalRemarcarHorarioProfissional
           agendamento={agendamentoSelecionado}
           onClose={() => setMostrarModalRemarcar(false)}
-          onConfirm={handleEditarAgendamento} // <-- Adicione isso
+          onConfirm={handleEditarAgendamento}
         />
       )}
       {mostrarModalHistorico && (
@@ -522,7 +522,7 @@ const DashboardProfissional = () => {
         <ModalGerarAgendaProfissional
           onClose={() => setMostrarModalGerarAgenda(false)}
           onSuccess={() => {
-            fetchDashboardData(); // se tiver
+            fetchDashboardData();
             setMostrarModalGerarAgenda(false);
           }}
           showToast={showToast}
