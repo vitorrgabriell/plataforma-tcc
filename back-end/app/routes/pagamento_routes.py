@@ -86,7 +86,6 @@ def get_cartao_salvo(
 ):
     try:
         email = usuario.get("email")
-        print("recebeu o email: ", email)
 
         if not email:
             raise HTTPException(
@@ -102,8 +101,6 @@ def get_cartao_salvo(
 
         stripe_cliente = stripe.Customer.retrieve(db_cliente.stripe_customer_id)
         payment_method_id = stripe_cliente.invoice_settings.default_payment_method
-
-        print("Default Payment Method ID:", payment_method_id)
 
         if not payment_method_id:
             return {}
@@ -125,15 +122,12 @@ def get_cartao_salvo(
 
 @router.post("/cobrar-agendamento/")
 def cobrar_agendamento(data: AgendamentoPagamento, db: Session = Depends(get_db)):
-    print("Recebido:", data)
     try:
         cliente = db.query(Cliente).filter(Cliente.id == data.cliente_id).first()
         if not cliente or not cliente.stripe_customer_id:
             raise HTTPException(
                 status_code=404, detail="Cliente ou Stripe ID não encontrado."
             )
-
-        print("Stripe customer ID:", cliente.stripe_customer_id)
 
         payment_methods = stripe.PaymentMethod.list(
             customer=cliente.stripe_customer_id, type="card"
@@ -145,7 +139,6 @@ def cobrar_agendamento(data: AgendamentoPagamento, db: Session = Depends(get_db)
             )
 
         payment_method_id = payment_methods.data[0].id
-        print("Usando payment method:", payment_method_id)
 
         intent = stripe.PaymentIntent.create(
             amount=data.valor_em_centavos,
@@ -157,16 +150,12 @@ def cobrar_agendamento(data: AgendamentoPagamento, db: Session = Depends(get_db)
             metadata={"descricao": "Pagamento de agendamento AgendaVip"},
         )
 
-        print("Intent criada:", intent)
-
         return {"status": "sucesso", "id_pagamento": intent.id, "valor": intent.amount}
 
     except stripe.error.CardError as e:
-        print("Erro do cartão:", e)
         raise HTTPException(status_code=402, detail=str(e))
     except Exception as e:
-        print("Erro inesperado:")
-        traceback.print_exc()  # ← MOSTRA o traceback real
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Erro interno inesperado")
 
 

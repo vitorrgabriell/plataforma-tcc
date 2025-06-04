@@ -16,9 +16,13 @@ class Agendamento(Base):
     criado_em = Column(DateTime, default=datetime.utcnow)
     notificado_1_dia = Column(Boolean, default=False)
     notificado_1_hora = Column(Boolean, default=False)
+    estabelecimento_id = Column(
+        Integer, ForeignKey("estabelecimentos.id"), nullable=False
+    )
 
     cliente = relationship("User", back_populates="agendamentos_cliente")
     profissional = relationship(
         "Funcionario", back_populates="agendamentos_profissional"
     )
     servico = relationship("Servico", back_populates="agendamentos")
+    estabelecimento = relationship("Estabelecimento", back_populates="agendamentos")

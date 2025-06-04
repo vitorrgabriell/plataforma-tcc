@@ -8,22 +8,13 @@ from app.utils.notifications import enviar_email_1_dia, enviar_email_1_hora
 
 def verificar_e_enviar_notificacoes_agendamentos(db: Session):
     agora = datetime.now()
-    print(f"[LEMBRETE] Iniciando verificação - Agora: {agora}")
 
     agendamentos = (
         db.query(Agendamento).filter(Agendamento.status == "confirmado").all()
     )
 
-    print(f"[LEMBRETE] Agendamentos confirmados encontrados: {len(agendamentos)}")
-
     for agendamento in agendamentos:
-        print(f"\n[LEMBRETE] Avaliando agendamento ID {agendamento.id}")
-        print(f" - Horário: {agendamento.horario}")
-        print(f" - Notificado 1 dia: {agendamento.notificado_1_dia}")
-        print(f" - Notificado 1 hora: {agendamento.notificado_1_hora}")
-
         tempo_para_agendamento = agendamento.horario - agora
-        print(f" - Tempo restante: {tempo_para_agendamento}")
 
         cliente = db.query(User).filter(User.id == agendamento.cliente_id).first()
         profissional = (
@@ -33,7 +24,6 @@ def verificar_e_enviar_notificacoes_agendamentos(db: Session):
         )
 
         if not cliente or not profissional:
-            print(" - Cliente ou profissional não encontrado. Pulando...")
             continue
 
         if (
@@ -42,7 +32,6 @@ def verificar_e_enviar_notificacoes_agendamentos(db: Session):
             <= timedelta(days=1)
             and not agendamento.notificado_1_dia
         ):
-            print(" - Enviando lembrete de 1 DIA")
             enviar_email_1_dia(cliente.email, cliente.nome, agendamento)
             enviar_email_1_dia(profissional.email, profissional.nome, agendamento)
             agendamento.notificado_1_dia = True
@@ -51,10 +40,8 @@ def verificar_e_enviar_notificacoes_agendamentos(db: Session):
             timedelta(minutes=50) < tempo_para_agendamento <= timedelta(hours=1)
             and not agendamento.notificado_1_hora
         ):
-            print(" - Enviando lembrete de 1 HORA")
             enviar_email_1_hora(cliente.email, cliente.nome, agendamento)
             enviar_email_1_hora(profissional.email, profissional.nome, agendamento)
             agendamento.notificado_1_hora = True
 
     db.commit()
-    print("[LEMBRETE] Verificação concluída e alterações salvas.\n")

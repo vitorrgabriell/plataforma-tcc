@@ -23,7 +23,6 @@ def get_current_user(
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print("Payload decodificado:", payload)
 
         user_email: str = payload.get("sub")
         user_id: int = payload.get("id")

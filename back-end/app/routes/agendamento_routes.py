@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 import stripe
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.agendamento import Agendamento
@@ -169,7 +170,6 @@ def listar_agendamentos_profissional(
         {"profissional_id": user["funcionario_id"]},
     ).fetchall()
 
-    print(f"resultados: {resultados}")
     return [dict(r) for r in resultados]
 
 
@@ -348,11 +348,40 @@ def listar_cancelamentos_cliente(
     )
 
 
-@router.get("/meus", response_model=list[AgendamentoResponse])
+@router.get("/meus", response_model=list[dict])
 def listar_meus_agendamentos(
     db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
-    return db.query(Agendamento).filter(Agendamento.cliente_id == user["id"]).all()
+    sql = text(
+        """
+    SELECT 
+        a.id,
+        s.nome AS servico,
+        f.nome AS profissional,
+        a.horario,
+        CASE WHEN av.id IS NOT NULL THEN true ELSE false END AS avaliado
+    FROM agendamentos a
+    JOIN usuarios u ON u.id = a.cliente_id 
+    JOIN servicos s ON s.id = a.servico_id 
+    JOIN funcionarios f ON f.id = a.profissional_id
+    LEFT JOIN avaliacoes av ON av.agendamento_id = a.id
+    WHERE a.cliente_id = :cliente_id
+    ORDER BY a.id DESC
+    """
+    )
+
+    result = db.execute(sql, {"cliente_id": user["id"]}).fetchall()
+
+    return [
+        {
+            "id": row.id,
+            "servico": row.servico,
+            "profissional": row.profissional,
+            "horario": row.horario,
+            "avaliado": row.avaliado,
+        }
+        for row in result
+    ]
 
 
 @router.put("/editar/{agendamento_id}", response_model=AgendamentoResponse)

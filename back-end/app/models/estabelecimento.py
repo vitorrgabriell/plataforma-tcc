@@ -13,3 +13,4 @@ class Estabelecimento(Base):
 
     funcionarios = relationship("Funcionario", back_populates="estabelecimento")
     servicos = relationship("Servico", back_populates="estabelecimento")
+    agendamentos = relationship("Agendamento", back_populates="estabelecimento")

@@ -90,9 +90,9 @@ def listar_pontos_cliente(cliente_id: int):
 def buscar_ultimo_servico_cliente(cliente_id: int):
     try:
         response = table.query(
-            IndexName="cliente_id-data_fim-index",  # requer GSI com sort por data_fim
+            IndexName="cliente_id-data_fim-index",
             KeyConditionExpression=Key("cliente_id").eq(cliente_id),
-            ScanIndexForward=False,  # do mais recente para o mais antigo
+            ScanIndexForward=False,
             Limit=1,
         )
         items = response.get("Items", [])

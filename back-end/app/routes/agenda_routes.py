@@ -13,7 +13,6 @@ from app.schemas import (
 from app.models.agendamento import Agendamento
 from app.models.configuracao_agenda import ConfiguracaoAgenda
 from app.utils.dependencies import get_current_user
-from pprint import pprint
 
 router = APIRouter()
 
@@ -175,10 +174,6 @@ def gerar_agenda_para_todos(
     db: Session = Depends(get_db),
     user=Depends(get_current_user),
 ):
-    print("payload do front de gerar agenda:")
-    print("Payload recebido:", dados)
-    print("Tipo do objeto recebido:", type(dados))
-    print("Campos disponíveis:", dir(dados))
     if user["tipo_usuario"] != "admin":
         raise HTTPException(
             status_code=403, detail="Apenas administradores podem gerar agendas"

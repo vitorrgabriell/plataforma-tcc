@@ -105,7 +105,7 @@ class FuncionarioResponse(BaseModel):
     id: int
     nome: str
     email: str
-    cargo: str | None = None  # se tiver esse campo
+    cargo: str | None = None
     estabelecimento_id: int
 
     class Config:
@@ -120,8 +120,11 @@ class AvaliacaoBase(BaseModel):
     comentario: Optional[str] = None
 
 
-class AvaliacaoCreate(AvaliacaoBase):
-    pass
+class AvaliacaoCreate(BaseModel):
+    agendamento_id: int
+    nota: int
+    comentario: Optional[str] = None
+    avaliado: bool = False
 
 
 class AvaliacaoUpdate(BaseModel):
@@ -165,7 +168,7 @@ class AgendamentoUpdate(BaseModel):
 
 class AgendamentoResponse(AgendamentoBase):
     id: int
-    cliente_id: int  # agora aqui sim
+    cliente_id: int
     status: str
     criado_em: datetime
 
@@ -259,7 +262,7 @@ class ServicoBase(BaseModel):
     nome: str
     descricao: str
     preco: float
-    tempo: int  # novo campo (em minutos)
+    tempo: int
 
 
 class ServicoCreate(ServicoBase):

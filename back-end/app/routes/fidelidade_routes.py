@@ -213,7 +213,6 @@ def obter_ultimo_servico_cliente(user=Depends(get_current_user)):
         )
 
     cliente_id = user["id"]
-    print("Cliente logado:", cliente_id)
     servico = buscar_ultimo_servico_cliente(cliente_id)
 
     if not servico:

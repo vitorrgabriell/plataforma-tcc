@@ -35,7 +35,6 @@ def enviar_email_recuperacao(destinatario_email, token):
             },
         )
     except Exception as e:
-        print(f"[ERRO AO ENVIAR E-MAIL SES] {e}")
         raise HTTPException(status_code=500, detail="Erro ao enviar e-mail.")
 
 

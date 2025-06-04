@@ -4,6 +4,9 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.db.database import get_db
 from app.models.avaliacao import Avaliacao
+from app.models.agendamento import Agendamento
+from app.models.user import User
+from app.utils.dependencies import get_current_user
 from app.schemas import (
     AvaliacaoCreate,
     AvaliacaoResponse,
@@ -77,8 +80,25 @@ def obter_avaliacao(
 
 
 @router.post("/", response_model=AvaliacaoResponse, status_code=201)
-def criar_avaliacao(avaliacao: AvaliacaoCreate, db: Session = Depends(get_db)):
-    nova_avaliacao = Avaliacao(**avaliacao.dict())
+def criar_avaliacao(
+    avaliacao: AvaliacaoCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    agendamento = (
+        db.query(Agendamento).filter(Agendamento.id == avaliacao.agendamento_id).first()
+    )
+    if not agendamento:
+        raise HTTPException(status_code=404, detail="Agendamento não encontrado")
+
+    nova_avaliacao = Avaliacao(
+        agendamento_id=avaliacao.agendamento_id,
+        cliente_id=agendamento.cliente_id,
+        profissional_id=agendamento.profissional_id,
+        estabelecimento_id=agendamento.estabelecimento_id,
+        nota=avaliacao.nota,
+        comentario=avaliacao.comentario,
+    )
     db.add(nova_avaliacao)
     db.commit()
     db.refresh(nova_avaliacao)

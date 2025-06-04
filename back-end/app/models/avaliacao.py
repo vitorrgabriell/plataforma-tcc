@@ -7,6 +7,7 @@ class Avaliacao(Base):
     __tablename__ = "avaliacoes"
 
     id = Column(Integer, primary_key=True, index=True)
+    agendamento_id = Column(Integer, ForeignKey("agendamentos.id"), nullable=False)
     cliente_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
     profissional_id = Column(Integer, ForeignKey("funcionarios.id"), nullable=False)
     estabelecimento_id = Column(
