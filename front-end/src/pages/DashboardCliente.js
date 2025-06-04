@@ -552,7 +552,8 @@ const DashboardCliente = () => {
           <div>
             <SectionTitle>Avaliações Recentes</SectionTitle>
             <CardList>
-              {avaliacoesRecentes.map((a, index) => {
+              {/* {avaliacoesRecentes.map((a, index) => { */}
+              {avaliacoesRecentes.slice(0, 1).map((a, index) => {
                 return (
                   <AvaliacaoCard key={index}>
                     <strong>

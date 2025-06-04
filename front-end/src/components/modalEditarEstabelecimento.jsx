@@ -21,6 +21,13 @@ const ModalBox = styled(motion.div)`
   max-width: 480px;
   width: 100%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  @media (max-width: 480px) {
+    padding: 20px 16px;
+    margin: 0 12px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
 `;
 
 const Title = styled.h2`
@@ -38,14 +45,16 @@ const FormGroup = styled.div`
     display: block;
     margin-bottom: 8px;
   }
+
   input {
-    width: 95%;
+    width: 94%;
     padding: 10px;
     border: 1px solid #334155;
     background-color: #0f172a;
     color: #f9fafb;
     border-radius: 6px;
     font-size: 14px;
+
     &:focus {
       outline: none;
       border-color: #3b82f6;

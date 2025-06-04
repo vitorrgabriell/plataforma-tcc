@@ -264,11 +264,6 @@ const DashboardProfissional = () => {
           email_cliente: agendamento.email_cliente,
         }),
       });
-      console.log("Enviando payload:", {
-        valor_em_centavos: Math.round(agendamento.valor * 100),
-        email_cliente: agendamento.email_cliente,
-        cliente_id: agendamento.cliente_id,
-      });
 
       const result = await pagamentoRes.json();
 

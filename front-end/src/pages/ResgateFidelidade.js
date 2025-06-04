@@ -143,7 +143,6 @@ const RecompensaFidelidadePage = () => {
       if (token) {
         try {
           const decoded = jwtDecode(token);
-          console.log("Decoded JWT:", decoded);
           setUserName(decoded.nome || decoded.email);
         } catch (error) {
           console.error("Erro ao decodificar o token", error);

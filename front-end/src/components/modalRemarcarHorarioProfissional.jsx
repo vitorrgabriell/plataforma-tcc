@@ -95,7 +95,6 @@ const ModalRemarcarHorarioProfissional = ({ agendamento, onClose, onConfirm }) =
   const token = Cookies.get("token");
   const api = process.env.REACT_APP_API_URL;
   const profissionalId = Number(agendamento?.profissional_id);
-  console.log("Profissional ID recebido no modal:", profissionalId);
 
   useEffect(() => {
     const carregarHorarios = async () => {

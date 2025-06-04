@@ -22,6 +22,12 @@ const Div1 = styled.div`
   border-radius: 8px;
   padding: 12px;
   overflow-y: auto;
+  min-height: 100px;
+  flex-shrink: 0;
+
+  @media (max-width: 1024px) {
+    grid-column: 1 / span 8;
+  }
 `;
 
 const Div2 = styled.div`
@@ -31,6 +37,12 @@ const Div2 = styled.div`
   border-radius: 8px;
   padding: 12px;
   overflow-y: auto;
+  min-height: 100px;
+  flex-shrink: 0;
+
+  @media (max-width: 1024px) {
+    grid-column: 1 / span 8;
+  }
 `;
 
 const Div3 = styled.div`
@@ -40,6 +52,12 @@ const Div3 = styled.div`
   border-radius: 8px;
   padding: 12px;
   overflow-y: auto;
+  min-height: 100px;
+  flex-shrink: 0;
+
+  @media (max-width: 1024px) {
+    grid-column: 1 / span 8;
+  }
 `;
 
 const Div4 = styled.div`
@@ -89,15 +107,22 @@ const Container = styled.div`
   min-height: 100vh;
   background-color: #0f172a;
   color: #f1f5f9;
+  overflow-y: auto;
 `;
 
 const Header = styled.div`
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   background-color: #1e293b;
   padding: 16px 32px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 `;
 
 const Title = styled.h1`
@@ -118,6 +143,12 @@ const UserInfo = styled.div`
 const ButtonGroup = styled.div`
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    justify-content: flex-start;
+    gap: 8px;
+  }
 `;
 
 const Button = styled.button`
@@ -140,14 +171,22 @@ const Content = styled.div`
   flex-grow: 1;
   padding: 32px;
   overflow-y: auto;
+  height: 100%;
+  max-height: 100%;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+    padding-bottom: 60px;
+  }
 `;
 
 const GridWrapper = styled.div`
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: repeat(9, auto);
+  grid-template-rows: auto;
   gap: 10px;
   height: auto;
+  width: 100%;
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
@@ -156,12 +195,11 @@ const GridWrapper = styled.div`
 `;
 
 const CardTitle = styled.h3`
-  font-size: 18px;
+  font-size: clamp(16px, 2vw, 18px);
   font-weight: 700;
   margin-bottom: 12px;
   color: #f9fafb;
   text-align: center;
-  letter-spacing: 0.5px;
 `;
 
 const ActionButton = styled.button`
@@ -253,6 +291,7 @@ const AdminDashboard = () => {
       try {
         const decoded = jwtDecode(token);
         setUserName(decoded.nome || decoded.email);
+        setEstabelecimentoId(decoded.estabelecimento_id);
       } catch (error) {
         console.error("Erro ao decodificar o token", error);
       }

@@ -109,17 +109,6 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
       const api = process.env.REACT_APP_API_URL?.replace(/\/+$/, "");
       const url = `${api}/agenda/gerar-agenda/`;
 
-      console.log("API URL sendo usada:", api);
-      console.log("Requisição POST para:", url);
-      console.log("Payload:", {
-        data_inicial: dataInicial,
-        semana_toda: semanaToda,
-        usar_padrao: usarPadrao,
-        horarios_personalizados: usarPadrao ? [] : horarios,
-        profissional_id: decoded.funcionario_id,
-        duracao_minutos: 30,
-      });
-
       if (!decoded.funcionario_id) {
         showToast("ID do profissional não encontrado no token.", "error");
         return;
