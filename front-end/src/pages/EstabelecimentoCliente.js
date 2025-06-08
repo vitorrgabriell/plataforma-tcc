@@ -415,38 +415,38 @@ const EstabelecimentoCliente = () => {
     }
   };
 
-  const handleDeleteAppointment = async (appointmentId) => {
-    const confirm = window.confirm("Tem certeza que deseja cancelar este agendamento?");
-    if (!confirm) return;
+  // const handleDeleteAppointment = async (appointmentId) => {
+  //   const confirm = window.confirm("Tem certeza que deseja cancelar este agendamento?");
+  //   if (!confirm) return;
 
-    const token = Cookies.get("token");
-    const api = process.env.REACT_APP_API_URL;
+  //   const token = Cookies.get("token");
+  //   const api = process.env.REACT_APP_API_URL;
 
-    try {
-      const res = await fetch(`${api}/agendamentos/${appointmentId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  //   try {
+  //     const res = await fetch(`${api}/agendamentos/${appointmentId}`, {
+  //       method: "DELETE",
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
 
-      if (res.ok) {
-        setAppointments((prev) => prev.filter((a) => a.id !== appointmentId));
-        setToastMessage("Agendamento cancelado com sucesso.");
-        setToastType("success");
-        setShowToast(true);
-      } else {
-        setToastMessage("Erro ao cancelar o agendamento.");
-        setToastType("error");
-        setShowToast(true);
-      }
-    } catch (error) {
-      console.error("Erro ao excluir agendamento:", error);
-      setToastMessage("Erro ao se comunicar com o servidor.");
-      setToastType("error");
-      setShowToast(true);
-    }
-  };
+  //     if (res.ok) {
+  //       setAppointments((prev) => prev.filter((a) => a.id !== appointmentId));
+  //       setToastMessage("Agendamento cancelado com sucesso.");
+  //       setToastType("success");
+  //       setShowToast(true);
+  //     } else {
+  //       setToastMessage("Erro ao cancelar o agendamento.");
+  //       setToastType("error");
+  //       setShowToast(true);
+  //     }
+  //   } catch (error) {
+  //     console.error("Erro ao excluir agendamento:", error);
+  //     setToastMessage("Erro ao se comunicar com o servidor.");
+  //     setToastType("error");
+  //     setShowToast(true);
+  //   }
+  // };
 
   const handleConfirmarExclusao = async () => {
     if (!agendamentoParaExcluir) return;
@@ -617,10 +617,8 @@ const EstabelecimentoCliente = () => {
               <AppointmentCard key={app.id}>
                 <div>
                   <AppointmentInfo>
-                    {services.find((s) => s.id === app.servico_id)?.nome || "Serviço"} com{" "}
-                    {professionals.find((p) => p.id === app.profissional_id)?.nome ||
-                      "Profissional"}{" "}
-                    em {new Date(app.horario).toLocaleDateString("pt-BR")} às{" "}
+                    {app.servico} com {app.profissional} em{" "}
+                    {new Date(app.horario).toLocaleDateString("pt-BR")} às{" "}
                     {new Date(app.horario).toLocaleTimeString("pt-BR", {
                       hour: "2-digit",
                       minute: "2-digit",

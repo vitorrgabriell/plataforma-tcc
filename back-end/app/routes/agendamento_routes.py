@@ -359,6 +359,7 @@ def listar_meus_agendamentos(
         s.nome AS servico,
         f.nome AS profissional,
         a.horario,
+        a.status,
         CASE WHEN av.id IS NOT NULL THEN true ELSE false END AS avaliado
     FROM agendamentos a
     JOIN usuarios u ON u.id = a.cliente_id 
@@ -378,6 +379,7 @@ def listar_meus_agendamentos(
             "servico": row.servico,
             "profissional": row.profissional,
             "horario": row.horario,
+            "status": row.status,
             "avaliado": row.avaliado,
         }
         for row in result
