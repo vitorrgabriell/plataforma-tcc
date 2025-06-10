@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import ModalRepetirAgendamento from "../components/modalRepetirAgendamento";
 import ToastNotification from "../components/ToastNotification";
 
 const Container = styled.div`
@@ -199,6 +200,8 @@ const MeusAgendamentos = () => {
   const agendamentosParaAvaliar = agendamentos.filter((ag) => !ag.avaliado);
   const [limiteRepetir, setLimiteRepetir] = useState(2);
   const [mostrarTudoHistorico, setMostrarTudoHistorico] = useState(false);
+  const [mostrarModalRepetir, setMostrarModalRepetir] = useState(false);
+  const [agendamentoSelecionado, setAgendamentoSelecionado] = useState(null);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
   useEffect(() => {
@@ -271,34 +274,12 @@ const MeusAgendamentos = () => {
     }
   };
 
-  const handleRepetir = async (id) => {
-    const token = Cookies.get("token");
-    const agendamentoOriginal = agendamentos.find((a) => a.id === id);
-    if (!agendamentoOriginal) return;
+  const handleRepetir = (id) => {
+    const agendamento = agendamentos.find((a) => a.id === id);
+    if (!agendamento) return;
 
-    try {
-      const api = process.env.REACT_APP_API_URL;
-      const res = await fetch(`${api}/agendamentos/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          servico_id: agendamentoOriginal.servico_id,
-          profissional_id: agendamentoOriginal.profissional_id,
-          horario: agendamentoOriginal.horario,
-        }),
-      });
-
-      if (res.ok) {
-        alert("Agendamento repetido com sucesso!");
-      } else {
-        alert("Erro ao repetir agendamento.");
-      }
-    } catch (err) {
-      console.error("Erro ao repetir agendamento:", err);
-    }
+    setAgendamentoSelecionado(agendamento);
+    setMostrarModalRepetir(true);
   };
 
   const agendamentosHistorico = mostrarTudoHistorico ? agendamentos : agendamentos.slice(0, 5);
@@ -434,6 +415,21 @@ const MeusAgendamentos = () => {
           <FooterLink href="/contato">Contato</FooterLink>
         </p>
       </Footer>
+      {mostrarModalRepetir && agendamentoSelecionado && (
+        <ModalRepetirAgendamento
+          agendamento={agendamentoSelecionado}
+          onClose={() => {
+            setMostrarModalRepetir(false);
+            setAgendamentoSelecionado(null);
+          }}
+          setToastMessage={(msg) => setToast({ show: true, message: msg, type: "success" })}
+          setToastType={(type) => setToast((prev) => ({ ...prev, type }))}
+          setShowToast={(show) => setToast((prev) => ({ ...prev, show }))}
+          onRepetirSucesso={() => {
+            setAgendamentos((prev) => prev.filter((ag) => ag.id !== agendamentoSelecionado.id));
+          }}
+        />
+      )}
       <ToastNotification
         show={toast.show}
         message={toast.message}

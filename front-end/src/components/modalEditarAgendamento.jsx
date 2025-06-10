@@ -133,16 +133,13 @@ const ModalEditarAgendamento = ({
         const token = Cookies.get("token");
         const api = process.env.REACT_APP_API_URL;
 
-        // 1. Buscar o profissional pelo ID do agendamento
         const profissionalRes = await fetch(`${api}/funcionarios/${agendamento.profissional_id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const profissional = await profissionalRes.json();
-
         const estabelecimentoId = profissional.estabelecimento_id;
 
-        // 2. Com o estabelecimento_id agora em mãos, buscar os dados:
         const [servicosRes, profissionaisRes] = await Promise.all([
           fetch(`${api}/servicos/?estabelecimento_id=${estabelecimentoId}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -158,7 +155,10 @@ const ModalEditarAgendamento = ({
         setServicos(servicosData);
         setProfissionais(profissionaisData);
 
-        // 3. Pega os horários do profissional atual
+        setSelectedService(Number(agendamento.servico_id));
+        setSelectedProfessional(Number(agendamento.profissional_id));
+
+        // 3. Buscar horários disponíveis
         const horariosRes = await fetch(
           `${api}/agenda/?profissional_id=${agendamento.profissional_id}`,
           {

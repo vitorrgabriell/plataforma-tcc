@@ -9,6 +9,7 @@ import ModalEditarEstabelecimento from "../components/modalEditarEstabelecimento
 import ModalFuncionario from "../components/modalFuncionario";
 import ModalEditarFuncionario from "../components/modalEditFuncionario";
 import ModalServico from "../components/modalServico";
+import ModalHistoricoAdmin from "../components/modalHistoricoAdmin";
 import ModalEditarServico from "../components/modalEditServico";
 import ModalGerarAgenda from "../components/modalGerarAgenda";
 import ModalConfirmacao from "../components/modalConfirmacao";
@@ -265,6 +266,7 @@ const AdminDashboard = () => {
   const [servicos, setServicos] = useState([]);
   const [avaliacoes, setAvaliacoes] = useState([]);
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarModalHistorico, setMostrarModalHistorico] = useState(false);
   const [estabelecimentoId, setEstabelecimentoId] = useState(null);
   const [mostrarModalEditarEstabelecimento, setMostrarModalEditarEstabelecimento] = useState(false);
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
@@ -471,8 +473,8 @@ const AdminDashboard = () => {
         {userName && <UserInfo>Bem-vindo de volta, {userName}!</UserInfo>}
         <ButtonGroup>
           <Button
-            /* onClick={() => setMostrarModalHistorico(true)} */ style={{
-              fontSize: "12px",
+            onClick={() => setMostrarModalHistorico(true)}
+            style={{
               padding: "8px 12px",
             }}
           >
@@ -646,7 +648,7 @@ const AdminDashboard = () => {
               {avaliacoes.length === 0 ? (
                 <CustomCard>Nenhuma avaliação ainda.</CustomCard>
               ) : (
-                avaliacoes.map((a, index) => (
+                avaliacoes.slice(0, 3).map((a, index) => (
                   <CustomCard key={index}>
                     <span style={{ fontStyle: "italic" }}>“{a.comentario}”</span>
                     <br />
@@ -668,6 +670,12 @@ const AdminDashboard = () => {
           <FooterLink href="/contato">Contato</FooterLink>
         </p>
       </Footer>
+      {mostrarModalHistorico && (
+        <ModalHistoricoAdmin
+          onClose={() => setMostrarModalHistorico(false)}
+          estabelecimento_id={estabelecimentoId}
+        />
+      )}
       {mostrarModalEditarEstabelecimento && (
         <ModalEditarEstabelecimento
           onClose={() => setMostrarModalEditarEstabelecimento(false)}

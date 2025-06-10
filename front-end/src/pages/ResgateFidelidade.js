@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
 import { motion, AnimatePresence } from "framer-motion";
+import ToastNotification from "../components/ToastNotification";
 
 const Container = styled.div`
   display: flex;
@@ -134,7 +135,12 @@ const FooterLink = styled.a`
 const RecompensaFidelidadePage = () => {
   const [userName, setUserName] = useState("");
   const [pontos, setPontos] = useState([]);
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const navigate = useNavigate();
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+  };
 
   useEffect(() => {
     const fetchPontosComPremio = async () => {
@@ -207,11 +213,10 @@ const RecompensaFidelidadePage = () => {
         }),
       });
 
-      alert("Prêmio resgatado com sucesso!");
-      navigate("/dashboard-cliente");
+      showToast("Bônus de fidelidade resgatado com sucesso!", "success");
     } catch (err) {
       console.error("Erro ao resgatar prêmio:", err);
-      alert("Erro ao resgatar prêmio.");
+      showToast("Erro ao resgatar prêmio.", "error");
     }
   };
 
@@ -273,7 +278,7 @@ const RecompensaFidelidadePage = () => {
                   </CardInfo>
                   <CardInfo>
                     {p.pontos_acumulados >= 10
-                      ? "Você pode resgatar um prêmio!"
+                      ? "Você pode resgatar seu prêmio! Ao resgatar, mostre o QR Code enviado no seu email a um responsável para usar seu bônus."
                       : "Você ainda não tem pontos suficientes."}
                   </CardInfo>
                   <ResgatarButton
@@ -296,6 +301,12 @@ const RecompensaFidelidadePage = () => {
           <FooterLink href="/contato">Contato</FooterLink>
         </p>
       </Footer>
+      <ToastNotification
+        message={toast.message}
+        type={toast.type}
+        show={toast.show}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
     </Container>
   );
 };
