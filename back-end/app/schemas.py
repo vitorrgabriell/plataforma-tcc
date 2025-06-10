@@ -349,3 +349,7 @@ class AgendamentoPagamento(BaseModel):
 class DefinirCartaoPadraoRequest(BaseModel):
     customer_id: str
     payment_method_id: str
+
+
+class RepetirAgendamentoRequest(BaseModel):
+    nova_data_hora: datetime

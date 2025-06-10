@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 import stripe
+from typing import Optional
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -8,6 +9,7 @@ from app.schemas import (
     AgendamentoCreate,
     AgendamentoResponse,
     AgendamentoCanceladoResponse,
+    RepetirAgendamentoRequest,
 )
 from app.utils.dependencies import get_current_user
 from datetime import datetime, timedelta
@@ -103,6 +105,63 @@ def criar_agendamento(
     return novo_agendamento
 
 
+@router.post("/{agendamento_id}/repetir", response_model=AgendamentoResponse)
+def repetir_agendamento(
+    agendamento_id: int,
+    request: RepetirAgendamentoRequest,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    agendamento_original = (
+        db.query(Agendamento)
+        .filter_by(id=agendamento_id, cliente_id=user["id"])
+        .first()
+    )
+
+    if not agendamento_original:
+        raise HTTPException(
+            status_code=404, detail="Agendamento original não encontrado"
+        )
+
+    novo_agendamento = Agendamento(
+        cliente_id=agendamento_original.cliente_id,
+        profissional_id=agendamento_original.profissional_id,
+        servico_id=agendamento_original.servico_id,
+        horario=request.nova_data_hora,
+        status="pendente",
+    )
+    db.add(novo_agendamento)
+    db.commit()
+    db.refresh(novo_agendamento)
+
+    cliente = db.query(User).filter(User.id == novo_agendamento.cliente_id).first()
+    profissional = (
+        db.query(Funcionario)
+        .filter(Funcionario.id == novo_agendamento.profissional_id)
+        .first()
+    )
+    servico = (
+        db.query(Servico).filter(Servico.id == novo_agendamento.servico_id).first()
+    )
+    estabelecimento = (
+        db.query(Estabelecimento)
+        .filter(Estabelecimento.id == servico.estabelecimento_id)
+        .first()
+    )
+
+    enviar_email_confirmacao_agendamento(
+        nome_estabelecimento=estabelecimento.nome,
+        destinatario_email=cliente.email,
+        nome_cliente=cliente.nome,
+        nome_profissional=profissional.nome,
+        nome_servico=servico.nome,
+        data=novo_agendamento.horario.strftime("%d/%m/%Y"),
+        horario=novo_agendamento.horario.strftime("%H:%M"),
+    )
+
+    return novo_agendamento
+
+
 @router.get("/")
 def listar_agendamentos_admin(
     estabelecimento_id: int,
@@ -135,6 +194,76 @@ def listar_agendamentos_admin(
         {"estabelecimento_id": estabelecimento_id},
     ).fetchall()
 
+    return [dict(r) for r in resultados]
+
+
+@router.get("/admin/historico")
+def listar_historico_admin(
+    estabelecimento_id: int,
+    profissional_id: int = Query(None),
+    servico_id: int = Query(None),
+    periodo: str = Query(None),
+    mes: str = Query(None),
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    if user["tipo_usuario"] != "admin":
+        raise HTTPException(
+            status_code=403, detail="Apenas administradores podem acessar esta rota"
+        )
+
+    query_base = """
+        SELECT 
+            u.nome AS cliente,
+            f.nome AS profissional,
+            s.nome AS servico,
+            s.preco,
+            a.horario
+        FROM agendamentos a
+        JOIN usuarios u ON u.id = a.cliente_id
+        JOIN funcionarios f ON f.id = a.profissional_id
+        JOIN servicos s ON s.id = a.servico_id
+        WHERE a.estabelecimento_id = :estabelecimento_id
+        AND a.status = 'finalizado'
+    """
+    params = {"estabelecimento_id": estabelecimento_id}
+
+    if profissional_id:
+        query_base += " AND a.profissional_id = :profissional_id"
+        params["profissional_id"] = profissional_id
+
+    if servico_id:
+        query_base += " AND a.servico_id = :servico_id"
+        params["servico_id"] = servico_id
+
+    if periodo:
+        try:
+            dias = int(periodo.replace("dias", ""))
+            data_limite = datetime.now() - timedelta(days=dias)
+            query_base += " AND a.horario >= :data_limite"
+            params["data_limite"] = data_limite
+        except:
+            raise HTTPException(status_code=400, detail="Período inválido.")
+
+    elif mes:
+        try:
+            ano, mes_num = map(int, mes.split("-"))
+            data_inicio = datetime(ano, mes_num, 1)
+            if mes_num == 12:
+                data_fim = datetime(ano + 1, 1, 1)
+            else:
+                data_fim = datetime(ano, mes_num + 1, 1)
+            query_base += " AND a.horario >= :data_inicio AND a.horario < :data_fim"
+            params["data_inicio"] = data_inicio
+            params["data_fim"] = data_fim
+        except:
+            raise HTTPException(
+                status_code=400, detail="Formato de mês inválido. Use YYYY-MM."
+            )
+
+    query_base += " ORDER BY a.horario DESC"
+
+    resultados = db.execute(query_base, params).fetchall()
     return [dict(r) for r in resultados]
 
 
@@ -356,6 +485,8 @@ def listar_meus_agendamentos(
         """
     SELECT 
         a.id,
+        a.servico_id,
+        a.profissional_id,
         s.nome AS servico,
         f.nome AS profissional,
         a.horario,
@@ -376,6 +507,8 @@ def listar_meus_agendamentos(
     return [
         {
             "id": row.id,
+            "servico_id": row.servico_id,
+            "profissional_id": row.profissional_id,
             "servico": row.servico,
             "profissional": row.profissional,
             "horario": row.horario,

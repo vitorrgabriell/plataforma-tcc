@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 from app.models.agendamento import Agendamento
+from app.utils.qrcode_resgate import gerar_qrcode_base64
 
 load_dotenv()
 
@@ -459,6 +460,87 @@ def montar_html_profissional_remarcou(cliente, profissional, servico, data, hora
             </p>
             <p>Se tiver alguma dúvida, entre em contato com o estabelecimento.</p>
             <a href="{FRONTEND_LOGIN_URL}" style="display:inline-block;margin-top:20px;padding:10px 20px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:8px;">Ver na Plataforma</a>
+            <p style="font-size: 12px; color: #888; margin-top: 40px;">© {datetime.now().year} AgendaVip</p>
+        </div>
+    </body>
+    </html>
+    """
+
+def enviar_email_resgate_fidelidade(destinatario_email, nome_cliente, nome_servico, nome_estabelecimento, data_resgate):
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from email.mime.image import MIMEImage
+
+    dados = {
+        "cliente": nome_cliente,
+        "servico": nome_servico,
+        "estabelecimento": nome_estabelecimento,
+        "data_resgate": data_resgate,
+    }
+
+    conteudo_qr = gerar_qrcode_base64(dados, return_bytes=True)
+
+    html = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; background-color: #f4f4f5; padding: 20px;">
+        <div style="background-color: #fff; padding: 30px; border-radius: 12px; max-width: 600px; margin: auto;">
+            <h2>Resgate de Fidelidade Confirmado</h2>
+            <p>Olá <strong>{nome_cliente}</strong>,</p>
+            <p>Seu resgate de fidelidade foi confirmado com sucesso no estabelecimento <strong>{nome_estabelecimento}</strong>.</p>
+            <p>🎁 <strong>Serviço:</strong> {nome_servico}<br>
+               📅 <strong>Data de Resgate:</strong> {data_resgate.strftime('%d/%m/%Y às %H:%M')}</p>
+            <p>Apresente este QR Code no momento do atendimento:</p>
+            <img src="cid:qrcode" alt="QR Code de Resgate" style="width: 200px; height: 200px;" />
+            <br><br>
+            <a href="{FRONTEND_LOGIN_URL}" style="display:inline-block;margin-top:20px;padding:10px 20px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:8px;">Acessar Plataforma</a>
+            <p style="font-size: 12px; color: #888; margin-top: 40px;">© {datetime.now().year} AgendaVip</p>
+        </div>
+    </body>
+    </html>
+    """
+
+    msg = MIMEMultipart("related")
+    msg["Subject"] = "Resgate de Fidelidade - AgendaVip"
+    msg["From"] = EMAIL_FROM
+    msg["To"] = destinatario_email
+
+    msg_alt = MIMEMultipart("alternative")
+    msg_alt.attach(MIMEText("Resgate de fidelidade confirmado!", "plain"))
+    msg_alt.attach(MIMEText(html, "html"))
+    msg.attach(msg_alt)
+
+    image = MIMEImage(conteudo_qr, _subtype="png")
+    image.add_header("Content-ID", "<qrcode>")
+    msg.attach(image)
+
+    ses.send_raw_email(
+        Source=EMAIL_FROM,
+        Destinations=[destinatario_email],
+        RawMessage={"Data": msg.as_string()},
+    )
+
+
+def montar_html_resgate_fidelidade(
+    nome_cliente: str,
+    nome_servico: str,
+    data_resgate: str,
+    nome_estabelecimento: str,
+    qr_code_base64: str
+) -> str:
+    return f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; background-color: #f4f4f5; padding: 20px;">
+        <div style="background-color: #fff; padding: 30px; border-radius: 12px; max-width: 600px; margin: auto;">
+            <h2>Resgate de Fidelidade Confirmado</h2>
+            <p>Olá <strong>{nome_cliente}</strong>,</p>
+            <p>Seu resgate de fidelidade foi confirmado com sucesso no estabelecimento <strong>{nome_estabelecimento}</strong>.</p>
+            <p>
+                🎁 <strong>Serviço:</strong> {nome_servico}<br>
+                📅 <strong>Data do Resgate:</strong> {data_resgate.strftime("%d/%m/%Y às %H:%M")}
+            </p>
+            <p>Apresente este QR Code no momento do atendimento:</p>
+            <img src="data:image/png;base64,{qr_code_base64}" alt="QR Code de Resgate" width="200" height="200" />
+            <a href="{FRONTEND_LOGIN_URL}" style="display:inline-block;margin-top:20px;padding:10px 20px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:8px;">Acessar Plataforma</a>
             <p style="font-size: 12px; color: #888; margin-top: 40px;">© {datetime.now().year} AgendaVip</p>
         </div>
     </body>

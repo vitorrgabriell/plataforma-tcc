@@ -14,6 +14,7 @@ from app.schemas import (
 )
 from app.utils.dependencies import get_current_user
 from app.utils.dynamo_client import listar_pontos_cliente, buscar_ultimo_servico_cliente
+from app.utils.notifications import enviar_email_resgate_fidelidade
 from datetime import datetime
 
 router = APIRouter()
@@ -110,6 +111,7 @@ def resgatar_premio(resgate: ResgateFidelidadeCreate, db: Session = Depends(get_
 
     programa = (
         db.query(ProgramaFidelidade)
+        .options(joinedload(ProgramaFidelidade.estabelecimento))
         .filter(ProgramaFidelidade.id == resgate.programa_fidelidade_id)
         .first()
     )
@@ -143,6 +145,17 @@ def resgatar_premio(resgate: ResgateFidelidadeCreate, db: Session = Depends(get_
     db.add(pontos_cliente)
     db.commit()
     db.refresh(novo_resgate)
+
+    try:
+        enviar_email_resgate_fidelidade(
+            destinatario_email=cliente.email,
+            nome_cliente=cliente.nome,
+            nome_servico=programa.descricao_premio,
+            nome_estabelecimento=programa.estabelecimento.nome,
+            data_resgate=datetime.now(),
+        )
+    except Exception as e:
+        raise Exception("Erro ao enviar email: ", e)
 
     return novo_resgate
 

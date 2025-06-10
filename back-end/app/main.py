@@ -38,7 +38,7 @@ def job_lembrete_agendamentos():
         db.close()
 
 
-scheduler.add_job(job_lembrete_agendamentos, 'interval', minutes=30)
+scheduler.add_job(job_lembrete_agendamentos, 'interval', minutes=1)
 
 if os.environ.get('RUN_MAIN') == True or not os.environ.get('RUN_MAIN'):
     scheduler.start()
