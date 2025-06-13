@@ -58,7 +58,7 @@ const FormGroup = styled.div`
 
   input,
   textarea {
-    width: 100%;
+    width: 94%;
     padding: 12px;
     background-color: #0f172a;
     color: #f9fafb;

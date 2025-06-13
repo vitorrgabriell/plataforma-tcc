@@ -59,6 +59,51 @@ const CheckboxGroup = styled.div`
   }
 `;
 
+const ToggleSwitch = styled.label`
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+`;
+
+const Slider = styled.span`
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+
+  &:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+  }
+
+  ${ToggleSwitch} input:checked + & {
+    background-color: #10b981;
+  }
+
+  ${ToggleSwitch} input:checked + &:before {
+    transform: translateX(24px);
+  }
+`;
+
 const ButtonGroup = styled.div`
   display: flex;
   justify-content: flex-end;
@@ -167,15 +212,29 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
           <input type="date" value={dataInicial} onChange={(e) => setDataInicial(e.target.value)} />
         </FormGroup>
 
-        <CheckboxGroup>
-          <input type="checkbox" checked={semanaToda} onChange={() => setSemanaToda(!semanaToda)} />
+        <FormGroup style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <ToggleSwitch>
+            <input
+              type="checkbox"
+              checked={semanaToda}
+              onChange={() => setSemanaToda(!semanaToda)}
+            />
+            <Slider />
+          </ToggleSwitch>
           <label>Gerar agenda da semana inteira</label>
-        </CheckboxGroup>
+        </FormGroup>
 
-        <CheckboxGroup>
-          <input type="checkbox" checked={usarPadrao} onChange={() => setUsarPadrao(!usarPadrao)} />
+        <FormGroup style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <ToggleSwitch>
+            <input
+              type="checkbox"
+              checked={usarPadrao}
+              onChange={() => setUsarPadrao(!usarPadrao)}
+            />
+            <Slider />
+          </ToggleSwitch>
           <label>Usar horários padrão</label>
-        </CheckboxGroup>
+        </FormGroup>
 
         {!usarPadrao && (
           <FormGroup>

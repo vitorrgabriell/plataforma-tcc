@@ -171,8 +171,8 @@ const CadastroCartaoForm = ({ onClose }) => {
       {etapa === "inicio" && (
         <>
           <h2>Gerenciar Cartão</h2>
-          <Button onClick={() => setEtapa("ver")}>🔍 Ver Cartão Cadastrado</Button>
-          <Button onClick={() => setEtapa("novo")}>💳 Cadastrar Novo Cartão</Button>
+          <Button onClick={() => setEtapa("ver")}>Ver Cartão Cadastrado</Button>
+          <Button onClick={() => setEtapa("novo")}>Cadastrar Novo Cartão</Button>
           <BackButton onClick={onClose}>Voltar</BackButton>
         </>
       )}
@@ -186,7 +186,7 @@ const CadastroCartaoForm = ({ onClose }) => {
               src={`https://img.icons8.com/color/32/000000/${cartao.brand}.png`}
               alt={cartao.brand}
               style={{ height: "20px" }}
-              onError={(e) => (e.target.style.display = "none")} // se não achar o ícone
+              onError={(e) => (e.target.style.display = "none")}
             />
             <span style={{ textTransform: "capitalize" }}>{cartao.brand}</span>
           </p>

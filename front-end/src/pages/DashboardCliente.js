@@ -4,8 +4,10 @@ import Cookies from "js-cookie";
 import styled from "styled-components";
 import { jwtDecode } from "jwt-decode";
 import { motion, AnimatePresence } from "framer-motion";
+import ModalEditarUsuario from "../components/modalEditarUsuario";
 import CadastrarEstabelecimentoModal from "../components/modalCadastrarEstabelecimento";
 import CadastroCartaoModal from "../components/modalCadastroCartao";
+import ToastNotification from "../components/ToastNotification";
 
 const Container = styled.div`
   display: flex;
@@ -280,6 +282,7 @@ const DashboardCliente = () => {
   const [estabelecimentos, setEstabelecimentos] = useState([]);
   const [mostrarModalCadastroEstabelecimento, setMostrarModalCadastroEstabelecimento] =
     useState(false);
+  const [mostrarModalEditarUsuario, setMostrarModalEditarUsuario] = useState(false);
   const [avaliacoesRecentes, setAvaliacoesRecentes] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [pontosFidelidade, setPontosFidelidade] = useState([]);
@@ -297,6 +300,12 @@ const DashboardCliente = () => {
   const startIndex = currentPage * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentEstabelecimentos = estabelecimentos.slice(startIndex, endIndex);
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: "", type: "success" }), 3000);
+  };
 
   useEffect(() => {
     const token = Cookies.get("token");
@@ -455,6 +464,7 @@ const DashboardCliente = () => {
         {userName && <UserInfo>Bem-vindo, {userName}!</UserInfo>}
         <ButtonGroup>
           <ButtonGroup>
+            <Button onClick={() => setMostrarModalEditarUsuario(true)}>Editar Perfil</Button>
             <Button onClick={() => setMostrarModalCadastroEstabelecimento(true)}>
               Cadastrar meu estabelecimento
             </Button>
@@ -585,6 +595,14 @@ const DashboardCliente = () => {
           <FooterLink href="/contato">Contato</FooterLink>
         </p>
       </Footer>
+      <ModalEditarUsuario
+        isOpen={mostrarModalEditarUsuario}
+        onClose={() => setMostrarModalEditarUsuario(false)}
+        showToast={showToast}
+        onSuccess={() => {
+          setMostrarModalEditarUsuario(false);
+        }}
+      />
       <CadastrarEstabelecimentoModal
         isOpen={mostrarModalCadastroEstabelecimento}
         onClose={() => setMostrarModalCadastroEstabelecimento(false)}
@@ -593,6 +611,12 @@ const DashboardCliente = () => {
         }}
       />
       <CadastroCartaoModal show={showModalCartao} onClose={() => setShowModalCartao(false)} />
+      <ToastNotification
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
     </Container>
   );
 };

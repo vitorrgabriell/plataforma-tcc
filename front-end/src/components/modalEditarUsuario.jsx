@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Overlay = styled.div`
@@ -10,7 +11,7 @@ const Overlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(15, 23, 42, 0.85); // fundo escuro com transparência
+  background-color: rgba(15, 23, 42, 0.85);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -109,36 +110,64 @@ const BackButton = styled(Button)`
   }
 `;
 
-const CadastrarEstabelecimentoModal = ({ isOpen, onClose, onSuccess }) => {
+const ModalEditarUsuario = ({ isOpen, onClose, onSuccess, showToast }) => {
+  const [userId, setUserId] = useState(null);
   const [nome, setNome] = useState("");
-  const [cnpj, setCnpj] = useState("");
-  const [tipoServico, setTipoServico] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
   const [error, setError] = useState("");
 
-  const handleRegister = async (e) => {
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = Cookies.get("token");
+        const decoded = jwtDecode(token);
+        console.log(jwtDecode(token));
+
+        const uid = decoded.id;
+        setUserId(uid);
+
+        const api = process.env.REACT_APP_API_URL;
+        const res = await axios.get(`${api}/users/${uid}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const { nome, email } = res.data;
+        setNome(nome);
+        setEmail(email);
+      } catch (err) {
+        setError("Erro ao carregar dados do usuário");
+      }
+    };
+
+    if (isOpen) fetchUser();
+  }, [isOpen]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
       const token = Cookies.get("token");
       const api = process.env.REACT_APP_API_URL;
-      const payload = { nome, cnpj, tipo_servico: tipoServico };
 
-      await axios.post(`${api}/estabelecimentos/`, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      onSuccess?.();
-      onClose();
-    } catch (err) {
-      console.error("Erro recebido:", err.response?.data);
-      const detail = err.response?.data?.detail;
-      setError(
-        Array.isArray(detail) ? detail.map((d) => d.msg).join(", ") : detail || "Erro ao cadastrar."
+      await axios.put(
+        `${api}/users/editar-perfil/${userId}`,
+        { nome, email, senha },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
+
+      showToast("Perfil atualizado com sucesso!", "success");
+
+      setTimeout(() => {
+        onSuccess?.();
+        onClose();
+      }, 2000);
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      showToast(detail || "Erro ao atualizar perfil", "error");
     }
   };
 
@@ -158,26 +187,32 @@ const CadastrarEstabelecimentoModal = ({ isOpen, onClose, onSuccess }) => {
             transition={{ duration: 0.3 }}
           >
             <CloseButton onClick={onClose}>×</CloseButton>
-            <Title>Cadastro do Estabelecimento</Title>
+            <Title>Editar Dados do Usuário</Title>
             {error && <ErrorMessage>{error}</ErrorMessage>}
-            <Form onSubmit={handleRegister}>
+            <Form onSubmit={handleSubmit}>
               <FieldGroup>
-                <Label>Nome do Estabelecimento</Label>
+                <Label>Nome</Label>
                 <Input value={nome} onChange={(e) => setNome(e.target.value)} required />
               </FieldGroup>
               <FieldGroup>
-                <Label>CNPJ</Label>
-                <Input value={cnpj} onChange={(e) => setCnpj(e.target.value)} required />
-              </FieldGroup>
-              <FieldGroup>
-                <Label>Tipo de Serviço</Label>
+                <Label>Email</Label>
                 <Input
-                  value={tipoServico}
-                  onChange={(e) => setTipoServico(e.target.value)}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </FieldGroup>
-              <Button type="submit">Cadastrar</Button>
+              <FieldGroup>
+                <Label>Senha</Label>
+                <Input
+                  type="password"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  placeholder="Deixe em branco para manter a atual"
+                />
+              </FieldGroup>
+              <Button type="submit">Salvar</Button>
               <BackButton type="button" onClick={onClose}>
                 Voltar
               </BackButton>
@@ -189,4 +224,4 @@ const CadastrarEstabelecimentoModal = ({ isOpen, onClose, onSuccess }) => {
   );
 };
 
-export default CadastrarEstabelecimentoModal;
+export default ModalEditarUsuario;

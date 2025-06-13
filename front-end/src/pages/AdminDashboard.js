@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import styled from "styled-components";
+import ModalEditarUsuario from "../components/modalEditarUsuario";
 import GraficoFaturamento from "../components/graficoFaturamento";
 import GraficoServicosAgendamentos from "../components/graficoServicosAgendamentos";
 import ModalEditarEstabelecimento from "../components/modalEditarEstabelecimento";
@@ -260,6 +261,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
   const [profissionais, setProfissionais] = useState([]);
+  const [mostrarModalEditarUsuario, setMostrarModalEditarUsuario] = useState(false);
   const [agendamentos, setAgendamentos] = useState([]);
   const [metricas, setMetricas] = useState(null);
   const [cancelados, setCancelados] = useState([]);
@@ -483,6 +485,7 @@ const AdminDashboard = () => {
           <Button onClick={() => setMostrarModalEditarEstabelecimento(true)}>
             Editar Estabelecimento
           </Button>
+          <Button onClick={() => setMostrarModalEditarUsuario(true)}>Editar Perfil</Button>
           <Button $bgColor="#ef4444" $hoverColor="#dc2626" onClick={handleLogout}>
             Sair
           </Button>
@@ -676,6 +679,14 @@ const AdminDashboard = () => {
           estabelecimento_id={estabelecimentoId}
         />
       )}
+      <ModalEditarUsuario
+        isOpen={mostrarModalEditarUsuario}
+        onClose={() => setMostrarModalEditarUsuario(false)}
+        showToast={showToast}
+        onSuccess={() => {
+          setMostrarModalEditarUsuario(false);
+        }}
+      />
       {mostrarModalEditarEstabelecimento && (
         <ModalEditarEstabelecimento
           onClose={() => setMostrarModalEditarEstabelecimento(false)}

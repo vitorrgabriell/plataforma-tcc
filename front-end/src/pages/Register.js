@@ -84,6 +84,14 @@ const Button = styled.button`
   }
 `;
 
+const BackButton = styled(Button)`
+  margin-top: 10px;
+  background-color: #374151;
+  &:hover {
+    background-color: #4b5563;
+  }
+`;
+
 const Register = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -117,6 +125,10 @@ const Register = () => {
       setLoading(false);
     }
   };
+
+  function returnPage() {
+    navigate("/login");
+  }
 
   return (
     <RegisterContainer>
@@ -161,6 +173,7 @@ const Register = () => {
           <Button type="submit" disabled={loading}>
             {loading ? "Cadastrando..." : "Registrar"}
           </Button>
+          <BackButton onClick={returnPage}>Voltar</BackButton>
         </form>
       </FormWrapper>
     </RegisterContainer>

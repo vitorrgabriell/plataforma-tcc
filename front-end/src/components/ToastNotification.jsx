@@ -2,12 +2,6 @@ import React, { useEffect } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 
-const toastIcons = {
-  success: "✅",
-  error: "❌",
-  warning: "⚠️",
-};
-
 const backgroundColors = {
   success: "#10b981",
   error: "#ef4444",
@@ -58,7 +52,6 @@ const ToastNotification = ({ message, type = "success", show, onClose }) => {
           exit={{ opacity: 0, y: 30 }}
           transition={{ duration: 0.3 }}
         >
-          <span>{toastIcons[type] || "ℹ️"}</span>
           <span>{message}</span>
         </ToastWrapper>
       )}
