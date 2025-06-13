@@ -466,7 +466,10 @@ def montar_html_profissional_remarcou(cliente, profissional, servico, data, hora
     </html>
     """
 
-def enviar_email_resgate_fidelidade(destinatario_email, nome_cliente, nome_servico, nome_estabelecimento, data_resgate):
+
+def enviar_email_resgate_fidelidade(
+    destinatario_email, nome_cliente, nome_servico, nome_estabelecimento, data_resgate
+):
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
     from email.mime.image import MIMEImage
@@ -525,7 +528,7 @@ def montar_html_resgate_fidelidade(
     nome_servico: str,
     data_resgate: str,
     nome_estabelecimento: str,
-    qr_code_base64: str
+    qr_code_base64: str,
 ) -> str:
     return f"""
     <html>

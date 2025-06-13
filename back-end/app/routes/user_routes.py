@@ -5,7 +5,7 @@ from passlib.context import CryptContext
 from app.db.database import get_db
 from app.utils.security import get_password_hash
 from app.utils.dependencies import get_current_user
-from app.schemas import UserResponse, UpdateUser, RegisterUser
+from app.schemas import UserResponse, UpdateUser, RegisterUser, UpdateProfile
 
 router = APIRouter()
 
@@ -82,7 +82,12 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
-    return user
+    return {
+        "id": user.id,
+        "nome": user.nome,
+        "email": user.email,
+        "tipo_usuario": user.tipo_usuario,
+    }
 
 
 @router.put("/{user_id}")
@@ -114,6 +119,46 @@ def update_user(user_id: int, user: UpdateUser, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Usuário atualizado com sucesso"}
+
+
+@router.put("/editar-perfil/{user_id}")
+def update_profile(
+    user: UpdateProfile,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    user_id = current_user["id"]
+
+    user_db = db.execute(
+        "SELECT * FROM usuarios WHERE id = :id", {"id": user_id}
+    ).fetchone()
+
+    if not user_db:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    db.execute(
+        """
+        UPDATE usuarios
+        SET nome = :nome, email = :email
+        WHERE id = :id
+        """,
+        {
+            "id": user_id,
+            "nome": user.nome,
+            "email": user.email,
+        },
+    )
+
+    if user.senha:
+        hashed_password = get_password_hash(user.senha)
+        db.execute(
+            "UPDATE usuarios SET senha = :senha WHERE id = :id",
+            {"senha": hashed_password, "id": user_id},
+        )
+
+    db.commit()
+
+    return {"message": "Perfil atualizado com sucesso"}
 
 
 @router.delete("/{user_id}")

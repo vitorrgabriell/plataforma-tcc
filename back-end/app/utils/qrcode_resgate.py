@@ -3,6 +3,7 @@ import qrcode
 from io import BytesIO
 import base64
 
+
 def gerar_qrcode_base64(dados_dict: dict, return_bytes=False):
     conteudo = (
         f"Cliente: {dados_dict['cliente']}\n"
@@ -16,4 +17,8 @@ def gerar_qrcode_base64(dados_dict: dict, return_bytes=False):
     qr.save(buffer, format="PNG")
     buffer.seek(0)
 
-    return buffer.read() if return_bytes else base64.b64encode(buffer.getvalue()).decode("utf-8")
+    return (
+        buffer.read()
+        if return_bytes
+        else base64.b64encode(buffer.getvalue()).decode("utf-8")
+    )

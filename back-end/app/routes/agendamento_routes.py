@@ -364,9 +364,6 @@ def listar_agendamentos_finalizados(
     """,
         {"prof_id": user["funcionario_id"], "data_limite": dois_dias_atras},
     ).fetchall()
-    print(f'prof_id: {user["funcionario_id"]}')
-    print(f'dois dias atras: {dois_dias_atras}')
-    print(f'resultados: {resultados}')
 
     return [dict(r) for r in resultados]
 

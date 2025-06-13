@@ -43,13 +43,18 @@ class UserResponse(BaseModel):
     nome: str
     email: EmailStr
     tipo_usuario: str
-    pontos_acumulados: int
 
 
 class UpdateUser(BaseModel):
     nome: str
     email: EmailStr
     tipo_usuario: str
+    senha: Optional[str] = None
+
+
+class UpdateProfile(BaseModel):
+    nome: str
+    email: EmailStr
     senha: Optional[str] = None
 
 
