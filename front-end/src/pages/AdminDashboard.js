@@ -12,6 +12,7 @@ import ModalEditarFuncionario from "../components/modalEditFuncionario";
 import ModalServico from "../components/modalServico";
 import ModalHistoricoAdmin from "../components/modalHistoricoAdmin";
 import ModalEditarServico from "../components/modalEditServico";
+import ModalConfiguracaoAgenda from "../components/ModalConfiguracaoAgenda";
 import ModalGerarAgenda from "../components/modalGerarAgenda";
 import ModalConfirmacao from "../components/modalConfirmacao";
 import ModalFidelidade from "../components/modalFidelidade";
@@ -276,6 +277,7 @@ const AdminDashboard = () => {
   const [mostrarModalServico, setMostrarModalServico] = useState(false);
   const [mostrarModalEditarServico, setMostrarModalEditarServico] = useState(false);
   const [servicoSelecionado, setServicoSelecionado] = useState(null);
+  const [mostrarModalConfiguracaoAgenda, setMostrarModalConfiguracaoAgenda] = useState(false);
   const [mostrarModalGerarAgenda, setMostrarModalGerarAgenda] = useState(false);
   const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false);
   const [tipoExclusao, setTipoExclusao] = useState("");
@@ -546,6 +548,7 @@ const AdminDashboard = () => {
               }}
             >
               <CardTitle>Agendamentos</CardTitle>
+              <Button onClick={() => { setMostrarModalConfiguracaoAgenda(true);}}>Configurar Agenda </Button>
               <Button onClick={() => setMostrarModalGerarAgenda(true)}>Gerar Agenda</Button>
             </div>
             {agendamentosFuturos.map((a) => (
@@ -737,6 +740,18 @@ const AdminDashboard = () => {
             fetchDashboardData();
             setMostrarModalEditarServico(false);
           }}
+          showToast={showToast}
+        />
+      )}
+      {mostrarModalConfiguracaoAgenda && (
+        <ModalConfiguracaoAgenda
+          isOpen={mostrarModalConfiguracaoAgenda}
+          onClose={() => setMostrarModalConfiguracaoAgenda(false)}
+          onSuccess={() => {
+            fetchDashboardData();
+            setMostrarModalConfiguracaoAgenda(false);
+          }}
+          estabelecimentoId={estabelecimentoId}
           showToast={showToast}
         />
       )}

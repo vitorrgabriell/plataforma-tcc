@@ -42,7 +42,7 @@ const FormGroup = styled.div`
 
   input[type="date"],
   select {
-    width: 100%;
+    width: 95%;
     padding: 10px;
     border-radius: 8px;
     background-color: #0f172a;
@@ -128,15 +128,8 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
   const [dataInicial, setDataInicial] = useState("");
   const [semanaToda, setSemanaToda] = useState(false);
   const [usarPadrao, setUsarPadrao] = useState(true);
-  const [horarios, setHorarios] = useState([
-    "08:00",
-    "09:00",
-    "10:00",
-    "11:00",
-    "14:00",
-    "15:00",
-    "16:00",
-  ]);
+  const [horariosConfigurados, setHorariosConfigurados] = useState([]);
+  const [horarios, setHorarios] = useState([]);
 
   const handleToggleHorario = (hora) => {
     setHorarios((prev) => (prev.includes(hora) ? prev.filter((h) => h !== hora) : [...prev, hora]));
@@ -159,6 +152,7 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
         return;
       }
 
+      console.log(horarios)
       const response = await axios.post(
         url,
         {
@@ -203,6 +197,31 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
     }
   };
 
+  useEffect(() => {
+    const fetchHorarios = async () => {
+      try {
+        const token = Cookies.get("token");
+        const api = process.env.REACT_APP_API_URL?.replace(/\/+$/, "");
+        const response = await axios.get(`${api}/agenda/horarios-profissional`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (response.data && Array.isArray(response.data.horarios)) {
+          setHorariosConfigurados(response.data.horarios);
+          if (!usarPadrao) {
+            setHorarios(response.data.horarios);
+          }
+        } else {
+          showToast("Erro ao carregar horários configurados", "error");
+        }
+      } catch (err) {
+        showToast("Erro ao buscar horários personalizados", "error");
+      }
+    };
+
+    fetchHorarios();
+  }, []);
+
   return (
     <Overlay>
       <ModalContainer>
@@ -240,7 +259,7 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
           <FormGroup>
             <label>Selecione os horários</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-              {["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00"].map((hora) => (
+              {horariosConfigurados.map((hora) => (
                 <button
                   key={hora}
                   type="button"
