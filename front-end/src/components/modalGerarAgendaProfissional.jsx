@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import Cookies from "js-cookie";
 import axios from "axios";
 
@@ -16,6 +16,17 @@ const Overlay = styled.div`
   z-index: 1000;
 `;
 
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
 const ModalContainer = styled.div`
   background-color: #1e293b;
   padding: 32px;
@@ -23,6 +34,7 @@ const ModalContainer = styled.div`
   width: 100%;
   max-width: 480px;
   color: #f1f5f9;
+  animation: ${fadeIn} 0.3s ease-out;
 `;
 
 const Title = styled.h2`
@@ -48,14 +60,6 @@ const FormGroup = styled.div`
     background-color: #0f172a;
     color: #f1f5f9;
     border: 1px solid #334155;
-  }
-`;
-
-const CheckboxGroup = styled.div`
-  margin-bottom: 16px;
-  label {
-    margin-left: 8px;
-    font-size: 0.9rem;
   }
 `;
 
@@ -152,7 +156,6 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
         return;
       }
 
-      console.log(horarios);
       const response = await axios.post(
         url,
         {
@@ -220,7 +223,7 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
     };
 
     fetchHorarios();
-  }, []);
+  }, [usarPadrao, showToast]);
 
   return (
     <Overlay>

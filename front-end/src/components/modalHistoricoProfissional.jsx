@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import Cookies from "js-cookie";
 
@@ -16,6 +16,17 @@ const Overlay = styled.div`
   z-index: 999;
 `;
 
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
 const ModalContent = styled(motion.div)`
   background-color: #1e293b;
   border-radius: 12px;
@@ -27,6 +38,7 @@ const ModalContent = styled(motion.div)`
   overflow-y: auto;
   color: #f1f5f9;
   position: relative;
+  animation: ${fadeIn} 0.3s ease-out;
 `;
 
 const CloseButton = styled.button`
@@ -86,19 +98,18 @@ const FiltrosLinha = styled.div`
 `;
 
 const Button = styled.button`
-  background-color: #3b82f6;
+  background-color: ${(props) => props.bgColor || "#3b82f6"};
   color: white;
   font-weight: bold;
   padding: 10px 50px;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 1rem;
   cursor: pointer;
-  align-self: flex-start;
-  margin-top: 8px;
+  transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: #2563eb;
+    background-color: ${(props) => props.hoverColor || "#2563eb"};
   }
 `;
 
@@ -277,6 +288,15 @@ const ModalHistoricoProfissional = ({ onClose }) => {
               </AgendamentoCard>
             ))
           )}
+          <Button
+            type="button"
+            bgColor="#64748b"
+            hoverColor="#475569"
+            onClick={onClose}
+            style={{ width: "100%", marginTop: "24px" }}
+          >
+            Voltar
+          </Button>
         </ModalContent>
       </Overlay>
     </AnimatePresence>

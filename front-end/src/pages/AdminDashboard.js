@@ -648,7 +648,7 @@ const AdminDashboard = () => {
           </Div3>
           <Div4>
             <div>
-              <CardTitle>Faturamento Semanal</CardTitle>
+              <CardTitle>Faturamento Mensal</CardTitle>
               <GraficoFaturamento />
             </div>
             <div>

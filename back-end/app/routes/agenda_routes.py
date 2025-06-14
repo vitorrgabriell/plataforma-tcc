@@ -133,9 +133,6 @@ def gerar_horarios_profissional(
             status_code=403, detail="Você só pode gerar sua própria agenda."
         )
 
-    print(dados.profissional_id)
-    print(funcionario.id)
-
     data_inicio = datetime.strptime(dados.data_inicial, "%Y-%m-%d").date()
     data_fim = data_inicio + timedelta(days=6) if dados.semana_toda else data_inicio
 
@@ -157,7 +154,6 @@ def gerar_horarios_profissional(
 
         while data_atual <= data_fim:
             dia_semana = data_atual.weekday()
-            print(f"[DEBUG] Dia atual: {data_atual} (weekday: {dia_semana})")
             dias_semana_map = {
                 0: "segunda",
                 1: "terca",
@@ -169,12 +165,8 @@ def gerar_horarios_profissional(
             }
             dia_semana = dias_semana_map[data_atual.weekday()]
             confs_dia = [c for c in configuracoes if c.dia_semana == dia_semana]
-            print(f"[DEBUG] Configurações encontradas nesse dia: {len(confs_dia)}")
 
             for conf in confs_dia:
-                print(
-                    f"[DEBUG] Hora início: {conf.hora_inicio}, Hora fim: {conf.hora_fim}, Duração: {conf.duracao_slot}"
-                )
                 hora_inicio = datetime.combine(
                     data_atual, datetime.strptime(conf.hora_inicio, "%H:%M").time()
                 )
@@ -185,7 +177,6 @@ def gerar_horarios_profissional(
                 duracao = timedelta(minutes=conf.duracao_slot)
 
                 while atual + duracao <= hora_fim:
-                    print(f"[DEBUG] Criando slot para {atual}")
                     conflito_existente = (
                         db.query(AgendaDisponivel)
                         .filter_by(profissional_id=funcionario.id, data_hora=atual)

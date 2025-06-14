@@ -25,7 +25,7 @@ const ToastWrapper = styled(motion.div)`
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
   font-size: 15px;
   font-weight: bold;
-  z-index: 999;
+  z-index: 9999;
   display: flex;
   align-items: center;
   gap: 12px;

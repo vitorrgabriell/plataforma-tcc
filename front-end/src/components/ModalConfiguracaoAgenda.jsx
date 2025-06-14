@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import Cookies from "js-cookie";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -18,6 +18,17 @@ const Overlay = styled.div`
   backdrop-filter: blur(2px);
 `;
 
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
 const ModalContent = styled(motion.div)`
   background-color: #1e293b;
   border-radius: 12px;
@@ -27,6 +38,9 @@ const ModalContent = styled(motion.div)`
   max-width: 640px;
   color: #f9fafb;
   position: relative;
+  animation: ${fadeIn} 0.3s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
 `;
 
 const Title = styled.h2`
@@ -48,11 +62,19 @@ const Label = styled.label`
 `;
 
 const Select = styled.select`
-  padding: 10px;
-  border-radius: 6px;
+  width: 94%;
+  padding: 12px;
   background-color: #0f172a;
-  border: 1px solid #334155;
   color: #f9fafb;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
+
+  &:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  }
 `;
 
 const ToggleSwitch = styled.label`
@@ -101,26 +123,36 @@ const Slider = styled.span`
 `;
 
 const Input = styled.input`
-  padding: 10px;
-  border-radius: 6px;
+  width: 94%;
+  padding: 12px;
   background-color: #0f172a;
-  border: 1px solid #334155;
   color: #f9fafb;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
+  transition: border 0.2s ease;
+
+  &:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  }
 `;
 
 const Button = styled.button`
-  background-color: #3b82f6;
+  background-color: ${(props) => props.bgColor || "#3b82f6"};
   color: white;
-  font-weight: bold;
   padding: 12px;
   border: none;
-  border-radius: 6px;
-  font-size: 16px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  flex: 1;
 
   &:hover {
-    background-color: #2563eb;
+    background-color: ${(props) => props.hoverColor || "#2563eb"};
   }
 `;
 
@@ -132,18 +164,10 @@ const Row = styled.div`
   padding: 4px 0;
 `;
 
-const CloseButton = styled.button`
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  font-size: 18px;
-  color: #94a3b8;
-  background: none;
-  border: none;
-  cursor: pointer;
-
+const BackButton = styled(Button)`
+  background-color: #374151;
   &:hover {
-    color: white;
+    background-color: #4b5563;
   }
 `;
 
@@ -300,7 +324,6 @@ const ModalConfiguracaoAgenda = ({ isOpen, onClose, showToast, estabelecimentoId
             exit={{ y: -20, opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <CloseButton onClick={handleClose}>×</CloseButton>
             <Title>Configurar Agenda</Title>
             <Form onSubmit={handleSubmit}>
               <Label>Profissional</Label>
@@ -341,35 +364,39 @@ const ModalConfiguracaoAgenda = ({ isOpen, onClose, showToast, estabelecimentoId
                       <Slider />
                     </ToggleSwitch>
                     <span style={{ minWidth: "80px" }}>{label}</span>
-                    <Input
-                      type="time"
-                      disabled={!ativo}
-                      value={config[nome]?.inicio1 || ""}
-                      onChange={(e) => handleChange(nome, "inicio1", e.target.value)}
-                    />
-                    <Input
-                      type="time"
-                      disabled={!ativo}
-                      value={config[nome]?.fim1 || ""}
-                      onChange={(e) => handleChange(nome, "fim1", e.target.value)}
-                    />
-                    <Input
-                      type="time"
-                      disabled={!ativo}
-                      value={config[nome]?.inicio2 || ""}
-                      onChange={(e) => handleChange(nome, "inicio2", e.target.value)}
-                    />
-                    <Input
-                      type="time"
-                      disabled={!ativo}
-                      value={config[nome]?.fim2 || ""}
-                      onChange={(e) => handleChange(nome, "fim2", e.target.value)}
-                    />
+                    {ativo && (
+                      <>
+                        <Input
+                          type="time"
+                          value={config[nome]?.inicio1 || ""}
+                          onChange={(e) => handleChange(nome, "inicio1", e.target.value)}
+                        />
+                        <Input
+                          type="time"
+                          value={config[nome]?.fim1 || ""}
+                          onChange={(e) => handleChange(nome, "fim1", e.target.value)}
+                        />
+                        <Input
+                          type="time"
+                          value={config[nome]?.inicio2 || ""}
+                          onChange={(e) => handleChange(nome, "inicio2", e.target.value)}
+                        />
+                        <Input
+                          type="time"
+                          value={config[nome]?.fim2 || ""}
+                          onChange={(e) => handleChange(nome, "fim2", e.target.value)}
+                        />
+                      </>
+                    )}
                   </Row>
                 );
               })}
-
-              <Button type="submit">Salvar</Button>
+              <div style={{ display: "flex", gap: "12px", marginTop: "20px", justifyContent: "center", paddingBottom: "12px" }}>
+                <Button type="submit">Salvar</Button>
+                <Button type="button" bgColor="#64748b" hoverColor="#475569" onClick={handleClose}>
+                  Voltar
+                </Button>
+              </div>
             </Form>
           </ModalContent>
         </Overlay>

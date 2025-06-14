@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { motion } from "framer-motion";
 import Cookies from "js-cookie";
 import ToastNotification from "../components/ToastNotification";
@@ -17,13 +17,26 @@ const Overlay = styled.div`
   z-index: 999;
 `;
 
-const Modal = styled(motion.div)`
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
+const ModalContainer = styled(motion.div)`
   background-color: #1e293b;
-  border-radius: 10px;
   padding: 32px;
+  border-radius: 10px;
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  max-width: 420px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+  position: relative;
+  animation: ${fadeIn} 0.3s ease-out;
 `;
 
 const Title = styled.h2`
@@ -125,11 +138,7 @@ const ModalGerarAgenda = ({ onClose, onSuccess }) => {
 
   return (
     <Overlay>
-      <Modal
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-      >
+      <ModalContainer>
         <Title>Gerar agenda automática</Title>
         <p style={{ color: "#f1f5f9", fontSize: "14px" }}>
           Isso irá criar automaticamente os horários para todos os profissionais do estabelecimento
@@ -141,7 +150,7 @@ const ModalGerarAgenda = ({ onClose, onSuccess }) => {
           </Button>
           <Button onClick={handleConfirmar}>Confirmar</Button>
         </ButtonGroup>
-      </Modal>
+      </ModalContainer>
 
       {toast.show && (
         <ToastNotification

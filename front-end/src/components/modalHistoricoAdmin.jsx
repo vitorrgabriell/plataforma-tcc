@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import Cookies from "js-cookie";
 
@@ -16,6 +16,17 @@ const Overlay = styled.div`
   z-index: 999;
 `;
 
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
 const ModalContent = styled(motion.div)`
   background-color: #1e293b;
   border-radius: 12px;
@@ -27,6 +38,7 @@ const ModalContent = styled(motion.div)`
   overflow-y: auto;
   color: #f1f5f9;
   position: relative;
+  animation: ${fadeIn} 0.3s ease-out;
 `;
 
 const CloseButton = styled.button`
@@ -123,6 +135,24 @@ const Input = styled.input`
   border: 1px solid #334155;
   color: #f9fafb;
   border-radius: 6px;
+`;
+
+const BackButton = styled.button`
+  background-color: #64748b;
+  color: white;
+  font-weight: bold;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 24px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #475569;
+  }
 `;
 
 const ModalHistoricoAdmin = ({ onClose }) => {
@@ -314,6 +344,7 @@ const ModalHistoricoAdmin = ({ onClose }) => {
               </AgendamentoCard>
             ))
           )}
+          <BackButton onClick={onClose}>Voltar</BackButton>
         </ModalContent>
       </Overlay>
     </AnimatePresence>

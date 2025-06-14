@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import Cookies from "js-cookie";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -17,6 +17,17 @@ const Overlay = styled.div`
   z-index: 999;
 `;
 
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
 const ModalContent = styled(motion.div)`
   background-color: #1e293b;
   border-radius: 12px;
@@ -25,6 +36,7 @@ const ModalContent = styled(motion.div)`
   width: 100%;
   max-width: 480px;
   color: #f9fafb;
+  animation: ${fadeIn} 0.3s ease-out;
 `;
 
 const Title = styled.h2`
@@ -60,18 +72,19 @@ const Input = styled.input`
 `;
 
 const Button = styled.button`
-  background-color: #3b82f6;
+  background-color: ${(props) => props.bgColor || "#3b82f6"};
   color: white;
-  font-weight: bold;
   padding: 12px;
   border: none;
-  border-radius: 6px;
-  font-size: 16px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  flex: 1;
 
   &:hover {
-    background-color: #2563eb;
+    background-color: ${(props) => props.hoverColor || "#2563eb"};
   }
 `;
 
@@ -99,13 +112,6 @@ const CloseButton = styled.button`
 
   &:hover {
     color: white;
-  }
-`;
-
-const BackButton = styled(Button)`
-  background-color: #374151;
-  &:hover {
-    background-color: #4b5563;
   }
 `;
 
@@ -177,10 +183,12 @@ const CadastrarEstabelecimentoModal = ({ isOpen, onClose, onSuccess }) => {
                   required
                 />
               </FieldGroup>
-              <Button type="submit">Cadastrar</Button>
-              <BackButton type="button" onClick={onClose}>
-                Voltar
-              </BackButton>
+              <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
+                <Button type="submit">Cadastrar</Button>
+                <Button type="button" bgColor="#64748b" hoverColor="#475569" onClick={onClose}>
+                  Voltar
+                </Button>
+              </div>
             </Form>
           </ModalContent>
         </Overlay>

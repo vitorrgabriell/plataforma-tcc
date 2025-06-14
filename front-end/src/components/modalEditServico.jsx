@@ -130,6 +130,7 @@ const ModalEditarServico = ({ servicoId, onClose, onSuccess, showToast }) => {
         setNome(data.nome);
         setDescricao(data.descricao);
         setPreco(data.preco);
+        setTempo(data.tempo);
       } catch (err) {
         console.error("Erro ao carregar serviço:", err);
       }
