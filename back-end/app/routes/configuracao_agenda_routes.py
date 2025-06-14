@@ -30,7 +30,7 @@ def criar_configuracao_agenda(
         hora_inicio=config.hora_inicio,
         hora_fim=config.hora_fim,
         duracao_slot=config.duracao_slot,
-        estabelecimento_id=user["estabelecimento_id"]
+        estabelecimento_id=user["estabelecimento_id"],
     )
 
     db.add(nova_config)

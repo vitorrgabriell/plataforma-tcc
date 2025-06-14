@@ -228,7 +228,6 @@ class GerarAgendaRequest(BaseModel):
     duracao_minutos: int
 
 
-
 class GerarAgendaAdminRequest(BaseModel):
     data_inicio: date
     data_fim: date

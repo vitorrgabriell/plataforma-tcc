@@ -85,13 +85,15 @@ def excluir_horario(
     db.delete(horario)
     db.commit()
 
+
 @router.get("/horarios-profissional")
 def listar_configuracoes_do_profissional(
-    db: Session = Depends(get_db),
-    user=Depends(get_current_user)
+    db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
     if user["tipo_usuario"] != "profissional":
-        raise HTTPException(status_code=403, detail="Apenas profissionais podem acessar esta rota.")
+        raise HTTPException(
+            status_code=403, detail="Apenas profissionais podem acessar esta rota."
+        )
 
     configuracoes = (
         db.query(ConfiguracaoAgenda)
@@ -130,7 +132,7 @@ def gerar_horarios_profissional(
         raise HTTPException(
             status_code=403, detail="Você só pode gerar sua própria agenda."
         )
-    
+
     print(dados.profissional_id)
     print(funcionario.id)
 
@@ -149,7 +151,9 @@ def gerar_horarios_profissional(
         )
 
         if not configuracoes:
-            raise HTTPException(status_code=404, detail="Nenhuma configuração de agenda foi encontrada.")
+            raise HTTPException(
+                status_code=404, detail="Nenhuma configuração de agenda foi encontrada."
+            )
 
         while data_atual <= data_fim:
             dia_semana = data_atual.weekday()
@@ -161,25 +165,32 @@ def gerar_horarios_profissional(
                 3: "quinta",
                 4: "sexta",
                 5: "sabado",
-                6: "domingo"
+                6: "domingo",
             }
             dia_semana = dias_semana_map[data_atual.weekday()]
             confs_dia = [c for c in configuracoes if c.dia_semana == dia_semana]
             print(f"[DEBUG] Configurações encontradas nesse dia: {len(confs_dia)}")
 
             for conf in confs_dia:
-                print(f"[DEBUG] Hora início: {conf.hora_inicio}, Hora fim: {conf.hora_fim}, Duração: {conf.duracao_slot}")
-                hora_inicio = datetime.combine(data_atual, datetime.strptime(conf.hora_inicio, "%H:%M").time())
-                hora_fim = datetime.combine(data_atual, datetime.strptime(conf.hora_fim, "%H:%M").time())
+                print(
+                    f"[DEBUG] Hora início: {conf.hora_inicio}, Hora fim: {conf.hora_fim}, Duração: {conf.duracao_slot}"
+                )
+                hora_inicio = datetime.combine(
+                    data_atual, datetime.strptime(conf.hora_inicio, "%H:%M").time()
+                )
+                hora_fim = datetime.combine(
+                    data_atual, datetime.strptime(conf.hora_fim, "%H:%M").time()
+                )
                 atual = hora_inicio
                 duracao = timedelta(minutes=conf.duracao_slot)
 
                 while atual + duracao <= hora_fim:
                     print(f"[DEBUG] Criando slot para {atual}")
-                    conflito_existente = db.query(AgendaDisponivel).filter_by(
-                        profissional_id=funcionario.id,
-                        data_hora=atual
-                    ).first()
+                    conflito_existente = (
+                        db.query(AgendaDisponivel)
+                        .filter_by(profissional_id=funcionario.id, data_hora=atual)
+                        .first()
+                    )
 
                     if not conflito_existente:
                         slot = AgendaDisponivel(
@@ -202,10 +213,11 @@ def gerar_horarios_profissional(
                 hora = datetime.strptime(horario_str, "%H:%M").time()
                 data_hora = datetime.combine(data_atual, hora)
 
-                conflito_existente = db.query(AgendaDisponivel).filter_by(
-                    profissional_id=funcionario.id,
-                    data_hora=data_hora
-                ).first()
+                conflito_existente = (
+                    db.query(AgendaDisponivel)
+                    .filter_by(profissional_id=funcionario.id, data_hora=data_hora)
+                    .first()
+                )
 
                 if not conflito_existente:
                     slot = AgendaDisponivel(
@@ -238,20 +250,31 @@ def gerar_agenda_para_todos(
     user=Depends(get_current_user),
 ):
     if user["tipo_usuario"] != "admin":
-        raise HTTPException(status_code=403, detail="Apenas administradores podem gerar agendas")
+        raise HTTPException(
+            status_code=403, detail="Apenas administradores podem gerar agendas"
+        )
 
     estabelecimento_id = user["estabelecimento_id"]
 
-    profissionais = db.query(Funcionario).filter_by(estabelecimento_id=estabelecimento_id).all()
+    profissionais = (
+        db.query(Funcionario).filter_by(estabelecimento_id=estabelecimento_id).all()
+    )
 
     if not profissionais:
-        raise HTTPException(status_code=404, detail="Nenhum profissional encontrado para este estabelecimento")
+        raise HTTPException(
+            status_code=404,
+            detail="Nenhum profissional encontrado para este estabelecimento",
+        )
 
     data_inicio = dados.data_inicio
     data_fim = dados.data_fim
 
     for profissional in profissionais:
-        configuracoes = db.query(ConfiguracaoAgenda).filter_by(profissional_id=profissional.id).all()
+        configuracoes = (
+            db.query(ConfiguracaoAgenda)
+            .filter_by(profissional_id=profissional.id)
+            .all()
+        )
 
         if not configuracoes:
             continue
@@ -265,15 +288,21 @@ def gerar_agenda_para_todos(
                 3: "quinta",
                 4: "sexta",
                 5: "sabado",
-                6: "domingo"
+                6: "domingo",
             }
             dia_semana = dias_semana_map[data_atual.weekday()]
 
-            config_do_dia = [cfg for cfg in configuracoes if cfg.dia_semana == dia_semana]
+            config_do_dia = [
+                cfg for cfg in configuracoes if cfg.dia_semana == dia_semana
+            ]
 
             for config in config_do_dia:
-                hora_inicio = datetime.combine(data_atual, datetime.strptime(config.hora_inicio, "%H:%M").time())
-                hora_fim = datetime.combine(data_atual, datetime.strptime(config.hora_fim, "%H:%M").time())
+                hora_inicio = datetime.combine(
+                    data_atual, datetime.strptime(config.hora_inicio, "%H:%M").time()
+                )
+                hora_fim = datetime.combine(
+                    data_atual, datetime.strptime(config.hora_fim, "%H:%M").time()
+                )
                 duracao = timedelta(minutes=config.duracao_slot)
 
                 horario = hora_inicio
@@ -291,5 +320,6 @@ def gerar_agenda_para_todos(
             data_atual += timedelta(days=1)
 
     db.commit()
-    return {"message": "Agendas geradas com sucesso com base na configuração dos profissionais."}
-
+    return {
+        "message": "Agendas geradas com sucesso com base na configuração dos profissionais."
+    }

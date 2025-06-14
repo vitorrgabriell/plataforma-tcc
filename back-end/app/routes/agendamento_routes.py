@@ -53,7 +53,7 @@ def criar_agendamento(
         .filter(
             AgendaDisponivel.profissional_id == agendamento.profissional_id,
             AgendaDisponivel.data_hora >= agendamento.horario,
-            AgendaDisponivel.ocupado == False
+            AgendaDisponivel.ocupado == False,
         )
         .order_by(AgendaDisponivel.data_hora)
         .all()
@@ -78,20 +78,6 @@ def criar_agendamento(
 
         if tempo_acumulado >= duracao_total:
             break
-
-    print(f"HORÁRIO SOLICITADO: {agendamento.horario}")
-    print(f"DURAÇÃO NECESSÁRIA: {duracao_total}")
-    print("SLOTS ENCONTRADOS:")
-
-    for s in slots_disponiveis:
-        print(s.data_hora)
-
-    print("SLOTS UTILIZADOS PARA O AGENDAMENTO:")
-    for s in slots_utilizados:
-        print(s.data_hora)
-
-    print(f"TEMPO ACUMULADO: {tempo_acumulado}")
-
 
     if tempo_acumulado < duracao_total:
         raise HTTPException(
@@ -714,7 +700,7 @@ def confirmar_agendamento(
         .filter(
             AgendaDisponivel.profissional_id == agendamento.profissional_id,
             AgendaDisponivel.data_hora >= agendamento.horario,
-            AgendaDisponivel.ocupado == False
+            AgendaDisponivel.ocupado == False,
         )
         .order_by(AgendaDisponivel.data_hora)
         .all()
@@ -773,7 +759,6 @@ def confirmar_agendamento(
         )
 
     return {"message": "Agendamento confirmado com sucesso!"}
-
 
 
 @router.put("/recusar/{agendamento_id}")

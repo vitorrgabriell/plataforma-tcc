@@ -136,7 +136,7 @@ def update_profile(
 
     if not user_db:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    
+
     email_existente = db.execute(
         "SELECT email FROM usuarios where email = :email", {"email": user_email}
     ).fetchone()
