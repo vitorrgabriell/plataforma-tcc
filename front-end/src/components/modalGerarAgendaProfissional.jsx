@@ -152,7 +152,7 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
         return;
       }
 
-      console.log(horarios)
+      console.log(horarios);
       const response = await axios.post(
         url,
         {
@@ -203,7 +203,7 @@ const ModalGerarAgendaProfissional = ({ onClose, onSuccess, showToast }) => {
         const token = Cookies.get("token");
         const api = process.env.REACT_APP_API_URL?.replace(/\/+$/, "");
         const response = await axios.get(`${api}/agenda/horarios-profissional`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (response.data && Array.isArray(response.data.horarios)) {

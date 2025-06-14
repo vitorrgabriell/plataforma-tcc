@@ -548,7 +548,13 @@ const AdminDashboard = () => {
               }}
             >
               <CardTitle>Agendamentos</CardTitle>
-              <Button onClick={() => { setMostrarModalConfiguracaoAgenda(true);}}>Configurar Agenda </Button>
+              <Button
+                onClick={() => {
+                  setMostrarModalConfiguracaoAgenda(true);
+                }}
+              >
+                Configurar Agenda{" "}
+              </Button>
               <Button onClick={() => setMostrarModalGerarAgenda(true)}>Gerar Agenda</Button>
             </div>
             {agendamentosFuturos.map((a) => (

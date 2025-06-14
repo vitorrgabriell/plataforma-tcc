@@ -322,10 +322,7 @@ const ModalConfiguracaoAgenda = ({ isOpen, onClose, showToast, estabelecimentoId
               </Select>
 
               <Label>Duração dos slots (min)</Label>
-              <Select
-                value={duracaoSlot}
-                onChange={(e) => setDuracaoSlot(Number(e.target.value))}
-              >
+              <Select value={duracaoSlot} onChange={(e) => setDuracaoSlot(Number(e.target.value))}>
                 <option value={15}>15</option>
                 <option value={20}>20</option>
                 <option value={30}>30</option>
@@ -339,9 +336,7 @@ const ModalConfiguracaoAgenda = ({ isOpen, onClose, showToast, estabelecimentoId
                       <input
                         type="checkbox"
                         checked={ativo}
-                        onChange={(e) =>
-                          handleChange(nome, "ativo", e.target.checked)
-                        }
+                        onChange={(e) => handleChange(nome, "ativo", e.target.checked)}
                       />
                       <Slider />
                     </ToggleSwitch>
