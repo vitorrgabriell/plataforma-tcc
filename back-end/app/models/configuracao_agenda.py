@@ -12,5 +12,7 @@ class ConfiguracaoAgenda(Base):
     hora_inicio = Column(String, nullable=False)
     hora_fim = Column(String, nullable=False)
     duracao_slot = Column(Integer, default=30)
+    estabelecimento_id = Column(Integer, ForeignKey("estabelecimentos.id"), nullable=False)
 
     profissional = relationship("Funcionario", back_populates="configuracoes_agenda")
+    estabelecimento = relationship("Estabelecimento", back_populates="configuracoes_agenda")

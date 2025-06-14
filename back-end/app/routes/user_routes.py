@@ -128,6 +128,7 @@ def update_profile(
     current_user=Depends(get_current_user),
 ):
     user_id = current_user["id"]
+    user_email = current_user["email"]
 
     user_db = db.execute(
         "SELECT * FROM usuarios WHERE id = :id", {"id": user_id}
@@ -135,6 +136,13 @@ def update_profile(
 
     if not user_db:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    email_existente = db.execute(
+        "SELECT email FROM usuarios where email = :email", {"email": user_email}
+    ).fetchone()
+
+    if email_existente:
+        raise HTTPException(status_code=400, detail="Email já existente")
 
     db.execute(
         """

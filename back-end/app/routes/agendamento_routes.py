@@ -42,19 +42,61 @@ def criar_agendamento(
     db: Session = Depends(get_db),
     user=Depends(get_current_user),
 ):
-    horario_disponivel = (
+    servico = db.query(Servico).filter(Servico.id == agendamento.servico_id).first()
+    if not servico:
+        raise HTTPException(status_code=404, detail="Serviço não encontrado")
+
+    duracao_total = timedelta(minutes=servico.tempo)
+
+    slots_disponiveis = (
         db.query(AgendaDisponivel)
         .filter(
             AgendaDisponivel.profissional_id == agendamento.profissional_id,
-            AgendaDisponivel.data_hora == agendamento.horario,
+            AgendaDisponivel.data_hora >= agendamento.horario,
+            AgendaDisponivel.ocupado == False
         )
-        .first()
+        .order_by(AgendaDisponivel.data_hora)
+        .all()
     )
 
-    if not horario_disponivel or horario_disponivel.ocupado:
+    slots_utilizados = []
+    tempo_acumulado = timedelta()
+
+    for slot in slots_disponiveis:
+        if not slots_utilizados:
+            if slot.data_hora != agendamento.horario:
+                continue
+            slots_utilizados.append(slot)
+            tempo_acumulado += timedelta(minutes=15)
+        else:
+            anterior = slots_utilizados[-1].data_hora
+            if slot.data_hora == anterior + timedelta(minutes=15):
+                slots_utilizados.append(slot)
+                tempo_acumulado += timedelta(minutes=15)
+            else:
+                break
+
+        if tempo_acumulado >= duracao_total:
+            break
+
+    print(f"HORÁRIO SOLICITADO: {agendamento.horario}")
+    print(f"DURAÇÃO NECESSÁRIA: {duracao_total}")
+    print("SLOTS ENCONTRADOS:")
+
+    for s in slots_disponiveis:
+        print(s.data_hora)
+
+    print("SLOTS UTILIZADOS PARA O AGENDAMENTO:")
+    for s in slots_utilizados:
+        print(s.data_hora)
+
+    print(f"TEMPO ACUMULADO: {tempo_acumulado}")
+
+
+    if tempo_acumulado < duracao_total:
         raise HTTPException(
             status_code=400,
-            detail="Horário não está disponível para esse profissional.",
+            detail="Não há tempo disponível suficiente para esse serviço.",
         )
 
     novo_agendamento = Agendamento(
@@ -650,7 +692,6 @@ def confirmar_agendamento(
         )
 
     agendamento = db.query(Agendamento).filter(Agendamento.id == agendamento_id).first()
-
     if not agendamento:
         raise HTTPException(status_code=404, detail="Agendamento não encontrado.")
 
@@ -662,19 +703,50 @@ def confirmar_agendamento(
     if agendamento.status == "confirmado":
         raise HTTPException(status_code=400, detail="Agendamento já está confirmado.")
 
-    agendamento.status = "confirmado"
-    horario = (
+    servico = db.query(Servico).filter(Servico.id == agendamento.servico_id).first()
+    if not servico:
+        raise HTTPException(status_code=404, detail="Serviço não encontrado")
+
+    duracao_total = timedelta(minutes=servico.tempo)
+
+    slots_disponiveis = (
         db.query(AgendaDisponivel)
         .filter(
             AgendaDisponivel.profissional_id == agendamento.profissional_id,
-            AgendaDisponivel.data_hora == agendamento.horario,
+            AgendaDisponivel.data_hora >= agendamento.horario,
+            AgendaDisponivel.ocupado == False
         )
-        .first()
+        .order_by(AgendaDisponivel.data_hora)
+        .all()
     )
 
-    if horario:
-        horario.ocupado = True
+    slots_utilizados = []
+    tempo_acumulado = timedelta()
 
+    for slot in slots_disponiveis:
+        if not slots_utilizados:
+            if slot.data_hora != agendamento.horario:
+                continue
+        else:
+            anterior = slots_utilizados[-1].data_hora
+            if slot.data_hora != anterior + timedelta(minutes=15):
+                break
+
+        slots_utilizados.append(slot)
+        tempo_acumulado += timedelta(minutes=15)
+        if tempo_acumulado >= duracao_total:
+            break
+
+    if tempo_acumulado < duracao_total:
+        raise HTTPException(
+            status_code=400,
+            detail="Horários conflitantes — não é possível confirmar.",
+        )
+
+    for slot in slots_utilizados:
+        slot.ocupado = True
+
+    agendamento.status = "confirmado"
     db.commit()
 
     cliente = db.query(User).filter(User.id == agendamento.cliente_id).first()
@@ -683,10 +755,9 @@ def confirmar_agendamento(
         .filter(Funcionario.id == agendamento.profissional_id)
         .first()
     )
-    servico = db.query(Servico).filter(Servico.id == agendamento.servico_id).first()
     estabelecimento = (
         db.query(Estabelecimento)
-        .filter(Estabelecimento.id == servico.estabelecimento_id)
+        .filter(Estabelecimento.id == profissional.estabelecimento_id)
         .first()
     )
 
@@ -702,6 +773,7 @@ def confirmar_agendamento(
         )
 
     return {"message": "Agendamento confirmado com sucesso!"}
+
 
 
 @router.put("/recusar/{agendamento_id}")

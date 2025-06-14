@@ -228,13 +228,10 @@ class GerarAgendaRequest(BaseModel):
     duracao_minutos: int
 
 
+
 class GerarAgendaAdminRequest(BaseModel):
-    data_inicio: str
-    data_fim: str
-    dias_semana: list[int]
-    horario_inicio: str
-    horario_fim: str
-    duracao_minutos: int
+    data_inicio: date
+    data_fim: date
 
 
 class ConfiguracaoAgendaCreate(BaseModel):

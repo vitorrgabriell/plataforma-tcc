@@ -85,6 +85,34 @@ def excluir_horario(
     db.delete(horario)
     db.commit()
 
+@router.get("/horarios-profissional")
+def listar_configuracoes_do_profissional(
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    if user["tipo_usuario"] != "profissional":
+        raise HTTPException(status_code=403, detail="Apenas profissionais podem acessar esta rota.")
+
+    configuracoes = (
+        db.query(ConfiguracaoAgenda)
+        .filter(ConfiguracaoAgenda.profissional_id == user["funcionario_id"])
+        .all()
+    )
+
+    resultado = []
+    for conf in configuracoes:
+        hora_inicio = datetime.strptime(conf.hora_inicio, "%H:%M").time()
+        hora_fim = datetime.strptime(conf.hora_fim, "%H:%M").time()
+        atual = datetime.combine(date.today(), hora_inicio)
+        fim = datetime.combine(date.today(), hora_fim)
+        while atual <= fim:
+            resultado.append(atual.strftime("%H:%M"))
+            atual += timedelta(minutes=conf.duracao_slot)
+
+    resultado = sorted(set(resultado))
+
+    return {"horarios": resultado}
+
 
 @router.post("/gerar-agenda/")
 def gerar_horarios_profissional(
@@ -102,60 +130,95 @@ def gerar_horarios_profissional(
         raise HTTPException(
             status_code=403, detail="Você só pode gerar sua própria agenda."
         )
+    
+    print(dados.profissional_id)
+    print(funcionario.id)
 
     data_inicio = datetime.strptime(dados.data_inicial, "%Y-%m-%d").date()
     data_fim = data_inicio + timedelta(days=6) if dados.semana_toda else data_inicio
 
-    conflitos = (
-        db.query(AgendaDisponivel)
-        .filter(
-            AgendaDisponivel.profissional_id == funcionario.id,
-            AgendaDisponivel.data_hora
-            >= datetime.combine(data_inicio, datetime.min.time()),
-            AgendaDisponivel.data_hora
-            <= datetime.combine(data_fim, datetime.max.time()),
-        )
-        .first()
-    )
-
-    if conflitos:
-        raise HTTPException(
-            status_code=400,
-            detail="Já existem horários cadastrados neste período. Não é possível gerar novamente.",
-        )
-
-    duracao = timedelta(minutes=dados.duracao_minutos)
-    horarios_personalizados = dados.horarios_personalizados or []
     total_criados = 0
     horarios_criados = []
     data_atual = data_inicio
 
-    if dados.usar_padrao or not horarios_personalizados:
-        horarios_personalizados = [
-            "08:00",
-            "09:00",
-            "10:00",
-            "11:00",
-            "14:00",
-            "15:00",
-            "16:00",
-        ]
+    if dados.usar_padrao:
+        configuracoes = (
+            db.query(ConfiguracaoAgenda)
+            .filter(ConfiguracaoAgenda.profissional_id == funcionario.id)
+            .all()
+        )
 
-    while data_atual <= data_fim:
-        for horario_str in horarios_personalizados:
-            hora = datetime.strptime(horario_str, "%H:%M").time()
-            data_hora = datetime.combine(data_atual, hora)
+        if not configuracoes:
+            raise HTTPException(status_code=404, detail="Nenhuma configuração de agenda foi encontrada.")
 
-            slot = AgendaDisponivel(
-                profissional_id=funcionario.id,
-                estabelecimento_id=funcionario.estabelecimento_id,
-                data_hora=data_hora,
-                ocupado=False,
-            )
-            db.add(slot)
-            total_criados += 1
-            horarios_criados.append(data_hora.strftime("%Y-%m-%d %H:%M"))
-        data_atual += timedelta(days=1)
+        while data_atual <= data_fim:
+            dia_semana = data_atual.weekday()
+            print(f"[DEBUG] Dia atual: {data_atual} (weekday: {dia_semana})")
+            dias_semana_map = {
+                0: "segunda",
+                1: "terca",
+                2: "quarta",
+                3: "quinta",
+                4: "sexta",
+                5: "sabado",
+                6: "domingo"
+            }
+            dia_semana = dias_semana_map[data_atual.weekday()]
+            confs_dia = [c for c in configuracoes if c.dia_semana == dia_semana]
+            print(f"[DEBUG] Configurações encontradas nesse dia: {len(confs_dia)}")
+
+            for conf in confs_dia:
+                print(f"[DEBUG] Hora início: {conf.hora_inicio}, Hora fim: {conf.hora_fim}, Duração: {conf.duracao_slot}")
+                hora_inicio = datetime.combine(data_atual, datetime.strptime(conf.hora_inicio, "%H:%M").time())
+                hora_fim = datetime.combine(data_atual, datetime.strptime(conf.hora_fim, "%H:%M").time())
+                atual = hora_inicio
+                duracao = timedelta(minutes=conf.duracao_slot)
+
+                while atual + duracao <= hora_fim:
+                    print(f"[DEBUG] Criando slot para {atual}")
+                    conflito_existente = db.query(AgendaDisponivel).filter_by(
+                        profissional_id=funcionario.id,
+                        data_hora=atual
+                    ).first()
+
+                    if not conflito_existente:
+                        slot = AgendaDisponivel(
+                            profissional_id=funcionario.id,
+                            estabelecimento_id=funcionario.estabelecimento_id,
+                            data_hora=atual,
+                            ocupado=False,
+                        )
+                        db.add(slot)
+                        total_criados += 1
+                        horarios_criados.append(atual.strftime("%Y-%m-%d %H:%M"))
+
+                    atual += duracao
+
+            data_atual += timedelta(days=1)
+
+    else:
+        while data_atual <= data_fim:
+            for horario_str in dados.horarios_personalizados:
+                hora = datetime.strptime(horario_str, "%H:%M").time()
+                data_hora = datetime.combine(data_atual, hora)
+
+                conflito_existente = db.query(AgendaDisponivel).filter_by(
+                    profissional_id=funcionario.id,
+                    data_hora=data_hora
+                ).first()
+
+                if not conflito_existente:
+                    slot = AgendaDisponivel(
+                        profissional_id=funcionario.id,
+                        estabelecimento_id=funcionario.estabelecimento_id,
+                        data_hora=data_hora,
+                        ocupado=False,
+                    )
+                    db.add(slot)
+                    total_criados += 1
+                    horarios_criados.append(data_hora.strftime("%Y-%m-%d %H:%M"))
+
+            data_atual += timedelta(days=1)
 
     db.commit()
 
@@ -175,38 +238,46 @@ def gerar_agenda_para_todos(
     user=Depends(get_current_user),
 ):
     if user["tipo_usuario"] != "admin":
-        raise HTTPException(
-            status_code=403, detail="Apenas administradores podem gerar agendas"
-        )
+        raise HTTPException(status_code=403, detail="Apenas administradores podem gerar agendas")
 
     estabelecimento_id = user["estabelecimento_id"]
 
-    profissionais = (
-        db.query(Funcionario).filter_by(estabelecimento_id=estabelecimento_id).all()
-    )
+    profissionais = db.query(Funcionario).filter_by(estabelecimento_id=estabelecimento_id).all()
 
     if not profissionais:
-        raise HTTPException(
-            status_code=404,
-            detail="Nenhum profissional encontrado para este estabelecimento",
-        )
+        raise HTTPException(status_code=404, detail="Nenhum profissional encontrado para este estabelecimento")
 
-    data_inicio = datetime.strptime(dados.data_inicio, "%Y-%m-%d").date()
-    data_fim = datetime.strptime(dados.data_fim, "%Y-%m-%d").date()
-    hora_inicio = datetime.strptime(dados.horario_inicio, "%H:%M").time()
-    hora_fim = datetime.strptime(dados.horario_fim, "%H:%M").time()
-
-    dias_semana = dados.dias_semana
-    duracao = timedelta(minutes=dados.duracao_minutos)
+    data_inicio = dados.data_inicio
+    data_fim = dados.data_fim
 
     for profissional in profissionais:
+        configuracoes = db.query(ConfiguracaoAgenda).filter_by(profissional_id=profissional.id).all()
+
+        if not configuracoes:
+            continue
+
         data_atual = data_inicio
         while data_atual <= data_fim:
-            if data_atual.weekday() in dias_semana:
-                horario = datetime.combine(data_atual, hora_inicio)
-                horario_fim = datetime.combine(data_atual, hora_fim)
+            dias_semana_map = {
+                0: "segunda",
+                1: "terca",
+                2: "quarta",
+                3: "quinta",
+                4: "sexta",
+                5: "sabado",
+                6: "domingo"
+            }
+            dia_semana = dias_semana_map[data_atual.weekday()]
 
-                while horario + duracao <= horario_fim:
+            config_do_dia = [cfg for cfg in configuracoes if cfg.dia_semana == dia_semana]
+
+            for config in config_do_dia:
+                hora_inicio = datetime.combine(data_atual, datetime.strptime(config.hora_inicio, "%H:%M").time())
+                hora_fim = datetime.combine(data_atual, datetime.strptime(config.hora_fim, "%H:%M").time())
+                duracao = timedelta(minutes=config.duracao_slot)
+
+                horario = hora_inicio
+                while horario + duracao <= hora_fim:
                     nova_agenda = AgendaDisponivel(
                         profissional_id=profissional.id,
                         estabelecimento_id=estabelecimento_id,
@@ -216,8 +287,9 @@ def gerar_agenda_para_todos(
                     )
                     db.add(nova_agenda)
                     horario += duracao
+
             data_atual += timedelta(days=1)
 
     db.commit()
+    return {"message": "Agendas geradas com sucesso com base na configuração dos profissionais."}
 
-    return {"message": "Agendas geradas com sucesso para todos os profissionais."}
