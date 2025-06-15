@@ -29,7 +29,7 @@ def cadastrar_cartao(
     db: Session = Depends(get_db),
 ):
     try:
-        cliente = db.query(Cliente).filter(Cliente.id == data.cliente_id).first()
+        cliente = db.query(Cliente).filter(Cliente.usuario_id == usuario["id"]).first()
         if not cliente:
             cliente = Cliente(usuario_id=usuario["id"])
             db.add(cliente)
