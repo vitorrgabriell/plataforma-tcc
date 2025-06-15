@@ -177,8 +177,8 @@ const CadastroCartaoForm = ({ onClose }) => {
             <strong>Final:</strong> **** **** **** {cartao.last4}
           </p>
           <p style={{ textAlign: "center" }}>
-            <strong>Expira:</strong>{" "}
-            {String(cartao.exp_month).padStart(2, "0")}/{String(cartao.exp_year).slice(-2)}
+            <strong>Expira:</strong> {String(cartao.exp_month).padStart(2, "0")}/
+            {String(cartao.exp_year).slice(-2)}
           </p>
           <Button onClick={() => setEtapa("novo")}>Cadastrar Novo Cartão</Button>
           <Button bgColor="#64748b" hoverColor="#475569" onClick={() => setEtapa("inicio")}>

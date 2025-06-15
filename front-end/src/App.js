@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
+import SemAutorizacao from "./pages/401";
 import DashboardCliente from "./pages/DashboardCliente";
 import DashboardProfissional from "./pages/DashboardProfissional";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -19,6 +20,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/sem-autorizacao" element={<SemAutorizacao />} />
         <Route path="/solicitar-senha" element={<SolicitarSenha />} />
         <Route path="/resetar-senha/:token" element={<ResetarSenha />} />
         <Route path="/dashboard-cliente" element={<DashboardCliente />} />

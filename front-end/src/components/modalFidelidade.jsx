@@ -143,7 +143,7 @@ const CloseButton = styled.button`
 `;
 
 const ModalFidelidade = ({ onClose, onSuccess, showToast }) => {
-  const [modo, setModo] = useState(null); // "adicionar" | "editar"
+  const [modo, setModo] = useState(null);
   const [descricao, setDescricao] = useState("");
   const [pontos, setPontos] = useState("");
   const [ativo, setAtivo] = useState(true);

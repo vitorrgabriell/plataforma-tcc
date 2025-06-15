@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
+import { isTokenExpired } from "../utils/auth";
 import styled from "styled-components";
 import { jwtDecode } from "jwt-decode";
 import { motion, AnimatePresence } from "framer-motion";
@@ -280,6 +281,7 @@ const DashboardCliente = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
   const [estabelecimentos, setEstabelecimentos] = useState([]);
+  const [estabelecimentoId, setEstabelecimentoId] = useState(null);
   const [mostrarModalCadastroEstabelecimento, setMostrarModalCadastroEstabelecimento] =
     useState(false);
   const [mostrarModalEditarUsuario, setMostrarModalEditarUsuario] = useState(false);
@@ -309,15 +311,40 @@ const DashboardCliente = () => {
 
   useEffect(() => {
     const token = Cookies.get("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUserName(decoded.nome || decoded.email);
-      } catch (error) {
-        console.error("Erro ao decodificar o token", error);
-      }
+
+    if (!token || isTokenExpired()) {
+      Cookies.remove("token");
+      setToast({
+        show: true,
+        message: "Sessão expirada. Faça login novamente.",
+        type: "error",
+      });
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 3000);
+
+      return;
     }
 
+    try {
+      const decoded = jwtDecode(token);
+
+      if (decoded.tipo_usuario !== "cliente") {
+        navigate("/sem-autorizacao");
+        return;
+      }
+
+      setUserName(decoded.nome || decoded.email);
+      setEstabelecimentoId(decoded.estabelecimento_id);
+    } catch (error) {
+      console.error("Erro ao decodificar o token", error);
+      Cookies.remove("token");
+      navigate("/login");
+    }
+  }, []);
+
+  useEffect(() => {
     const fetchEstabelecimentos = async () => {
       const token = Cookies.get("token");
       const api = process.env.REACT_APP_API_URL;

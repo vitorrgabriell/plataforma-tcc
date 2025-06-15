@@ -165,11 +165,20 @@ const DashboardProfissional = () => {
     if (token) {
       try {
         const decoded = jwtDecode(token);
+
+        if (decoded.tipo_usuario !== "profissional") {
+          navigate("/sem-autorizacao");
+          return;
+        }
+
         setUserName(decoded.nome || decoded.email);
         fetchDashboardData();
       } catch (error) {
         console.error("Erro ao decodificar o token", error);
+        navigate("/login");
       }
+    } else {
+      navigate("/login");
     }
   }, []);
 

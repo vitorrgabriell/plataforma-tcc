@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
+import { isTokenExpired } from "../utils/auth";
 import styled from "styled-components";
 import ModalEditarUsuario from "../components/modalEditarUsuario";
 import GraficoFaturamento from "../components/graficoFaturamento";
@@ -293,14 +294,31 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const token = Cookies.get("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUserName(decoded.nome || decoded.email);
-        setEstabelecimentoId(decoded.estabelecimento_id);
-      } catch (error) {
-        console.error("Erro ao decodificar o token", error);
+
+    if (!token || isTokenExpired()) {
+      Cookies.remove("token");
+      setToast({
+        show: true,
+        message: "Sessão expirada. Faça login novamente.",
+        type: "error",
+      });
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+
+      if (decoded.tipo_usuario !== "admin") {
+        navigate("/sem-autorizacao");
+        return;
       }
+      setUserName(decoded.nome || decoded.email);
+      setEstabelecimentoId(decoded.estabelecimento_id);
+    } catch (error) {
+      console.error("Erro ao decodificar o token", error);
+      Cookies.remove("token");
+      navigate("/login");
     }
   }, []);
 
@@ -703,6 +721,7 @@ const AdminDashboard = () => {
             fetchDashboardData();
             setMostrarModalEditarEstabelecimento(false);
           }}
+          showToast={showToast}
         />
       )}
       {mostrarModal && (

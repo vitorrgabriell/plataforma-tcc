@@ -100,17 +100,6 @@ const Message = styled.p`
   margin-bottom: 10px;
 `;
 
-// const CloseButton = styled.button`
-//   position: absolute;
-//   top: 16px;
-//   right: 24px;
-//   background: transparent;
-//   color: #f1f5f9;
-//   font-size: 24px;
-//   border: none;
-//   cursor: pointer;
-// `;
-
 const ModalFuncionario = ({ onClose, estabelecimento_id, onSuccess, showToast }) => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");

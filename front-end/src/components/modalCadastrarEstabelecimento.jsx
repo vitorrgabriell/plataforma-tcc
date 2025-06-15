@@ -10,7 +10,7 @@ const Overlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(15, 23, 42, 0.85); // fundo escuro com transparência
+  background-color: rgba(15, 23, 42, 0.85);
   display: flex;
   justify-content: center;
   align-items: center;

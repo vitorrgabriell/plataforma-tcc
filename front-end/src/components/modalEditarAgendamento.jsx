@@ -4,7 +4,6 @@ import Cookies from "js-cookie";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-// Styled Components
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -104,7 +103,6 @@ const Button = styled.button`
   }
 `;
 
-// Componente principal
 const ModalEditarAgendamento = ({
   agendamento,
   onClose,
@@ -158,7 +156,6 @@ const ModalEditarAgendamento = ({
         setSelectedService(Number(agendamento.servico_id));
         setSelectedProfessional(Number(agendamento.profissional_id));
 
-        // 3. Buscar horários disponíveis
         const horariosRes = await fetch(
           `${api}/agenda/?profissional_id=${agendamento.profissional_id}`,
           {

@@ -185,12 +185,7 @@ const ModalEditarUsuario = ({ isOpen, onClose, onSuccess, showToast }) => {
           </FormGroup>
           <FormGroup>
             <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </FormGroup>
           <FormGroup>
             <label>Senha</label>

@@ -85,13 +85,21 @@ def criar_agendamento(
             detail="Não há tempo disponível suficiente para esse serviço.",
         )
 
+    profissional = (
+        db.query(Funcionario)
+        .filter(Funcionario.id == agendamento.profissional_id)
+        .first()
+    )
+
     novo_agendamento = Agendamento(
         cliente_id=user["id"],
         profissional_id=agendamento.profissional_id,
         servico_id=agendamento.servico_id,
         horario=agendamento.horario,
         status="pendente",
+        estabelecimento_id=profissional.estabelecimento_id,
     )
+
     db.add(novo_agendamento)
     db.commit()
     db.refresh(novo_agendamento)
@@ -526,6 +534,49 @@ def listar_meus_agendamentos(
     JOIN funcionarios f ON f.id = a.profissional_id
     LEFT JOIN avaliacoes av ON av.agendamento_id = a.id
     WHERE a.cliente_id = :cliente_id
+    ORDER BY a.id DESC
+    """
+    )
+
+    result = db.execute(sql, {"cliente_id": user["id"]}).fetchall()
+
+    return [
+        {
+            "id": row.id,
+            "servico_id": row.servico_id,
+            "profissional_id": row.profissional_id,
+            "servico": row.servico,
+            "profissional": row.profissional,
+            "horario": row.horario,
+            "status": row.status,
+            "avaliado": row.avaliado,
+        }
+        for row in result
+    ]
+
+
+@router.get("/meus-finalizados", response_model=list[dict])
+def listar_meus_agendamentos(
+    db: Session = Depends(get_db), user=Depends(get_current_user)
+):
+    sql = text(
+        """
+    SELECT 
+        a.id,
+        a.servico_id,
+        a.profissional_id,
+        s.nome AS servico,
+        f.nome AS profissional,
+        a.horario,
+        a.status,
+        CASE WHEN av.id IS NOT NULL THEN true ELSE false END AS avaliado
+    FROM agendamentos a
+    JOIN usuarios u ON u.id = a.cliente_id 
+    JOIN servicos s ON s.id = a.servico_id 
+    JOIN funcionarios f ON f.id = a.profissional_id
+    LEFT JOIN avaliacoes av ON av.agendamento_id = a.id
+    WHERE a.cliente_id = :cliente_id
+    and a.status = 'finalizado'
     ORDER BY a.id DESC
     """
     )

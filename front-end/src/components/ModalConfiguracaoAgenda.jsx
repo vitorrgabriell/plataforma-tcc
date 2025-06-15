@@ -391,7 +391,15 @@ const ModalConfiguracaoAgenda = ({ isOpen, onClose, showToast, estabelecimentoId
                   </Row>
                 );
               })}
-              <div style={{ display: "flex", gap: "12px", marginTop: "20px", justifyContent: "center", paddingBottom: "12px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  marginTop: "20px",
+                  justifyContent: "center",
+                  paddingBottom: "12px",
+                }}
+              >
                 <Button type="submit">Salvar</Button>
                 <Button type="button" bgColor="#64748b" hoverColor="#475569" onClick={handleClose}>
                   Voltar

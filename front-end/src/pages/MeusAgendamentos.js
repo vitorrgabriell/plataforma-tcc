@@ -210,7 +210,7 @@ const MeusAgendamentos = () => {
       try {
         const decoded = jwtDecode(token);
         setUserName(decoded.nome || decoded.email);
-        fetch(`${process.env.REACT_APP_API_URL}/agendamentos/meus`, {
+        fetch(`${process.env.REACT_APP_API_URL}/agendamentos/meus-finalizados`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
