@@ -283,7 +283,7 @@ const AdminDashboard = () => {
   const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false);
   const [tipoExclusao, setTipoExclusao] = useState("");
   const [idParaExcluir, setIdParaExcluir] = useState(null);
-  const [fidelidade, setFidelidade] = useState(null);
+  const [fidelidade, setFidelidade] = useState([]);
   const [resumoFidelidade, setResumoFidelidade] = useState(null);
   const [mostrarModalFidelidade, setMostrarModalFidelidade] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
@@ -448,9 +448,10 @@ const AdminDashboard = () => {
     const token = Cookies.get("token");
     const decoded = JSON.parse(atob(token.split(".")[1]));
     const estabelecimento_id = decoded.estabelecimento_id;
+    const api = process.env.REACT_APP_API_URL
 
     fetch(
-      `${process.env.REACT_APP_API_URL}/fidelidade/resumo?estabelecimento_id=${estabelecimento_id}`,
+      `${api}/fidelidade/resumo?estabelecimento_id=${estabelecimento_id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -458,7 +459,13 @@ const AdminDashboard = () => {
       }
     )
       .then((res) => res.json())
-      .then((data) => setResumoFidelidade(data))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setFidelidade(data);
+        } else {
+          setFidelidade([data]);
+        }
+      })
       .catch((err) => console.error("Erro ao carregar fidelidade:", err));
   }, []);
 
@@ -639,27 +646,29 @@ const AdminDashboard = () => {
                   </CustomCard>
                 ))
               )}
-              {fidelidade && (
+              {fidelidade.length > 0 && (
                 <>
-                  <div style={{ marginBottom: "12px" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <CardTitle>Fidelidade</CardTitle>
-                      <Button onClick={() => setMostrarModalFidelidade(true)}>Configurar</Button>
-                    </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    <CardTitle>Fidelidade</CardTitle>
+                    <Button onClick={() => setMostrarModalFidelidade(true)}>Configurar</Button>
                   </div>
-                  <CustomCard>
-                    <p>
-                      Programa: <strong>{fidelidade.ativo ? "Ativo ✅" : "Inativo ❌"}</strong>
-                    </p>
-                    <p>Regra: {fidelidade.regra}</p>
-                    <p>Gratuitos concedidos: {fidelidade.servicosGratuitos}</p>
-                  </CustomCard>
+
+                  {fidelidade.map((fidelidade, index) => (
+                    <CustomCard key={index}>
+                      <p>
+                        Programa: <strong>{fidelidade.ativo ? "Ativo ✅" : "Inativo ❌"}</strong>
+                      </p>
+                      <p>Regra: {fidelidade.regra}</p>
+                      <p>Gratuitos concedidos: {fidelidade.servicosGratuitos}</p>
+                    </CustomCard>
+                  ))}
                 </>
               )}
             </CardColumn>

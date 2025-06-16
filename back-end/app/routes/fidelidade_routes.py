@@ -178,44 +178,44 @@ def atualizar_programa_fidelidade(
 
 @router.get("/resumo")
 def resumo_fidelidade(estabelecimento_id: int, db: Session = Depends(get_db)):
-    programa = (
+    programas = (
         db.query(ProgramaFidelidade)
         .filter_by(estabelecimento_id=estabelecimento_id)
-        .first()
+        .all()
     )
 
-    if not programa:
-        return {
-            "ativo": False,
-            "regra": "Programa não configurado",
-            "participantes": 0,
-            "servicosGratuitos": 0,
-        }
+    if not programas:
+        return []
 
-    total_participantes = db.execute(
-        """
-        SELECT COUNT(*) FROM usuarios 
-        WHERE estabelecimento_id = :eid AND pontos_acumulados > 0
-    """,
-        {"eid": estabelecimento_id},
-    ).scalar()
+    resultados = []
+    for programa in programas:
+        total_participantes = db.execute(
+            """
+            SELECT COUNT(*) FROM usuarios 
+            WHERE estabelecimento_id = :eid AND pontos_acumulados > 0
+        """,
+            {"eid": estabelecimento_id},
+        ).scalar()
 
-    servicos_gratuitos = db.execute(
-        """
-    SELECT COUNT(*) 
-    FROM resgates_fidelidade rf
-    JOIN programa_fidelidade pf ON pf.id = rf.programa_fidelidade_id
-    WHERE pf.estabelecimento_id = :eid
-    """,
-        {"eid": estabelecimento_id},
-    ).scalar()
+        servicos_gratuitos = db.execute(
+            """
+            SELECT COUNT(*) 
+            FROM resgates_fidelidade rf
+            JOIN programa_fidelidade pf ON pf.id = rf.programa_fidelidade_id
+            WHERE pf.estabelecimento_id = :eid
+        """,
+            {"eid": estabelecimento_id},
+        ).scalar()
 
-    return {
-        "ativo": programa.ativo,
-        "regra": f"A cada {programa.pontos_necessarios} serviços pagos, {programa.descricao_premio}",
-        "participantes": total_participantes,
-        "servicosGratuitos": servicos_gratuitos,
-    }
+        resultados.append({
+            "ativo": programa.ativo,
+            "regra": f"A cada {programa.pontos_necessarios} serviços pagos, {programa.descricao_premio}",
+            "participantes": total_participantes,
+            "servicosGratuitos": servicos_gratuitos,
+        })
+
+    return resultados
+
 
 
 @router.get("/ultimo-servico")
