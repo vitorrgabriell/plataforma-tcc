@@ -797,9 +797,8 @@ def confirmar_agendamento(
     tempo_acumulado = timedelta()
 
     for slot in slots_disponiveis:
-        if not slots_utilizados:
-            if slot.data_hora != agendamento.horario:
-                continue
+        if not slots_utilizados and slot.data_hora != agendamento.horario:
+            continue
         else:
             anterior = slots_utilizados[-1].data_hora
             if slot.data_hora != anterior + timedelta(minutes=15):
