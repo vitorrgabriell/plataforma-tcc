@@ -142,66 +142,65 @@ const RecompensaFidelidadePage = () => {
     setToast({ show: true, message, type });
   };
 
-  useEffect(() => {
-    const fetchPontosComPremio = async () => {
-      const token = Cookies.get("token");
+  const fetchPontosComPremio = async () => {
+    const token = Cookies.get("token");
 
-      if (token) {
-        try {
-          const decoded = jwtDecode(token);
-          setUserName(decoded.nome || decoded.email);
-        } catch (error) {
-          console.error("Erro ao decodificar o token", error);
-        }
-      }
-
-      const api = process.env.REACT_APP_API_URL;
-
+    if (token) {
       try {
-        const pontosRes = await fetch(`${api}/fidelidade/meus-pontos/estabelecimentos`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const pontosData = await pontosRes.json();
+        const decoded = jwtDecode(token);
+        setUserName(decoded.nome || decoded.email);
+      } catch (error) {
+        console.error("Erro ao decodificar o token", error);
+      }
+    }
 
-        const programasRes = await fetch(`${api}/fidelidade/programa`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const programasData = await programasRes.json();
+    const api = process.env.REACT_APP_API_URL;
 
-        const pontosComPremio = pontosData.map((p) => {
-          const programa = programasData.find(
-            (pr) => pr.estabelecimento_id === p.estabelecimento_id
+    try {
+      const pontosRes = await fetch(`${api}/fidelidade/meus-pontos/estabelecimentos`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const pontosData = await pontosRes.json();
+
+      const programasRes = await fetch(`${api}/fidelidade/programa`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const programasData = await programasRes.json();
+
+      const pontosComPremio = programasData
+        .filter((programa) => programa.ativo)
+        .map((programa) => {
+          const ponto = pontosData.find(
+            (p) => p.estabelecimento_id === programa.estabelecimento_id
           );
           return {
-            ...p,
-            premio: programa?.descricao_premio || "Prêmio não definido",
+            ...programa,
+            descricao_premio: programa.descricao_premio,
+            estabelecimento_nome: ponto?.estabelecimento_nome || "Estabelecimento",
+            pontos_acumulados: ponto?.pontos_acumulados || 0,
           };
-        });
+      });
 
-        setPontos(pontosComPremio);
-      } catch (error) {
-        console.error("Erro ao buscar pontos e prêmios:", error);
-      }
-    };
+      setPontos(pontosComPremio);
+    } catch (error) {
+      console.error("Erro ao buscar pontos e prêmios:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchPontosComPremio();
   }, []);
 
-  const handleResgatar = async (estabelecimento_id) => {
+  const handleResgatar = async (programa_id) => {
     try {
       const token = Cookies.get("token");
-      const programaRes = await fetch(`${process.env.REACT_APP_API_URL}/fidelidade/programa`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const programas = await programaRes.json();
-      const programa = programas.find((p) => p.estabelecimento_id === estabelecimento_id);
-      if (!programa) throw new Error("Programa não encontrado.");
+      const api = process.env.REACT_APP_API_URL;
 
-      await fetch(`${process.env.REACT_APP_API_URL}/fidelidade/resgatar`, {
+      await fetch(`${api}/fidelidade/resgatar`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -209,7 +208,7 @@ const RecompensaFidelidadePage = () => {
         },
         body: JSON.stringify({
           cliente_id: jwtDecode(token).id,
-          programa_fidelidade_id: programa.id,
+          programa_fidelidade_id: programa_id,
         }),
       });
 
@@ -274,7 +273,7 @@ const RecompensaFidelidadePage = () => {
                   <CardTitle>{p.estabelecimento_nome}</CardTitle>
                   <CardInfo>Pontos acumulados: {p.pontos_acumulados}</CardInfo>
                   <CardInfo style={{ color: "#facc15", fontWeight: "bold" }}>
-                    Prêmio: {p.premio}
+                    Prêmio: {p.descricao_premio}
                   </CardInfo>
                   <CardInfo>
                     {p.pontos_acumulados >= 10
@@ -283,7 +282,7 @@ const RecompensaFidelidadePage = () => {
                   </CardInfo>
                   <ResgatarButton
                     disabled={p.pontos_acumulados < 10}
-                    onClick={() => handleResgatar(p.estabelecimento_id)}
+                    onClick={() => handleResgatar(p.id)}
                   >
                     Resgatar Prêmio
                   </ResgatarButton>
