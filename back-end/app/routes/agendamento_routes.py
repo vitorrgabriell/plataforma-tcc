@@ -35,7 +35,9 @@ from app.utils.notifications import (
 router = APIRouter()
 
 
-@router.post("/", response_model=AgendamentoResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/", response_model=AgendamentoResponse, status_code=status.HTTP_201_CREATED
+)
 def criar_agendamento(
     agendamento: AgendamentoCreate,
     db: Session = Depends(get_db),
@@ -70,7 +72,8 @@ def criar_agendamento(
 
     if not config:
         raise HTTPException(
-            status_code=400, detail="Não foi possível determinar a duração do slot para esse profissional."
+            status_code=400,
+            detail="Não foi possível determinar a duração do slot para esse profissional.",
         )
 
     duracao_slot = timedelta(minutes=config.duracao_slot)
@@ -84,9 +87,10 @@ def criar_agendamento(
         )
         .all()
     )
-    slots_disponiveis = list({slot.data_hora: slot for slot in slots_disponiveis}.values())
+    slots_disponiveis = list(
+        {slot.data_hora: slot for slot in slots_disponiveis}.values()
+    )
     slots_disponiveis.sort(key=lambda s: s.data_hora)
-
 
     slots_utilizados = []
     tempo_acumulado = timedelta()
@@ -106,8 +110,8 @@ def criar_agendamento(
         raise HTTPException(
             status_code=400,
             detail=f"Não há tempo disponível suficiente para esse serviço. "
-                   f"Apenas {tempo_acumulado.total_seconds() / 60:.0f} minutos disponíveis a partir de {agendamento.horario}, "
-                   f"mas o serviço exige {servico.tempo} minutos.",
+            f"Apenas {tempo_acumulado.total_seconds() / 60:.0f} minutos disponíveis a partir de {agendamento.horario}, "
+            f"mas o serviço exige {servico.tempo} minutos.",
         )
 
     profissional = (

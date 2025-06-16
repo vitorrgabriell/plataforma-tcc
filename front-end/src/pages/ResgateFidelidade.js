@@ -183,7 +183,7 @@ const RecompensaFidelidadePage = () => {
             estabelecimento_nome: ponto?.estabelecimento_nome || "Estabelecimento",
             pontos_acumulados: ponto?.pontos_acumulados || 0,
           };
-      });
+        });
 
       setPontos(pontosComPremio);
     } catch (error) {

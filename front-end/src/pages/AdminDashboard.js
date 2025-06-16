@@ -448,16 +448,13 @@ const AdminDashboard = () => {
     const token = Cookies.get("token");
     const decoded = JSON.parse(atob(token.split(".")[1]));
     const estabelecimento_id = decoded.estabelecimento_id;
-    const api = process.env.REACT_APP_API_URL
+    const api = process.env.REACT_APP_API_URL;
 
-    fetch(
-      `${api}/fidelidade/resumo?estabelecimento_id=${estabelecimento_id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
+    fetch(`${api}/fidelidade/resumo?estabelecimento_id=${estabelecimento_id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -661,7 +658,14 @@ const AdminDashboard = () => {
                   </div>
 
                   {fidelidade.map((fidelidade, index) => (
-                    <CustomCard key={index} style={!fidelidade.ativo ? { backgroundColor: "#821212", border: "2px solid #dc2626",}: {} } >
+                    <CustomCard
+                      key={index}
+                      style={
+                        !fidelidade.ativo
+                          ? { backgroundColor: "#821212", border: "2px solid #dc2626" }
+                          : {}
+                      }
+                    >
                       <p>
                         Programa: <strong>{fidelidade.ativo ? "Ativo ✅" : "Inativo ❌"}</strong>
                       </p>

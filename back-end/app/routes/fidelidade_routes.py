@@ -207,15 +207,16 @@ def resumo_fidelidade(estabelecimento_id: int, db: Session = Depends(get_db)):
             {"eid": estabelecimento_id},
         ).scalar()
 
-        resultados.append({
-            "ativo": programa.ativo,
-            "regra": f"A cada {programa.pontos_necessarios} serviços pagos, {programa.descricao_premio}",
-            "participantes": total_participantes,
-            "servicosGratuitos": servicos_gratuitos,
-        })
+        resultados.append(
+            {
+                "ativo": programa.ativo,
+                "regra": f"A cada {programa.pontos_necessarios} serviços pagos, {programa.descricao_premio}",
+                "participantes": total_participantes,
+                "servicosGratuitos": servicos_gratuitos,
+            }
+        )
 
     return resultados
-
 
 
 @router.get("/ultimo-servico")

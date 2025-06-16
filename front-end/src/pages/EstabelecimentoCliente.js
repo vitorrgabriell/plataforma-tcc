@@ -130,7 +130,7 @@ const AppointmentCard = styled.div`
   align-items: center;
 `;
 
-const AppointmentInfoTittle = styled.div `
+const AppointmentInfoTittle = styled.div`
   font-size: 20px;
   color: #f1f5f9;
   font: Arial Bold;
@@ -334,8 +334,7 @@ const EstabelecimentoCliente = () => {
         : [];
 
       const horariosUnicos = horariosFiltrados.filter(
-        (slot, index, self) =>
-          index === self.findIndex((s) => s.originalDate === slot.originalDate)
+        (slot, index, self) => index === self.findIndex((s) => s.originalDate === slot.originalDate)
       );
 
       setAllSlots(horariosUnicos);
@@ -595,9 +594,7 @@ const EstabelecimentoCliente = () => {
               <AppointmentCard key={app.id}>
                 <div>
                   <AppointmentInfo>
-                    <AppointmentInfoTittle>
-                      {app.estabelecimento}
-                    </AppointmentInfoTittle>
+                    <AppointmentInfoTittle>{app.estabelecimento}</AppointmentInfoTittle>
                     {app.servico} com {app.profissional} em{" "}
                     {new Date(app.horario).toLocaleDateString("pt-BR")} às{" "}
                     {new Date(app.horario).toLocaleTimeString("pt-BR", {
