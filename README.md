@@ -40,6 +40,7 @@ Projeto de Trabalho de Conclusão de Curso (TCC) para o curso de Tecnologia em A
   - Resgate de fidelidade
 - Painel do profissional com:
   - Visualização da agenda
+  - Geração de horários
   - Finalização de serviços
   - Histórico de atendimentos
 - Dashboard do administrador com:
@@ -49,7 +50,6 @@ Projeto de Trabalho de Conclusão de Curso (TCC) para o curso de Tecnologia em A
 - Envio automático de e-mails:
   - Confirmação de agendamento
   - Lembrete (1 dia e 1 hora antes)
-  - Finalização e avaliação
   - Recuperação de senha
 - Integração com Stripe para cadastro de cartão e cobrança automática ao final do atendimento.
 
@@ -63,7 +63,6 @@ Projeto de Trabalho de Conclusão de Curso (TCC) para o curso de Tecnologia em A
 │   │   ├── models/              # Modelos SQLAlchemy
 │   │   ├── routes/              # Rotas da API
 │   │   ├── schemas/             # Schemas Pydantic
-│   │   ├── services/            # Lógica de negócio
 │   │   └── main.py              # Ponto de entrada da API
 │
 📁 frontend
