@@ -130,6 +130,12 @@ const AppointmentCard = styled.div`
   align-items: center;
 `;
 
+const AppointmentInfoTittle = styled.div `
+  font-size: 20px;
+  color: #f1f5f9;
+  font: Arial Bold;
+`;
+
 const AppointmentInfo = styled.div`
   font-size: 14px;
   color: #f1f5f9;
@@ -327,7 +333,12 @@ const EstabelecimentoCliente = () => {
             }))
         : [];
 
-      setAllSlots(horariosFiltrados);
+      const horariosUnicos = horariosFiltrados.filter(
+        (slot, index, self) =>
+          index === self.findIndex((s) => s.originalDate === slot.originalDate)
+      );
+
+      setAllSlots(horariosUnicos);
     } catch (err) {
       console.error("Erro ao buscar horários disponíveis:", err);
     }
@@ -584,6 +595,9 @@ const EstabelecimentoCliente = () => {
               <AppointmentCard key={app.id}>
                 <div>
                   <AppointmentInfo>
+                    <AppointmentInfoTittle>
+                      {app.estabelecimento}
+                    </AppointmentInfoTittle>
                     {app.servico} com {app.profissional} em{" "}
                     {new Date(app.horario).toLocaleDateString("pt-BR")} às{" "}
                     {new Date(app.horario).toLocaleTimeString("pt-BR", {

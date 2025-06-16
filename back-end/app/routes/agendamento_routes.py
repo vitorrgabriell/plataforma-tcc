@@ -20,6 +20,7 @@ from app.models.user import User
 from app.models.funcionarios import Funcionario
 from app.models.estabelecimento import Estabelecimento
 from app.models.pontos_fidelidade_cliente import PontosFidelidadeCliente
+from app.models.configuracao_agenda import ConfiguracaoAgenda
 from app.utils.dynamo_client import salvar_servico_finalizado, salvar_ponto_fidelidade
 from app.utils.notifications import (
     enviar_email_confirmacao_agendamento,
@@ -34,9 +35,7 @@ from app.utils.notifications import (
 router = APIRouter()
 
 
-@router.post(
-    "/", response_model=AgendamentoResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/", response_model=AgendamentoResponse, status_code=status.HTTP_201_CREATED)
 def criar_agendamento(
     agendamento: AgendamentoCreate,
     db: Session = Depends(get_db),
@@ -48,6 +47,34 @@ def criar_agendamento(
 
     duracao_total = timedelta(minutes=servico.tempo)
 
+    dia_semana = agendamento.horario.strftime("%A").lower()
+    traducao_dias = {
+        "monday": "segunda",
+        "tuesday": "terca",
+        "wednesday": "quarta",
+        "thursday": "quinta",
+        "friday": "sexta",
+        "saturday": "sabado",
+        "sunday": "domingo",
+    }
+    dia_semana_pt = traducao_dias.get(dia_semana)
+
+    config = (
+        db.query(ConfiguracaoAgenda)
+        .filter(
+            ConfiguracaoAgenda.profissional_id == agendamento.profissional_id,
+            ConfiguracaoAgenda.dia_semana == dia_semana_pt,
+        )
+        .first()
+    )
+
+    if not config:
+        raise HTTPException(
+            status_code=400, detail="Não foi possível determinar a duração do slot para esse profissional."
+        )
+
+    duracao_slot = timedelta(minutes=config.duracao_slot)
+
     slots_disponiveis = (
         db.query(AgendaDisponivel)
         .filter(
@@ -55,34 +82,32 @@ def criar_agendamento(
             AgendaDisponivel.data_hora >= agendamento.horario,
             AgendaDisponivel.ocupado == False,
         )
-        .order_by(AgendaDisponivel.data_hora)
         .all()
     )
+    slots_disponiveis = list({slot.data_hora: slot for slot in slots_disponiveis}.values())
+    slots_disponiveis.sort(key=lambda s: s.data_hora)
+
 
     slots_utilizados = []
     tempo_acumulado = timedelta()
 
     for slot in slots_disponiveis:
-        if not slots_utilizados:
-            if slot.data_hora != agendamento.horario:
-                continue
+        esperado = agendamento.horario + len(slots_utilizados) * duracao_slot
+        if slot.data_hora == esperado:
             slots_utilizados.append(slot)
-            tempo_acumulado += timedelta(minutes=15)
-        else:
-            anterior = slots_utilizados[-1].data_hora
-            if slot.data_hora == anterior + timedelta(minutes=15):
-                slots_utilizados.append(slot)
-                tempo_acumulado += timedelta(minutes=15)
-            else:
-                break
+            tempo_acumulado += duracao_slot
 
-        if tempo_acumulado >= duracao_total:
+            if tempo_acumulado >= duracao_total:
+                break
+        elif slots_utilizados:
             break
 
     if tempo_acumulado < duracao_total:
         raise HTTPException(
             status_code=400,
-            detail="Não há tempo disponível suficiente para esse serviço.",
+            detail=f"Não há tempo disponível suficiente para esse serviço. "
+                   f"Apenas {tempo_acumulado.total_seconds() / 60:.0f} minutos disponíveis a partir de {agendamento.horario}, "
+                   f"mas o serviço exige {servico.tempo} minutos.",
         )
 
     profissional = (
@@ -101,6 +126,10 @@ def criar_agendamento(
     )
 
     db.add(novo_agendamento)
+
+    for slot in slots_utilizados:
+        slot.ocupado = True
+
     db.commit()
     db.refresh(novo_agendamento)
 
@@ -525,6 +554,7 @@ def listar_meus_agendamentos(
         a.profissional_id,
         s.nome AS servico,
         f.nome AS profissional,
+        e.nome as estabelecimento,
         a.horario,
         a.status,
         CASE WHEN av.id IS NOT NULL THEN true ELSE false END AS avaliado
@@ -532,6 +562,7 @@ def listar_meus_agendamentos(
     JOIN usuarios u ON u.id = a.cliente_id 
     JOIN servicos s ON s.id = a.servico_id 
     JOIN funcionarios f ON f.id = a.profissional_id
+    JOIN estabelecimentos e on e.id = a.estabelecimento_id
     LEFT JOIN avaliacoes av ON av.agendamento_id = a.id
     WHERE a.cliente_id = :cliente_id
     ORDER BY a.id DESC
@@ -547,6 +578,7 @@ def listar_meus_agendamentos(
             "profissional_id": row.profissional_id,
             "servico": row.servico,
             "profissional": row.profissional,
+            "estabelecimento": row.estabelecimento,
             "horario": row.horario,
             "status": row.status,
             "avaliado": row.avaliado,

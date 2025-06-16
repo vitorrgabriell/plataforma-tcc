@@ -66,7 +66,12 @@ def listar_agenda(
         .all()
     )
 
-    return horarios_disponiveis
+    unicos_por_data = {}
+    for h in horarios_disponiveis:
+        if h.data_hora not in unicos_por_data:
+            unicos_por_data[h.data_hora] = h
+
+    return list(unicos_por_data.values())
 
 
 @router.delete("/{horario_id}", status_code=status.HTTP_204_NO_CONTENT)
