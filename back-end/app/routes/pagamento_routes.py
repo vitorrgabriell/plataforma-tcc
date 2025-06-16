@@ -18,7 +18,6 @@ import traceback
 load_dotenv()
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-print("[DEBUG] STRIPE_SECRET_KEY:", stripe.api_key)
 router = APIRouter()
 
 
