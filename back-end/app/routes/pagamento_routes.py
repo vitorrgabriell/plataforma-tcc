@@ -37,6 +37,7 @@ def cadastrar_cartao(
             db.refresh(cliente)
 
         if cliente.stripe_customer_id:
+            stripe.Customer.retrieve(cliente.stripe_customer_id)
             customer_id = cliente.stripe_customer_id
         else:
             stripe_cliente = stripe.Customer.create(email=data.email, name=data.nome)
