@@ -27,6 +27,7 @@ Projeto de Trabalho de Conclusão de Curso (TCC) para o curso de Tecnologia em A
 - [AWS EC2](https://aws.amazon.com/ec2/)
 - [AWS S3 + CloudFront](https://aws.amazon.com/s3/)
 - [AWS Route 53](https://aws.amazon.com/route53/)
+- [AWS RDS](https://aws.amazon.com/rds/)
 
 ---
 
@@ -88,7 +89,7 @@ Projeto de Trabalho de Conclusão de Curso (TCC) para o curso de Tecnologia em A
 ### Backend (FastAPI)
 
 ```bash
-cd backend
+cd back-end
 python -m venv venv
 source venv/bin/activate  # ou venv\Scripts\activate no Windows
 pip install -r requirements.txt
@@ -98,7 +99,7 @@ uvicorn app.main:app --reload --port 8080
 ### Frontend (React)
 
 ```bash
-cd frontend
+cd front-end
 npm install
 npm start
 ```
