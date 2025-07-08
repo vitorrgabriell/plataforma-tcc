@@ -34,6 +34,7 @@ from app.utils.notifications import (
 
 router = APIRouter()
 
+
 def liberar_slots_agendamento(db, agendamento: Agendamento):
     servico = db.query(Servico).filter(Servico.id == agendamento.servico_id).first()
     if not servico:

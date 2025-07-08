@@ -42,7 +42,9 @@ def cadastrar_cartao(
                 stripe.Customer.retrieve(cliente.stripe_customer_id)
                 customer_id = cliente.stripe_customer_id
             except Exception:
-                stripe_cliente = stripe.Customer.create(email=data.email, name=data.nome)
+                stripe_cliente = stripe.Customer.create(
+                    email=data.email, name=data.nome
+                )
                 customer_id = stripe_cliente.id
                 cliente.stripe_customer_id = customer_id
                 db.commit()
@@ -53,23 +55,18 @@ def cadastrar_cartao(
             db.commit()
 
         setup_intent = stripe.SetupIntent.create(
-            customer=customer_id,
-            payment_method_types=["card"]
+            customer=customer_id, payment_method_types=["card"]
         )
 
-        return {
-            "client_secret": setup_intent.client_secret,
-            "customer_id": customer_id
-        }
+        return {"client_secret": setup_intent.client_secret, "customer_id": customer_id}
 
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao iniciar cadastro do cartão: {str(e)}"
+            status_code=500, detail=f"Erro ao iniciar cadastro do cartão: {str(e)}"
         )
-
 
 
 @router.post("/definir-cartao-padrao/")

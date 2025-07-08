@@ -70,7 +70,6 @@ def listar_agenda(
     for h in horarios_disponiveis:
         if h.data_hora not in unicos_por_data:
             unicos_por_data[h.data_hora] = h
-
     return list(unicos_por_data.values())
 
 
