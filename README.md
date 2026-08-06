@@ -116,10 +116,10 @@ http://localhost:8080/docs
 
 ---
 
-## Autor
+## Autores
 
-**Vitor Almeida**  
-Desenvolvedor Jr | TCC - UniEinstein
+**Gustavo Manfredi, Vitor Almeida e Enzo Rocco** 
+TCC - UniEinstein
 
 ---
 
